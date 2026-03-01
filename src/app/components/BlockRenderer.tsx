@@ -25,6 +25,21 @@ function BlockNode({ block, allBlocks }: { block: any, allBlocks: any[] }) {
         return <div className="p-4 border-l-4 border-red-500 bg-red-950/20 text-red-500 font-mono text-xs">Error: JSON Corrupto en bloque {block.type}</div>;
     }
 
+    let customStyles: React.CSSProperties = {};
+    if (block.styles) {
+        try {
+            const stylesObj = JSON.parse(block.styles);
+            if (stylesObj.backgroundColor) customStyles.backgroundColor = stylesObj.backgroundColor;
+            if (stylesObj.backgroundImage) {
+                customStyles.backgroundImage = `url('${stylesObj.backgroundImage}')`;
+                customStyles.backgroundSize = 'cover';
+                customStyles.backgroundPosition = 'center';
+            }
+            if (stylesObj.paddingTop) customStyles.paddingTop = `${stylesObj.paddingTop}rem`;
+            if (stylesObj.paddingBottom) customStyles.paddingBottom = `${stylesObj.paddingBottom}rem`;
+        } catch (e) { }
+    }
+
     // Find children attached to this node
     const childrenBlocks = allBlocks
         .filter(b => b.parentId === block.id)
@@ -36,7 +51,10 @@ function BlockNode({ block, allBlocks }: { block: any, allBlocks: any[] }) {
     ));
 
     return (
-        <div className={`w-full relative fade-in-section node-type-${block.type}`}>
+        <div
+            className={`w-full relative fade-in-section node-type-${block.type}`}
+            style={customStyles}
+        >
             <Component data={parsedData} childrenNodes={childrenNodes} />
         </div>
     );
