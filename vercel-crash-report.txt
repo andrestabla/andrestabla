@@ -1,0 +1,7 @@
+This issue is caused by the ephemeral nature of Vercel Serverless Functions. 
+
+Vercel functions do not have persistent file systems. While `dev.db` (SQLite) works locally, when deployed to Vercel, the function spins up, tries to read `dev.db`, and fails because the file either doesn't exist in the function's temporary container or is read-only. 
+
+To run a Full-Stack database application on Vercel, **we MUST use a hosted database like PostgreSQL** (e.g., Supabase, Neon, or Vercel Postgres).
+
+I am migrating the Prisma schema to PostgreSQL. The user will need to provide a PostgreSQL URL to make the live site functional.
