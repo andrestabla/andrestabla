@@ -130,9 +130,13 @@ export default function BuilderWorkspace({ page, settings }: { page: any, settin
                             <div>
                                 <h3 className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-3 ml-1 mt-2">Básicos</h3>
                                 <div className="grid grid-cols-2 gap-2">
+                                    <WidgetAddBtn pageId={page.id} parentId={null} type="heading" label="Encabezados" defaultData={{ text: "Nuevo Encabezado", tag: "h2" }} onAdded={forcePreviewReload} />
                                     <WidgetAddBtn pageId={page.id} parentId={null} type="richtext" label="Texto a Medida" defaultData={{ title: "Título Seccion", content: "<p>Escribe algo increíble...</p>" }} onAdded={forcePreviewReload} />
+                                    <WidgetAddBtn pageId={page.id} parentId={null} type="button" label="Botón (CTA)" defaultData={{ text: "Haz clic aquí", link: "#", style: "primary" }} onAdded={forcePreviewReload} />
                                     <WidgetAddBtn pageId={page.id} parentId={null} type="image" label="Imagen" defaultData={{ url: "", alt: "Imagen" }} onAdded={forcePreviewReload} />
                                     <WidgetAddBtn pageId={page.id} parentId={null} type="video" label="Video" defaultData={{ url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ" }} onAdded={forcePreviewReload} />
+                                    <WidgetAddBtn pageId={page.id} parentId={null} type="divider" label="Divider (Línea)" defaultData={{ style: "solid" }} onAdded={forcePreviewReload} />
+                                    <WidgetAddBtn pageId={page.id} parentId={null} type="spacer" label="Spacer (Espaciador)" defaultData={{ height: "h-12" }} onAdded={forcePreviewReload} />
                                 </div>
                             </div>
 
@@ -192,8 +196,9 @@ export default function BuilderWorkspace({ page, settings }: { page: any, settin
                                         <Layers size={14} /> Inyectar Widget dentro de Grid
                                     </h3>
                                     <div className="grid grid-cols-2 gap-2">
-                                        <WidgetAddBtn pageId={page.id} parentId={selectedBlock.id} type="hero" label="Portada (Hero)" defaultData={{ name: "Nuevo", role: "..." }} onAdded={forcePreviewReload} />
+                                        <WidgetAddBtn pageId={page.id} parentId={selectedBlock.id} type="heading" label="Encabezados (H2+)" defaultData={{ text: "Título", tag: "h3" }} onAdded={forcePreviewReload} />
                                         <WidgetAddBtn pageId={page.id} parentId={selectedBlock.id} type="richtext" label="Texto (Prose)" defaultData={{ title: "Sección", content: "<p>...</p>" }} onAdded={forcePreviewReload} />
+                                        <WidgetAddBtn pageId={page.id} parentId={selectedBlock.id} type="button" label="Botón" defaultData={{ text: "Ir", style: "primary" }} onAdded={forcePreviewReload} />
                                         <WidgetAddBtn pageId={page.id} parentId={selectedBlock.id} type="image" label="Imagen" defaultData={{ url: "", alt: "Imagen" }} onAdded={forcePreviewReload} />
                                         <WidgetAddBtn pageId={page.id} parentId={selectedBlock.id} type="video" label="Video" defaultData={{ url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ" }} onAdded={forcePreviewReload} />
                                         <WidgetAddBtn pageId={page.id} parentId={selectedBlock.id} type="accordion" label="Acordeón" defaultData={{ title: "", items: [] }} onAdded={forcePreviewReload} />
@@ -287,6 +292,10 @@ import VideoInspector from './inspectors/VideoInspector';
 import ImageInspector from './inspectors/ImageInspector';
 import AccordionInspector from './inspectors/AccordionInspector';
 import CarouselInspector from './inspectors/CarouselInspector';
+import HeadingInspector from './inspectors/HeadingInspector';
+import ButtonInspector from './inspectors/ButtonInspector';
+import DividerInspector from './inspectors/DividerInspector';
+import SpacerInspector from './inspectors/SpacerInspector';
 
 function InspectorForm({ block, onSaved }: { block: any, onSaved: () => void }) {
     const [isSaving, setIsSaving] = useState(false);
@@ -348,7 +357,12 @@ function InspectorForm({ block, onSaved }: { block: any, onSaved: () => void }) 
                     {block.type === 'accordion' && <AccordionInspector initialData={parsedData} onSave={handleSaveParsed} isSaving={isSaving} />}
                     {block.type === 'carousel' && <CarouselInspector initialData={parsedData} onSave={handleSaveParsed} isSaving={isSaving} />}
 
-                    {!['hero', 'richtext', 'timeline', 'bento', 'grid', 'video', 'image', 'accordion', 'carousel'].includes(block.type) && (
+                    {block.type === 'heading' && <HeadingInspector initialData={parsedData} onSave={handleSaveParsed} isSaving={isSaving} />}
+                    {block.type === 'button' && <ButtonInspector initialData={parsedData} onSave={handleSaveParsed} isSaving={isSaving} />}
+                    {block.type === 'divider' && <DividerInspector initialData={parsedData} onSave={handleSaveParsed} isSaving={isSaving} />}
+                    {block.type === 'spacer' && <SpacerInspector initialData={parsedData} onSave={handleSaveParsed} isSaving={isSaving} />}
+
+                    {!['hero', 'richtext', 'timeline', 'bento', 'grid', 'video', 'image', 'accordion', 'carousel', 'heading', 'button', 'divider', 'spacer'].includes(block.type) && (
                         <RawJsonFallback block={block} onSaved={onSaved} />
                     )}
                 </>

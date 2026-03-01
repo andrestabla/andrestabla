@@ -8,6 +8,10 @@ import VideoBlock from '@/components/VideoBlock';
 import ImageBlock from '@/components/ImageBlock';
 import AccordionBlock from '@/components/AccordionBlock';
 import CarouselBlock from '@/components/CarouselBlock';
+import HeadingBlock from '@/components/HeadingBlock';
+import ButtonBlock from '@/components/ButtonBlock';
+import DividerBlock from '@/components/DividerBlock';
+import SpacerBlock from '@/components/SpacerBlock';
 import ClickToEditWrapper from '@/components/ClickToEditWrapper';
 
 const BlockComponents: Record<string, any> = {
@@ -19,7 +23,11 @@ const BlockComponents: Record<string, any> = {
     video: VideoBlock,
     image: ImageBlock,
     accordion: AccordionBlock,
-    carousel: CarouselBlock
+    carousel: CarouselBlock,
+    heading: HeadingBlock,
+    button: ButtonBlock,
+    divider: DividerBlock,
+    spacer: SpacerBlock
 };
 
 // Recursive Node Renderer
