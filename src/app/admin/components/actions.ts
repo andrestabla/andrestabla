@@ -13,13 +13,14 @@ export async function updateBlockData(id: string, newData: string) {
     revalidatePath('/admin');
 }
 
-// Add a new block to the end of the page
-export async function addBlock(pageId: string, type: string, defaultData: any) {
-    const count = await prisma.block.count({ where: { pageId } });
+// Add a new block to the end of the page (or inside a parent)
+export async function addBlock(pageId: string, type: string, defaultData: any, parentId?: string) {
+    const count = await prisma.block.count({ where: { pageId, parentId: parentId || null } });
 
     await prisma.block.create({
         data: {
             pageId,
+            parentId: parentId || null,
             type,
             data: JSON.stringify(defaultData),
             order: count + 1

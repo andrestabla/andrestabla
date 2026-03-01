@@ -2,34 +2,64 @@
 
 import { useState } from 'react';
 import { updateBlockData, deleteBlock, addBlock } from './actions';
-import { Trash2, Save, Plus, GripVertical, Settings } from 'lucide-react';
+import { Trash2, Settings, Plus, GripVertical, Layers } from 'lucide-react';
 
 export default function BuilderWorkspace({ page }: { page: any }) {
     const [selectedBlockId, setSelectedBlockId] = useState<string | null>(null);
 
-    // The actual blocks from the database
     const blocks = page.blocks || [];
-
-    // Find the selected block object
+    const rootBlocks = blocks.filter((b: any) => !b.parentId).sort((a: any, b: any) => a.order - b.order);
     const selectedBlock = blocks.find((b: any) => b.id === selectedBlockId);
 
-    // Helper macro to reload the iframe on the right side
     const forcePreviewReload = () => {
         const iframe = document.getElementById('live-preview-iframe') as HTMLIFrameElement;
         if (iframe) iframe.src = iframe.src;
     };
 
+    // Recursive function to show tree of blocks
+    const renderBlockTree = (blockLayer: any[], depth = 0) => {
+        return blockLayer.map((block: any) => {
+            const children = blocks.filter((b: any) => b.parentId === block.id).sort((a: any, b: any) => a.order - b.order);
+            const isGrid = block.type === 'grid';
+
+            return (
+                <div key={block.id} className="relative">
+                    <button
+                        onClick={() => setSelectedBlockId(block.id)}
+                        className={`w-full flex items-center gap-3 p-3 bg-white border ${selectedBlockId === block.id ? 'border-indigo-500 shadow-md ring-1 ring-indigo-500' : 'border-slate-200'} rounded-xl hover:border-indigo-400 hover:shadow-sm transition-all text-left group mb-2`}
+                        style={{ marginLeft: `${depth * 16}px`, width: `calc(100% - ${depth * 16}px)` }}
+                    >
+                        <div className="text-slate-300 group-hover:text-indigo-400 cursor-grab"><GripVertical size={16} /></div>
+
+                        {isGrid && <Layers size={14} className="text-indigo-500" />}
+
+                        <div className="flex-1">
+                            <div className="text-xs font-bold text-slate-800 uppercase tracking-wider">{block.type}</div>
+                            <div className="text-[10px] text-slate-500 truncate max-w-[180px]">
+                                {isGrid ? 'Contenedor de Columnas' : block.data.substring(0, 40) + '...'}
+                            </div>
+                        </div>
+                    </button>
+
+                    {/* Render Children Recursively */}
+                    {children.length > 0 && (
+                        <div className="border-l-2 border-indigo-100 ml-4 pl-2">
+                            {renderBlockTree(children, depth + 1)}
+                        </div>
+                    )}
+                </div>
+            );
+        });
+    };
+
     return (
         <div className="flex h-full w-full">
-            {/* LEFT PANEL: The Inspector & Block List */}
             <aside className="w-[400px] h-full bg-white border-r border-[#d2d2d7] flex flex-col shadow-2xl relative z-10 shrink-0">
-
-                {/* Header */}
                 <div className="p-4 border-b border-[#e5e7eb] flex justify-between items-center bg-zinc-50">
                     <div className="flex items-center gap-3">
-                        <div className="bg-blue-600 text-white p-1.5 rounded-lg shadow-md"><Settings size={16} /></div>
+                        <div className="bg-indigo-600 text-white p-1.5 rounded-lg shadow-md"><Settings size={16} /></div>
                         <div>
-                            <h2 className="font-bold text-xs tracking-tight text-slate-900 leading-none">Constructor Visual</h2>
+                            <h2 className="font-bold text-xs tracking-tight text-slate-900 leading-none">Supreme Builder</h2>
                             <span className="text-[9px] uppercase tracking-widest text-slate-500 font-semibold mt-1 block">Página: {page.title}</span>
                         </div>
                     </div>
@@ -37,53 +67,40 @@ export default function BuilderWorkspace({ page }: { page: any }) {
 
                 <div className="flex-1 overflow-y-auto custom-scrollbar flex flex-col">
 
-                    {/* If NO Block is selected, show the Navigator (List of Blocks) */}
                     {!selectedBlock && (
                         <div className="p-4 flex flex-col gap-2 animate-in fade-in slide-in-from-left-4">
-                            <h3 className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2 ml-1">Estructura de la Página</h3>
+                            <h3 className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2 ml-1">Árbol de Nodos</h3>
 
                             {blocks.length === 0 && <p className="text-xs text-slate-400 italic text-center py-8">La página está vacía.</p>}
 
-                            {blocks.map((block: any) => (
-                                <button
-                                    key={block.id}
-                                    onClick={() => setSelectedBlockId(block.id)}
-                                    className="flex items-center gap-3 p-3 bg-white border border-slate-200 rounded-xl hover:border-blue-500 hover:shadow-md transition-all text-left group"
-                                >
-                                    <div className="text-slate-300 group-hover:text-blue-500 cursor-grab"><GripVertical size={16} /></div>
-                                    <div className="flex-1">
-                                        <div className="text-xs font-bold text-slate-800 uppercase tracking-wider">{block.type}</div>
-                                        <div className="text-[10px] text-slate-500 truncate max-w-[200px]">
-                                            {block.data.substring(0, 40)}...
-                                        </div>
-                                    </div>
-                                </button>
-                            ))}
+                            <div className="space-y-1">
+                                {renderBlockTree(rootBlocks)}
+                            </div>
 
-                            <div className="mt-8">
-                                <h3 className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2 ml-1">Añadir Widget</h3>
+                            <div className="mt-8 border-t border-slate-100 pt-6">
+                                <h3 className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2 ml-1">Añadir Sección / Widget Raíz</h3>
                                 <div className="grid grid-cols-2 gap-2">
-                                    <WidgetAddBtn pageId={page.id} type="hero" label="Portada (Hero)" defaultData={{ name: "Nuevo Bloque", role: "Tu Cargo", links: [] }} onAdded={forcePreviewReload} />
-                                    <WidgetAddBtn pageId={page.id} type="richtext" label="Texto (Prose)" defaultData={{ title: "Título Seccion", content: "<p>Escribe algo increíble...</p>" }} onAdded={forcePreviewReload} />
-                                    <WidgetAddBtn pageId={page.id} type="timeline" label="Línea de Vida" defaultData={{ title: "Experiencia", items: [] }} onAdded={forcePreviewReload} />
-                                    <WidgetAddBtn pageId={page.id} type="bento" label="Bento Grid" defaultData={{ title: "Portafolio", bentoType: "general", items: [] }} onAdded={forcePreviewReload} />
+                                    <WidgetAddBtn pageId={page.id} parentId={null} type="grid" label="Grid (Columnas)" defaultData={{ columns: 2 }} onAdded={forcePreviewReload} />
+                                    <WidgetAddBtn pageId={page.id} parentId={null} type="hero" label="Portada (Hero)" defaultData={{ name: "Nuevo Bloque", role: "Tu Cargo", links: [] }} onAdded={forcePreviewReload} />
+                                    <WidgetAddBtn pageId={page.id} parentId={null} type="richtext" label="Texto (Prose)" defaultData={{ title: "Título Seccion", content: "<p>Escribe algo increíble...</p>" }} onAdded={forcePreviewReload} />
+                                    <WidgetAddBtn pageId={page.id} parentId={null} type="timeline" label="Línea de Vida" defaultData={{ title: "Experiencia", items: [] }} onAdded={forcePreviewReload} />
+                                    <WidgetAddBtn pageId={page.id} parentId={null} type="bento" label="Bento Grid" defaultData={{ title: "Portafolio", bentoType: "general", items: [] }} onAdded={forcePreviewReload} />
                                 </div>
                             </div>
                         </div>
                     )}
 
-                    {/* If a Block IS selected, show its specific Inspector Form */}
                     {selectedBlock && (
                         <div className="p-4 animate-in fade-in slide-in-from-right-4">
-                            <button onClick={() => setSelectedBlockId(null)} className="text-[10px] font-bold uppercase tracking-widest text-blue-600 mb-4 hover:text-blue-800 flex items-center gap-1">
-                                ← Volver a la lista
+                            <button onClick={() => setSelectedBlockId(null)} className="text-[10px] font-bold uppercase tracking-widest text-indigo-600 mb-4 hover:text-indigo-800 flex items-center gap-1">
+                                ← Volver al Árbol Global
                             </button>
 
                             <div className="flex justify-between items-center mb-6 border-b border-slate-100 pb-4">
-                                <h3 className="text-sm font-bold text-slate-800 tracking-tight uppercase">Editar: {selectedBlock.type}</h3>
+                                <h3 className="text-sm font-bold text-slate-800 tracking-tight uppercase">Inspector: {selectedBlock.type}</h3>
                                 <button
                                     onClick={async () => {
-                                        if (confirm('¿Eliminar este bloque?')) {
+                                        if (confirm('¿Eliminar este bloque y sus hijos?')) {
                                             await deleteBlock(selectedBlock.id);
                                             setSelectedBlockId(null);
                                             forcePreviewReload();
@@ -99,6 +116,21 @@ export default function BuilderWorkspace({ page }: { page: any }) {
                                 block={selectedBlock}
                                 onSaved={forcePreviewReload}
                             />
+
+                            {/* If exactly GRID is selected, show "ADD WIDGET INSIDE GRID" controls */}
+                            {selectedBlock.type === 'grid' && (
+                                <div className="mt-8 pt-6 border-t border-indigo-100 bg-indigo-50/50 -mx-4 px-4 pb-4">
+                                    <h3 className="text-[10px] font-bold uppercase tracking-widest text-indigo-500 mb-4 flex items-center gap-2">
+                                        <Layers size={14} /> Inyectar Widget dentro de Grid
+                                    </h3>
+                                    <div className="grid grid-cols-2 gap-2">
+                                        <WidgetAddBtn pageId={page.id} parentId={selectedBlock.id} type="hero" label="Portada (Hero)" defaultData={{ name: "Nuevo", role: "..." }} onAdded={forcePreviewReload} />
+                                        <WidgetAddBtn pageId={page.id} parentId={selectedBlock.id} type="richtext" label="Texto (Prose)" defaultData={{ title: "Sección", content: "<p>...</p>" }} onAdded={forcePreviewReload} />
+                                        <WidgetAddBtn pageId={page.id} parentId={selectedBlock.id} type="timeline" label="Línea de Vida" defaultData={{ title: "Exp", items: [] }} onAdded={forcePreviewReload} />
+                                    </div>
+                                </div>
+                            )}
+
                         </div>
                     )}
                 </div>
@@ -111,7 +143,7 @@ export default function BuilderWorkspace({ page }: { page: any }) {
                         <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
                         Live Canvas
                     </div>
-                    <a href="/" target="_blank" className="text-xs text-blue-600 hover:text-blue-800 font-medium">Abrir en Pestaña Nueva ↗</a>
+                    <a href="/" target="_blank" className="text-xs text-indigo-600 hover:text-indigo-800 font-medium">Abrir Público ↗</a>
                 </div>
 
                 <div className="flex-1 bg-white rounded-xl border border-zinc-200 shadow-xl overflow-hidden relative">
@@ -136,16 +168,16 @@ export default function BuilderWorkspace({ page }: { page: any }) {
 }
 
 // Sub-Component: Add Widget Button
-function WidgetAddBtn({ pageId, type, label, defaultData, onAdded }: { pageId: string, type: string, label: string, defaultData: any, onAdded: () => void }) {
+function WidgetAddBtn({ pageId, type, label, defaultData, onAdded, parentId }: { pageId: string, type: string, label: string, defaultData: any, onAdded: () => void, parentId: string | null }) {
     return (
         <button
             onClick={async () => {
-                await addBlock(pageId, type, defaultData);
+                await addBlock(pageId, type, defaultData, parentId || undefined);
                 onAdded();
             }}
-            className="flex flex-col items-center justify-center gap-2 p-3 bg-slate-50 border border-slate-200 rounded-xl hover:border-black hover:bg-slate-100 transition-all group"
+            className="flex flex-col items-center justify-center gap-2 p-3 bg-white border border-slate-200 rounded-xl hover:border-indigo-500 hover:ring-1 hover:ring-indigo-500 transition-all group shadow-sm"
         >
-            <div className="bg-white p-1.5 rounded-md shadow-sm text-slate-400 group-hover:text-black transition-colors"><Plus size={16} /></div>
+            <div className="bg-slate-50 p-1.5 rounded-md text-slate-400 group-hover:text-indigo-500 transition-colors"><Plus size={16} /></div>
             <span className="text-[9px] font-bold uppercase tracking-widest text-slate-600">{label}</span>
         </button>
     );
@@ -155,6 +187,7 @@ import HeroInspector from './inspectors/HeroInspector';
 import RichTextInspector from './inspectors/RichTextInspector';
 import TimelineInspector from './inspectors/TimelineInspector';
 import BentoGridInspector from './inspectors/BentoGridInspector';
+import GridInspector from './inspectors/GridInspector';
 
 function InspectorForm({ block, onSaved }: { block: any, onSaved: () => void }) {
     const [isSaving, setIsSaving] = useState(false);
@@ -180,8 +213,8 @@ function InspectorForm({ block, onSaved }: { block: any, onSaved: () => void }) 
 
     return (
         <div className="flex flex-col gap-4">
-            <p className="text-xs text-slate-500 mb-6 leading-relaxed bg-blue-50 p-3 rounded-lg border border-blue-100 text-blue-800">
-                Los cambios aplicados aquí actualizarán el lienzo al instante.
+            <p className="text-[10px] uppercase font-bold text-slate-500 mb-2 tracking-widest leading-relaxed bg-indigo-50/50 p-3 rounded-lg border border-indigo-100/50">
+                Cambios en tiempo real
             </p>
 
             {error && <div className="p-3 bg-red-50 text-red-600 text-xs rounded-lg border border-red-200">{error}</div>}
@@ -190,16 +223,16 @@ function InspectorForm({ block, onSaved }: { block: any, onSaved: () => void }) 
             {block.type === 'richtext' && <RichTextInspector initialData={parsedData} onSave={handleSaveParsed} isSaving={isSaving} />}
             {block.type === 'timeline' && <TimelineInspector initialData={parsedData} onSave={handleSaveParsed} isSaving={isSaving} />}
             {block.type === 'bento' && <BentoGridInspector initialData={parsedData} onSave={handleSaveParsed} isSaving={isSaving} />}
+            {block.type === 'grid' && <GridInspector initialData={parsedData} onSave={handleSaveParsed} isSaving={isSaving} />}
 
             {/* Fallback for unknown block types (Raw JSON) */}
-            {!['hero', 'richtext', 'timeline', 'bento'].includes(block.type) && (
+            {!['hero', 'richtext', 'timeline', 'bento', 'grid'].includes(block.type) && (
                 <RawJsonFallback block={block} onSaved={onSaved} />
             )}
         </div>
     );
 }
 
-// Keep the old Raw Editor just for emergencies or unmapped blocks
 function RawJsonFallback({ block, onSaved }: { block: any, onSaved: () => void }) {
     const [jsonString, setJsonString] = useState(block.data);
     const [isSaving, setIsSaving] = useState(false);
@@ -223,7 +256,7 @@ function RawJsonFallback({ block, onSaved }: { block: any, onSaved: () => void }
                 onChange={(e) => setJsonString(e.target.value)}
                 className="w-full h-[300px] font-mono text-[11px] p-4 bg-slate-900 text-green-400 rounded-xl"
             />
-            <button onClick={handleSave} disabled={isSaving} className="w-full bg-black text-white p-3 rounded-lg font-bold text-xs uppercase hover:bg-slate-800 mt-4">
+            <button onClick={handleSave} disabled={isSaving} className="w-full bg-black text-white p-3 rounded-lg font-bold text-xs uppercase hover:bg-slate-800 mt-4 shadow-lg">
                 {isSaving ? 'Guardando...' : 'Aplicar Raw JSON'}
             </button>
         </>
