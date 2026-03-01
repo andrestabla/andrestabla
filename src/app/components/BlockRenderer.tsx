@@ -75,9 +75,8 @@ function BlockNode({ block, allBlocks }: { block: any, allBlocks: any[] }) {
 
 // Dispatcher Component: Fetches raw JSON blocks and injects them into the recursive tree
 export default async function BlockRenderer() {
-    // @ts-ignore
     const page = await prisma.page.findFirst({
-        where: { isHome: true },
+        where: { slug: 'home' },
         include: { blocks: true },
     });
 
