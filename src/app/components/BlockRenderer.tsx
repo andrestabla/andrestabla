@@ -22,6 +22,13 @@ import ToggleBlock from '@/components/ToggleBlock';
 import GalleryBlock from '@/components/GalleryBlock';
 import CounterBlock from '@/components/CounterBlock';
 import LottieBlock from '@/components/LottieBlock';
+import PricingBlock from '@/components/PricingBlock';
+import FlipBoxBlock from '@/components/FlipBoxBlock';
+import CallToActionBlock from '@/components/CallToActionBlock';
+import NavMenuBlock from '@/components/NavMenuBlock';
+import PortfolioBlock from '@/components/PortfolioBlock';
+import HotspotsBlock from '@/components/HotspotsBlock';
+import LoopGridBlock from '@/components/LoopGridBlock';
 import ClickToEditWrapper from '@/components/ClickToEditWrapper';
 
 const BlockComponents: Record<string, any> = {
@@ -47,7 +54,14 @@ const BlockComponents: Record<string, any> = {
     toggle: ToggleBlock,
     gallery: GalleryBlock,
     counter: CounterBlock,
-    lottie: LottieBlock
+    lottie: LottieBlock,
+    pricing: PricingBlock,
+    flipbox: FlipBoxBlock,
+    cta: CallToActionBlock,
+    navmenu: NavMenuBlock,
+    portfolio: PortfolioBlock,
+    hotspots: HotspotsBlock,
+    loopgrid: LoopGridBlock
 };
 
 // Recursive Node Renderer

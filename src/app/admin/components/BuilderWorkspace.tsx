@@ -163,6 +163,19 @@ export default function BuilderWorkspace({ page, settings }: { page: any, settin
                                     <WidgetAddBtn pageId={page.id} parentId={null} type="carousel" label="Carrusel" defaultData={{ height: "h-[400px]", images: [] }} onAdded={forcePreviewReload} />
                                 </div>
                             </div>
+
+                            <div className="mb-8">
+                                <h3 className="text-[10px] font-bold uppercase tracking-widest text-indigo-400 mb-3 ml-1 mt-6">Profesionales (PRO)</h3>
+                                <div className="grid grid-cols-2 gap-2">
+                                    <WidgetAddBtn pageId={page.id} parentId={null} type="loopgrid" label="Posts Dinámicos" defaultData={{ postType: "blog" }} onAdded={forcePreviewReload} />
+                                    <WidgetAddBtn pageId={page.id} parentId={null} type="portfolio" label="Portafolio" defaultData={{ columns: "grid-cols-1 md:grid-cols-3" }} onAdded={forcePreviewReload} />
+                                    <WidgetAddBtn pageId={page.id} parentId={null} type="pricing" label="Tablas de Precio" defaultData={{ title: "Pro", price: "$99" }} onAdded={forcePreviewReload} />
+                                    <WidgetAddBtn pageId={page.id} parentId={null} type="flipbox" label="Flip Boxes 3D" defaultData={{ frontTitle: "Gírame" }} onAdded={forcePreviewReload} />
+                                    <WidgetAddBtn pageId={page.id} parentId={null} type="hotspots" label="Hotspots (Puntos)" defaultData={{ spots: [{ id: 1, x: 50, y: 50, title: "Punto" }] }} onAdded={forcePreviewReload} />
+                                    <WidgetAddBtn pageId={page.id} parentId={null} type="cta" label="Call to Action" defaultData={{ title: "Únete Ahora" }} onAdded={forcePreviewReload} />
+                                    <WidgetAddBtn pageId={page.id} parentId={null} type="navmenu" label="Nav Menu" defaultData={{ style: "horizontal" }} onAdded={forcePreviewReload} />
+                                </div>
+                            </div>
                         </div>
                     )}
 
@@ -228,7 +241,17 @@ export default function BuilderWorkspace({ page, settings }: { page: any, settin
                                         <WidgetAddBtn pageId={page.id} parentId={selectedBlock.id} type="toggle" label="Toggle (Colapso)" defaultData={{ items: [{ title: "Pregunta", content: "..." }] }} onAdded={forcePreviewReload} />
                                         <WidgetAddBtn pageId={page.id} parentId={selectedBlock.id} type="gallery" label="Galería" defaultData={{ images: [{ url: "https://images.unsplash.com/photo-1542831371-29b0f74f9713?q=80&w=600&auto=format&fit=crop", alt: "Img" }] }} onAdded={forcePreviewReload} />
                                         <WidgetAddBtn pageId={page.id} parentId={selectedBlock.id} type="counter" label="Contador" defaultData={{ items: [{ label: "Proyectos", value: 150, suffix: "+" }] }} onAdded={forcePreviewReload} />
+                                        <WidgetAddBtn pageId={page.id} parentId={selectedBlock.id} type="counter" label="Contador" defaultData={{ items: [{ label: "Proyectos", value: 150, suffix: "+" }] }} onAdded={forcePreviewReload} />
                                         <WidgetAddBtn pageId={page.id} parentId={selectedBlock.id} type="lottie" label="Lottie" defaultData={{ jsonUrl: "https://assets3.lottiefiles.com/packages/lf20_UJNc2t.json" }} onAdded={forcePreviewReload} />
+
+                                        {/* PRO Widgets inside a Selected Container */}
+                                        <WidgetAddBtn pageId={page.id} parentId={selectedBlock.id} type="loopgrid" label="Posts Dinámicos" defaultData={{ postType: "blog" }} onAdded={forcePreviewReload} />
+                                        <WidgetAddBtn pageId={page.id} parentId={selectedBlock.id} type="portfolio" label="Portafolio" defaultData={{ columns: "grid-cols-1 md:grid-cols-3" }} onAdded={forcePreviewReload} />
+                                        <WidgetAddBtn pageId={page.id} parentId={selectedBlock.id} type="pricing" label="Tablas de Precio" defaultData={{ title: "Pro", price: "$99" }} onAdded={forcePreviewReload} />
+                                        <WidgetAddBtn pageId={page.id} parentId={selectedBlock.id} type="flipbox" label="Flip Boxes 3D" defaultData={{ frontTitle: "Gírame" }} onAdded={forcePreviewReload} />
+                                        <WidgetAddBtn pageId={page.id} parentId={selectedBlock.id} type="hotspots" label="Hotspots (Puntos)" defaultData={{ spots: [{ id: 1, x: 50, y: 50, title: "Punto" }] }} onAdded={forcePreviewReload} />
+                                        <WidgetAddBtn pageId={page.id} parentId={selectedBlock.id} type="cta" label="Call to Action" defaultData={{ title: "Únete Ahora" }} onAdded={forcePreviewReload} />
+                                        <WidgetAddBtn pageId={page.id} parentId={selectedBlock.id} type="navmenu" label="Nav Menu" defaultData={{ style: "horizontal" }} onAdded={forcePreviewReload} />
                                     </div>
                                 </div>
                             )}
@@ -332,6 +355,13 @@ import ToggleInspector from './inspectors/ToggleInspector';
 import GalleryInspector from './inspectors/GalleryInspector';
 import CounterInspector from './inspectors/CounterInspector';
 import LottieInspector from './inspectors/LottieInspector';
+import PricingInspector from './inspectors/PricingInspector';
+import FlipBoxInspector from './inspectors/FlipBoxInspector';
+import CallToActionInspector from './inspectors/CallToActionInspector';
+import NavMenuInspector from './inspectors/NavMenuInspector';
+import PortfolioInspector from './inspectors/PortfolioInspector';
+import HotspotsInspector from './inspectors/HotspotsInspector';
+import LoopGridInspector from './inspectors/LoopGridInspector';
 
 function InspectorForm({ block, onSaved }: { block: any, onSaved: () => void }) {
     const [isSaving, setIsSaving] = useState(false);
@@ -407,8 +437,15 @@ function InspectorForm({ block, onSaved }: { block: any, onSaved: () => void }) 
                     {block.type === 'gallery' && <GalleryInspector initialData={parsedData} onSave={handleSaveParsed} isSaving={isSaving} />}
                     {block.type === 'counter' && <CounterInspector initialData={parsedData} onSave={handleSaveParsed} isSaving={isSaving} />}
                     {block.type === 'lottie' && <LottieInspector initialData={parsedData} onSave={handleSaveParsed} isSaving={isSaving} />}
+                    {block.type === 'pricing' && <PricingInspector initialData={parsedData} onSave={handleSaveParsed} isSaving={isSaving} />}
+                    {block.type === 'flipbox' && <FlipBoxInspector initialData={parsedData} onSave={handleSaveParsed} isSaving={isSaving} />}
+                    {block.type === 'cta' && <CallToActionInspector initialData={parsedData} onSave={handleSaveParsed} isSaving={isSaving} />}
+                    {block.type === 'navmenu' && <NavMenuInspector initialData={parsedData} onSave={handleSaveParsed} isSaving={isSaving} />}
+                    {block.type === 'portfolio' && <PortfolioInspector initialData={parsedData} onSave={handleSaveParsed} isSaving={isSaving} />}
+                    {block.type === 'hotspots' && <HotspotsInspector initialData={parsedData} onSave={handleSaveParsed} isSaving={isSaving} />}
+                    {block.type === 'loopgrid' && <LoopGridInspector initialData={parsedData} onSave={handleSaveParsed} isSaving={isSaving} />}
 
-                    {!['hero', 'richtext', 'timeline', 'bento', 'grid', 'video', 'image', 'accordion', 'carousel', 'heading', 'button', 'divider', 'spacer', 'form', 'testimonial', 'social', 'map', 'progressbar', 'tabs', 'toggle', 'gallery', 'counter', 'lottie'].includes(block.type) && (
+                    {!['hero', 'richtext', 'timeline', 'bento', 'grid', 'video', 'image', 'accordion', 'carousel', 'heading', 'button', 'divider', 'spacer', 'form', 'testimonial', 'social', 'map', 'progressbar', 'tabs', 'toggle', 'gallery', 'counter', 'lottie', 'pricing', 'flipbox', 'cta', 'navmenu', 'portfolio', 'hotspots', 'loopgrid'].includes(block.type) && (
                         <RawJsonFallback block={block} onSaved={onSaved} />
                     )}
                 </>
