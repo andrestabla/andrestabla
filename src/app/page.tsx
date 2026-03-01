@@ -7,7 +7,7 @@ export const dynamic = 'force-dynamic';
 export default async function Home() {
 
   // Fetch SiteConfig for the navigation bar
-  const siteConfig = await prisma.siteConfig.findFirst();
+  const siteConfig = await prisma.siteSettings.findFirst();
 
   return (
     <div className="min-h-screen bg-zinc-950 text-slate-300 antialiased selection:bg-[#f25c54] selection:text-white pb-24 relative overflow-x-hidden">
