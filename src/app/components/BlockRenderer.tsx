@@ -17,6 +17,11 @@ import TestimonialBlock from '@/components/TestimonialBlock';
 import SocialBlock from '@/components/SocialBlock';
 import MapBlock from '@/components/MapBlock';
 import ProgressBarBlock from '@/components/ProgressBarBlock';
+import TabsBlock from '@/components/TabsBlock';
+import ToggleBlock from '@/components/ToggleBlock';
+import GalleryBlock from '@/components/GalleryBlock';
+import CounterBlock from '@/components/CounterBlock';
+import LottieBlock from '@/components/LottieBlock';
 import ClickToEditWrapper from '@/components/ClickToEditWrapper';
 
 const BlockComponents: Record<string, any> = {
@@ -37,7 +42,12 @@ const BlockComponents: Record<string, any> = {
     testimonial: TestimonialBlock,
     social: SocialBlock,
     map: MapBlock,
-    progressbar: ProgressBarBlock
+    progressbar: ProgressBarBlock,
+    tabs: TabsBlock,
+    toggle: ToggleBlock,
+    gallery: GalleryBlock,
+    counter: CounterBlock,
+    lottie: LottieBlock
 };
 
 // Recursive Node Renderer

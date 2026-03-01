@@ -148,6 +148,11 @@ export default function BuilderWorkspace({ page, settings }: { page: any, settin
                                     <WidgetAddBtn pageId={page.id} parentId={null} type="testimonial" label="Testimonio" defaultData={{ author: "John Doe" }} onAdded={forcePreviewReload} />
                                     <WidgetAddBtn pageId={page.id} parentId={null} type="social" label="Redes Sociales" defaultData={{ items: [{ network: 'linkedin', url: '#' }] }} onAdded={forcePreviewReload} />
                                     <WidgetAddBtn pageId={page.id} parentId={null} type="map" label="Google Maps" defaultData={{ height: "h-[400px]" }} onAdded={forcePreviewReload} />
+                                    <WidgetAddBtn pageId={page.id} parentId={null} type="tabs" label="Pestañas" defaultData={{ items: [{ label: "Visión", content: "..." }] }} onAdded={forcePreviewReload} />
+                                    <WidgetAddBtn pageId={page.id} parentId={null} type="toggle" label="Toggle (Colapso)" defaultData={{ items: [{ title: "Pregunta", content: "..." }] }} onAdded={forcePreviewReload} />
+                                    <WidgetAddBtn pageId={page.id} parentId={null} type="gallery" label="Galería" defaultData={{ images: [{ url: "https://images.unsplash.com/photo-1542831371-29b0f74f9713?q=80&w=600&auto=format&fit=crop", alt: "Img" }] }} onAdded={forcePreviewReload} />
+                                    <WidgetAddBtn pageId={page.id} parentId={null} type="counter" label="Contador" defaultData={{ items: [{ label: "Proyectos", value: 150, suffix: "+" }] }} onAdded={forcePreviewReload} />
+                                    <WidgetAddBtn pageId={page.id} parentId={null} type="lottie" label="Lottie (Animación)" defaultData={{ jsonUrl: "https://assets3.lottiefiles.com/packages/lf20_UJNc2t.json" }} onAdded={forcePreviewReload} />
                                 </div>
                             </div>
 
@@ -219,6 +224,11 @@ export default function BuilderWorkspace({ page, settings }: { page: any, settin
                                         <WidgetAddBtn pageId={page.id} parentId={selectedBlock.id} type="testimonial" label="Testimonio" defaultData={{ author: "John Doe" }} onAdded={forcePreviewReload} />
                                         <WidgetAddBtn pageId={page.id} parentId={selectedBlock.id} type="social" label="Social Icons" defaultData={{ items: [{ network: 'linkedin', url: '#' }] }} onAdded={forcePreviewReload} />
                                         <WidgetAddBtn pageId={page.id} parentId={selectedBlock.id} type="map" label="Mapa" defaultData={{ height: "h-[400px]" }} onAdded={forcePreviewReload} />
+                                        <WidgetAddBtn pageId={page.id} parentId={selectedBlock.id} type="tabs" label="Pestañas" defaultData={{ items: [{ label: "Tab 1", content: "..." }] }} onAdded={forcePreviewReload} />
+                                        <WidgetAddBtn pageId={page.id} parentId={selectedBlock.id} type="toggle" label="Toggle (Colapso)" defaultData={{ items: [{ title: "Pregunta", content: "..." }] }} onAdded={forcePreviewReload} />
+                                        <WidgetAddBtn pageId={page.id} parentId={selectedBlock.id} type="gallery" label="Galería" defaultData={{ images: [{ url: "https://images.unsplash.com/photo-1542831371-29b0f74f9713?q=80&w=600&auto=format&fit=crop", alt: "Img" }] }} onAdded={forcePreviewReload} />
+                                        <WidgetAddBtn pageId={page.id} parentId={selectedBlock.id} type="counter" label="Contador" defaultData={{ items: [{ label: "Proyectos", value: 150, suffix: "+" }] }} onAdded={forcePreviewReload} />
+                                        <WidgetAddBtn pageId={page.id} parentId={selectedBlock.id} type="lottie" label="Lottie" defaultData={{ jsonUrl: "https://assets3.lottiefiles.com/packages/lf20_UJNc2t.json" }} onAdded={forcePreviewReload} />
                                     </div>
                                 </div>
                             )}
@@ -317,6 +327,11 @@ import TestimonialInspector from './inspectors/TestimonialInspector';
 import SocialInspector from './inspectors/SocialInspector';
 import MapInspector from './inspectors/MapInspector';
 import ProgressBarInspector from './inspectors/ProgressBarInspector';
+import TabsInspector from './inspectors/TabsInspector';
+import ToggleInspector from './inspectors/ToggleInspector';
+import GalleryInspector from './inspectors/GalleryInspector';
+import CounterInspector from './inspectors/CounterInspector';
+import LottieInspector from './inspectors/LottieInspector';
 
 function InspectorForm({ block, onSaved }: { block: any, onSaved: () => void }) {
     const [isSaving, setIsSaving] = useState(false);
@@ -387,8 +402,13 @@ function InspectorForm({ block, onSaved }: { block: any, onSaved: () => void }) 
                     {block.type === 'social' && <SocialInspector initialData={parsedData} onSave={handleSaveParsed} isSaving={isSaving} />}
                     {block.type === 'map' && <MapInspector initialData={parsedData} onSave={handleSaveParsed} isSaving={isSaving} />}
                     {block.type === 'progressbar' && <ProgressBarInspector initialData={parsedData} onSave={handleSaveParsed} isSaving={isSaving} />}
+                    {block.type === 'tabs' && <TabsInspector initialData={parsedData} onSave={handleSaveParsed} isSaving={isSaving} />}
+                    {block.type === 'toggle' && <ToggleInspector initialData={parsedData} onSave={handleSaveParsed} isSaving={isSaving} />}
+                    {block.type === 'gallery' && <GalleryInspector initialData={parsedData} onSave={handleSaveParsed} isSaving={isSaving} />}
+                    {block.type === 'counter' && <CounterInspector initialData={parsedData} onSave={handleSaveParsed} isSaving={isSaving} />}
+                    {block.type === 'lottie' && <LottieInspector initialData={parsedData} onSave={handleSaveParsed} isSaving={isSaving} />}
 
-                    {!['hero', 'richtext', 'timeline', 'bento', 'grid', 'video', 'image', 'accordion', 'carousel', 'heading', 'button', 'divider', 'spacer', 'form', 'testimonial', 'social', 'map', 'progressbar'].includes(block.type) && (
+                    {!['hero', 'richtext', 'timeline', 'bento', 'grid', 'video', 'image', 'accordion', 'carousel', 'heading', 'button', 'divider', 'spacer', 'form', 'testimonial', 'social', 'map', 'progressbar', 'tabs', 'toggle', 'gallery', 'counter', 'lottie'].includes(block.type) && (
                         <RawJsonFallback block={block} onSaved={onSaved} />
                     )}
                 </>
