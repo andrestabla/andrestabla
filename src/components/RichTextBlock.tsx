@@ -2,19 +2,25 @@
 
 export default function RichTextBlock({ data }: { data: any }) {
     return (
-        <section className="relative w-full">
-            <div className="absolute inset-0 bg-blue-500/5 blur-3xl rounded-full translate-y-10 -z-10"></div>
-            <div className="bg-white/80 backdrop-blur-md border border-white p-8 md:p-12 rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
+        <section className="relative w-full py-24 border-t border-zinc-900">
+            <div className="max-w-4xl mx-auto flex flex-col md:flex-row gap-12 md:gap-24 items-start">
+
                 {data.title && (
-                    <h3 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-6 flex items-center gap-4">
-                        <span>{data.title}</span>
-                        <div className="h-[1px] flex-1 bg-slate-200"></div>
-                    </h3>
+                    <div className="md:w-1/3 shrink-0 relative">
+                        <h3 className="text-4xl md:text-5xl font-bold text-white leading-tight sticky top-24" style={{ fontFamily: 'var(--font-heading)' }}>
+                            {data.title}
+                        </h3>
+                        <div className="w-12 h-[2px] bg-[#f25c54] mt-6"></div>
+                    </div>
                 )}
-                <div
-                    className="text-lg md:text-2xl text-slate-700 leading-relaxed font-light prose prose-slate"
-                    dangerouslySetInnerHTML={{ __html: data.content || 'Escribe tu contenido aquí...' }}
-                />
+
+                <div className="md:w-2/3">
+                    <div
+                        className="text-lg md:text-xl text-slate-400 leading-relaxed font-light prose prose-invert prose-p:mb-6 prose-a:text-[#f25c54] hover:prose-a:text-white transition-colors"
+                        dangerouslySetInnerHTML={{ __html: data.content || 'Escribe tu contenido aquí...' }}
+                    />
+                </div>
+
             </div>
         </section>
     );

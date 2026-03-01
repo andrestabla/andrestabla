@@ -1,12 +1,13 @@
 'use client';
 
 import { motion, Variants } from 'framer-motion';
+import { Briefcase, GraduationCap, Award, Code, BookOpen } from 'lucide-react';
 
 export default function BentoGridBlock({ data }: { data: any }) {
-    const items = data.items || [];
-    const bentoType = data.bentoType || 'general'; // 'education', 'courses', etc.
 
-    const container: Variants = {
+    const bentoType = data.bentoType || 'general';
+
+    const container = {
         hidden: { opacity: 0 },
         show: {
             opacity: 1,
@@ -15,57 +16,74 @@ export default function BentoGridBlock({ data }: { data: any }) {
     };
 
     const itemAnim: Variants = {
-        hidden: { opacity: 0, scale: 0.95, y: 20 },
-        show: { opacity: 1, scale: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 24 } }
+        hidden: { opacity: 0, y: 30, scale: 0.95 },
+        show: { opacity: 1, y: 0, scale: 1, transition: { type: "spring", stiffness: 100 } }
     };
 
     return (
-        <section className="w-full">
+        <section className="w-full py-24 border-t border-zinc-900 relative">
+
             {data.title && (
-                <motion.h3
-                    initial={{ opacity: 0, x: -20 }}
-                    whileInView={{ opacity: 1, x: 0 }}
-                    viewport={{ once: true, margin: "-100px" }}
-                    className="section-title mb-12"
-                >
-                    {data.title}
-                </motion.h3>
+                <div className="mb-16 flex items-center justify-between">
+                    <h3 className="text-4xl md:text-5xl font-bold text-white m-0" style={{ fontFamily: 'var(--font-heading)' }}>
+                        {data.title}
+                    </h3>
+                </div>
             )}
 
             <motion.div
                 variants={container}
                 initial="hidden"
                 whileInView="show"
-                viewport={{ once: true, margin: "-50px" }}
-                className={`grid gap-4 md:gap-6 ${bentoType === 'education' ? 'grid-cols-1 md:grid-cols-3' : bentoType === 'courses' ? 'grid-cols-2 md:grid-cols-3' : 'grid-cols-1 md:grid-cols-2'}`}
+                viewport={{ once: true, margin: "-100px" }}
+                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
             >
-                {items.map((entry: any, idx: number) => (
-                    <motion.div
-                        key={entry.id || idx}
-                        variants={itemAnim}
-                        className="bg-white p-6 md:p-8 rounded-3xl border border-slate-100 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_20px_40px_rgb(0,0,0,0.08)] hover:-translate-y-1 transition-all flex flex-col justify-between"
-                    >
-                        {bentoType === 'education' && (
-                            <>
-                                <div>
-                                    <span className="inline-block px-3 py-1 bg-blue-50 text-blue-600 text-[10px] font-bold uppercase tracking-widest rounded-full mb-4">{entry.meta}</span>
-                                    <h4 className="text-lg font-bold text-slate-900 leading-snug mb-2">{entry.title}</h4>
-                                </div>
-                                {entry.subtitle && <p className="text-sm text-slate-500 font-medium mt-4">{entry.subtitle}</p>}
-                            </>
-                        )}
+                {(data.items || []).map((item: any, idx: number) => {
 
-                        {bentoType === 'general' && (
-                            <div className="text-sm text-slate-700 leading-relaxed font-light" dangerouslySetInnerHTML={{ __html: entry.body || entry.title }} />
-                        )}
+                    // Size variations for the bento layout
+                    const isLarge = idx === 0 && bentoType !== 'courses';
+                    const spanClass = isLarge ? "md:col-span-2 lg:col-span-2" : "col-span-1";
 
-                        {bentoType === 'courses' && (
-                            <div className="flex items-center justify-center h-full text-center">
-                                <h4 className="font-semibold text-slate-800 leading-snug">{entry.title}</h4>
+                    return (
+                        <motion.div
+                            key={item.id || idx}
+                            variants={itemAnim}
+                            className={`group relative overflow-hidden bg-zinc-900/40 backdrop-blur-md rounded-3xl p-8 md:p-10 border border-zinc-800 hover:border-zinc-700 transition-all duration-500 hover:-translate-y-2 flex flex-col justify-between ${spanClass}`}
+                        >
+                            {/* Neon Top Border on Hover */}
+                            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#f25c54] to-orange-500 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+
+                            <div className="relative z-10 flex-1">
+                                {bentoType === 'education' && (
+                                    <div className="w-12 h-12 rounded-full bg-zinc-900 border border-zinc-800 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-500">
+                                        <GraduationCap size={20} className="text-[#f25c54]" />
+                                    </div>
+                                )}
+                                {(bentoType === 'courses' || bentoType === 'general') && (
+                                    <div className="w-12 h-12 rounded-full bg-zinc-900 border border-zinc-800 flex items-center justify-center mb-6 group-hover:scale-110 group-hover:bg-[#f25c54] transition-all duration-500">
+                                        <Award size={20} className="text-slate-500 group-hover:text-white" />
+                                    </div>
+                                )}
+
+                                {item.meta && (
+                                    <span className="inline-block px-3 py-1 bg-zinc-900 text-[#f25c54] text-[10px] font-bold uppercase tracking-widest rounded-full border border-zinc-800 mb-4">{item.meta}</span>
+                                )}
+
+                                <h4 className={`font-bold text-white mb-3 ${isLarge ? 'text-3xl md:text-4xl' : 'text-2xl'}`} style={{ fontFamily: 'var(--font-heading)' }}>
+                                    {item.title}
+                                </h4>
+
+                                {item.subtitle && <p className="text-sm font-bold tracking-widest uppercase text-slate-500 mb-4">{item.subtitle}</p>}
+
+                                {item.body && (
+                                    <p className={`text-slate-400 font-light leading-relaxed ${isLarge ? 'text-lg max-w-2xl' : 'text-sm'}`}>
+                                        {item.body}
+                                    </p>
+                                )}
                             </div>
-                        )}
-                    </motion.div>
-                ))}
+                        </motion.div>
+                    );
+                })}
             </motion.div>
         </section>
     );

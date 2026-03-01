@@ -1,60 +1,39 @@
 import { prisma } from '@/lib/prisma';
-import BlockRenderer from '@/components/BlockRenderer';
-import { Lock } from 'lucide-react';
+import GlobalNav from '@/components/GlobalNav';
+import BlockRenderer from './components/BlockRenderer';
 
-export const revalidate = 0;
+export const dynamic = 'force-dynamic';
 
 export default async function Home() {
-  const homePage = await prisma.page.findUnique({
-    where: { slug: 'home' },
-    include: {
-      blocks: {
-        orderBy: { order: 'asc' }
-      }
-    }
-  });
 
-  const siteSettings = await prisma.siteSettings.findUnique({
-    where: { id: 'global' }
-  });
-
-  if (!homePage) return <div className="p-24 text-center font-bold">Iniciando Constructor... (Ejecuta el seed)</div>;
+  // Fetch SiteConfig for the navigation bar
+  const siteConfig = await prisma.siteConfig.findFirst();
 
   return (
-    <main className="max-w-5xl mx-auto px-6 font-sans">
+    <div className="min-h-screen bg-zinc-950 text-slate-300 antialiased selection:bg-[#f25c54] selection:text-white pb-24 relative overflow-x-hidden">
 
-      {/* Component Tree Renderer */}
-      <div className="flex flex-col gap-12 lg:gap-24 mb-32">
-        {homePage.blocks.map((block) => (
-          <BlockRenderer key={block.id} block={block} />
-        ))}
-      </div>
+      {/* Global Navigation (Hamburger Menu) */}
+      <GlobalNav siteConfig={siteConfig} />
 
-      <footer className="border-t border-slate-200 py-12 flex flex-col md:flex-row justify-between items-center gap-4 text-sm font-medium text-slate-500">
-        <p>© {new Date().getFullYear()} {siteSettings?.title || 'Andrés Tabla Rico'}. Reservados todos los derechos.</p>
-        <a href="/login" className="flex items-center gap-2 hover:text-black transition-colors px-4 py-2 bg-slate-50 rounded-lg">
-          <Lock size={14} /> Entrar al Constructor (CMS)
-        </a>
+      {/* Dynamic Content Engine */}
+      <BlockRenderer />
+
+      {/* Footer Element */}
+      <footer className="w-full text-center py-12 border-t border-zinc-900 mt-24">
+        <p className="text-xs font-bold uppercase tracking-[0.2em] text-zinc-700">
+          {siteConfig?.title || 'Andrés Tabla'} &copy; {new Date().getFullYear()}
+          <span className="mx-2 text-[#f25c54]">&bull;</span>
+          Powered by NodeBuilder™
+        </p>
       </footer>
-
-      {/* Global CSS for section titles used across components */}
-      <style dangerouslySetInnerHTML={{
-        __html: `
-        .section-title {
-            font-size: 0.75rem;
-            font-weight: 800;
-            text-transform: uppercase;
-            letter-spacing: 0.1em;
-            color: #94a3b8; /* slate-400 */
-            display: flex;
-            align-items: center;
-            gap: 1rem;
+      align-items: center;
+      gap: 1rem;
         }
-        .section-title::after {
-            content: '';
-            flex: 1;
-            height: 1px;
-            background-color: #e2e8f0; /* slate-200 */
+      .section-title::after {
+        content: '';
+      flex: 1;
+      height: 1px;
+      background-color: #e2e8f0; /* slate-200 */
         }
       `}} />
     </main>
