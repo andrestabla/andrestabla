@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider  = "postgresql"
   url       = env("POSTGRES_PRISMA_URL")
   directUrl = env("POSTGRES_URL_NON_POOLING")
 }
@@ -14,41 +14,34 @@ model User {
   password String
 }
 
-model Profile {
-  id       String @id @default(uuid())
-  name     String
-  role     String
-  tagline  String
-  phone    String
-  email    String
-  about    String
+model SiteSettings {
+  id           String @id @default("global")
+  title        String
+  description  String?
+  globalStyles String // JSON stringified for global variables (fonts, main colors)
 }
 
-model Experience {
-  id          String @id @default(uuid())
+model Page {
+  id          String   @id @default(uuid())
+  slug        String   @unique
   title       String
-  company     String
-  period      String
-  description String
-  order       Int    @default(0)
+  description String?
+  isPublished Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  blocks      Block[]
 }
 
-model Education {
-  id          String @id @default(uuid())
-  degree      String
-  period      String
-  institution String
-  order       Int    @default(0)
-}
+model Block {
+  id        String   @id @default(uuid())
+  pageId    String
+  page      Page     @relation(fields: [pageId], references: [id], onDelete: Cascade)
+  type      String   // e.g., 'hero', 'timeline', 'bento', 'richtext', 'spacer'
+  data      String   // JSON stringified payload specific to the block type
+  styles    String?  // JSON stringified styling overrides (padding, background)
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-model Publication {
-  id          String @id @default(uuid())
-  content     String
-  order       Int    @default(0)
-}
-
-model Course {
-  id          String @id @default(uuid())
-  title       String
-  order       Int    @default(0)
+  @@index([pageId])
 }
