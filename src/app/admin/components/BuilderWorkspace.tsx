@@ -2,9 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { updateBlockData, deleteBlock, addBlock } from './actions';
-import { Trash2, Settings, Plus, GripVertical, Layers, Monitor, Tablet, Smartphone } from 'lucide-react';
-
-import { Box, Settings2 } from 'lucide-react';
+import { Trash2, Settings, Plus, GripVertical, Layers, Monitor, Tablet, Smartphone, Box, Settings2, Save, ExternalLink } from 'lucide-react';
 import GlobalSettingsForm from './GlobalSettingsForm';
 
 export default function BuilderWorkspace({ page, settings }: { page: any, settings: any }) {
@@ -263,32 +261,45 @@ export default function BuilderWorkspace({ page, settings }: { page: any, settin
 
             {/* RIGHT PANEL: Live Preview Canvas */}
             <main className="flex-1 bg-zinc-100 p-4 lg:p-4 flex flex-col relative items-center">
-                <div className="w-full max-w-6xl mb-4 flex items-center justify-between">
-                    <div className="flex items-center gap-2 text-[10px] font-bold tracking-widest uppercase text-slate-500 bg-white px-3 py-1.5 rounded-full shadow-sm border border-zinc-200">
-                        <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-                        Live Canvas
+                <div className="w-full max-w-6xl mb-4 flex items-center justify-between bg-white p-2 rounded-xl shadow-sm border border-zinc-200">
+                    {/* Left: Navigator Toggle */}
+                    <div className="flex items-center gap-2">
+                        <button
+                            onClick={() => { setSelectedBlockId(null); setViewMode('tree'); }}
+                            className="flex items-center gap-2 px-3 py-1.5 text-[11px] uppercase tracking-widest font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors"
+                        >
+                            <Layers size={14} /> Navigator
+                        </button>
                     </div>
 
-                    {/* Responsive Toggles */}
-                    <div className="flex bg-white rounded-lg shadow-sm border border-zinc-200 p-1 gap-1">
+                    {/* Center: Responsive Toggles */}
+                    <div className="flex bg-slate-100 rounded-lg p-1 gap-1">
                         <button
                             onClick={() => setPreviewWidth('100%')}
-                            className={`p-1.5 rounded-md transition-colors ${previewWidth === '100%' ? 'bg-indigo-100 text-indigo-600' : 'text-slate-400 hover:text-slate-600'}`}
+                            className={`p-1.5 rounded-md transition-colors ${previewWidth === '100%' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
                             title="Desktop"
                         ><Monitor size={16} /></button>
                         <button
                             onClick={() => setPreviewWidth('768px')}
-                            className={`p-1.5 rounded-md transition-colors ${previewWidth === '768px' ? 'bg-indigo-100 text-indigo-600' : 'text-slate-400 hover:text-slate-600'}`}
+                            className={`p-1.5 rounded-md transition-colors ${previewWidth === '768px' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
                             title="Tablet"
                         ><Tablet size={16} /></button>
                         <button
                             onClick={() => setPreviewWidth('375px')}
-                            className={`p-1.5 rounded-md transition-colors ${previewWidth === '375px' ? 'bg-indigo-100 text-indigo-600' : 'text-slate-400 hover:text-slate-600'}`}
+                            className={`p-1.5 rounded-md transition-colors ${previewWidth === '375px' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
                             title="Mobile"
                         ><Smartphone size={16} /></button>
                     </div>
 
-                    <a href="/" target="_blank" className="text-xs text-indigo-600 hover:text-indigo-800 font-medium">Abrir Público ↗</a>
+                    {/* Right: Publish & Open */}
+                    <div className="flex items-center gap-2">
+                        <a href="/" target="_blank" className="flex items-center gap-2 px-3 py-1.5 text-[11px] uppercase tracking-widest font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors">
+                            <ExternalLink size={14} /> Vista Previa
+                        </a>
+                        <button onClick={forcePreviewReload} className="flex items-center gap-2 px-4 py-1.5 text-[11px] uppercase tracking-widest font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-colors shadow-md">
+                            <Save size={14} /> Actualizar
+                        </button>
+                    </div>
                 </div>
 
                 <div
@@ -366,7 +377,15 @@ import LoopGridInspector from './inspectors/LoopGridInspector';
 function InspectorForm({ block, onSaved }: { block: any, onSaved: () => void }) {
     const [isSaving, setIsSaving] = useState(false);
     const [error, setError] = useState('');
-    const [activeTab, setActiveTab] = useState<'content' | 'styles'>('content');
+
+    const isContainer = ['grid', 'hero', 'bento', 'timeline', 'accordion', 'carousel', 'gallery', 'tabs', 'toggle'].includes(block.type);
+    const [activeTab, setActiveTab] = useState<'layout' | 'content' | 'styles'>(isContainer ? 'layout' : 'content');
+
+    // Auto-switch tabs when selecting different types of blocks
+    useEffect(() => {
+        if (isContainer && activeTab === 'content') setActiveTab('layout');
+        if (!isContainer && activeTab === 'layout') setActiveTab('content');
+    }, [block.id, isContainer]);
 
     let parsedData = {};
     try {
@@ -391,6 +410,14 @@ function InspectorForm({ block, onSaved }: { block: any, onSaved: () => void }) 
 
             {/* Tabs */}
             <div className="flex bg-slate-100 p-1 rounded-xl mb-4">
+                {isContainer && (
+                    <button
+                        onClick={() => setActiveTab('layout')}
+                        className={`flex-1 py-2 text-[10px] font-bold uppercase tracking-widest rounded-lg transition-all ${activeTab === 'layout' ? 'bg-white shadow-sm text-indigo-700' : 'text-slate-500 hover:text-slate-700'}`}
+                    >
+                        Layout
+                    </button>
+                )}
                 <button
                     onClick={() => setActiveTab('content')}
                     className={`flex-1 py-2 text-[10px] font-bold uppercase tracking-widest rounded-lg transition-all ${activeTab === 'content' ? 'bg-white shadow-sm text-indigo-700' : 'text-slate-500 hover:text-slate-700'}`}
@@ -401,7 +428,7 @@ function InspectorForm({ block, onSaved }: { block: any, onSaved: () => void }) 
                     onClick={() => setActiveTab('styles')}
                     className={`flex-1 py-2 text-[10px] font-bold uppercase tracking-widest rounded-lg transition-all ${activeTab === 'styles' ? 'bg-white shadow-sm text-indigo-700' : 'text-slate-500 hover:text-slate-700'}`}
                 >
-                    Estilos Avanzados
+                    Estilos
                 </button>
             </div>
 
@@ -411,7 +438,14 @@ function InspectorForm({ block, onSaved }: { block: any, onSaved: () => void }) 
 
             {error && <div className="p-3 bg-red-50 text-red-600 text-xs rounded-lg border border-red-200">{error}</div>}
 
-            {activeTab === 'content' && (
+            {isContainer && activeTab === 'content' && (
+                <div className="p-6 text-center border-2 border-dashed border-slate-200 rounded-xl bg-slate-50">
+                    <Box className="w-8 h-8 text-slate-300 mx-auto mb-3" />
+                    <p className="text-xs text-slate-500 font-medium">Este bloque es un contenedor estructural.<br /><br />Usa la pestaña <b>Layout</b> para configurarlo, o inserta Elementos dentro de él desde la Paleta principal.</p>
+                </div>
+            )}
+
+            {((isContainer && activeTab === 'layout') || (!isContainer && activeTab === 'content')) && (
                 <>
                     {block.type === 'hero' && <HeroInspector initialData={parsedData} onSave={handleSaveParsed} isSaving={isSaving} />}
                     {block.type === 'richtext' && <RichTextInspector initialData={parsedData} onSave={handleSaveParsed} isSaving={isSaving} />}

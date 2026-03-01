@@ -108,9 +108,14 @@ function BlockNode({ block, allBlocks, isEditor }: { block: any, allBlocks: any[
         <BlockNode key={child.id} block={child} allBlocks={allBlocks} isEditor={isEditor} />
     ));
 
+    const isContainer = ['grid', 'hero', 'bento', 'timeline', 'accordion', 'carousel', 'gallery', 'tabs', 'toggle'].includes(block.type);
+    const hoverOutlineStyle = isContainer
+        ? 'outline outline-[1.5px] outline-transparent hover:outline-blue-500 hover:bg-blue-500/5 cursor-pointer rounded-sm' // Solid blue for containers
+        : 'outline outline-[1.5px] outline-transparent hover:outline-dashed hover:outline-sky-400 hover:bg-sky-400/5 cursor-pointer rounded-sm'; // Dashed sky for widgets
+
     return (
         <div
-            className={`group/block relative w-full transition-all duration-300 outline outline-1 outline-transparent hover:outline-indigo-500 hover:ring-2 hover:ring-indigo-500/20 cursor-pointer rounded-sm ${isEditor ? 'admin-editor-node' : ''}`}
+            className={`group/block relative w-full transition-all duration-300 ${hoverOutlineStyle} ${isEditor ? 'admin-editor-node' : ''}`}
             style={styleString}
             data-block-id={block.id}
             id={`block-${block.id}`}
