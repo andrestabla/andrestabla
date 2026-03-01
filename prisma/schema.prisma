@@ -36,12 +36,19 @@ model Block {
   id        String   @id @default(uuid())
   pageId    String
   page      Page     @relation(fields: [pageId], references: [id], onDelete: Cascade)
-  type      String   // e.g., 'hero', 'timeline', 'bento', 'richtext', 'spacer'
+  type      String   // e.g., 'hero', 'timeline', 'bento', 'richtext', 'spacer', 'grid'
   data      String   // JSON stringified payload specific to the block type
-  styles    String?  // JSON stringified styling overrides (padding, background)
+  styles    String?  // JSON stringified styling overrides (padding, background, grid config)
   order     Int      @default(0)
+  
+  // Advanced Layout: Hierarchy for Nesting (e.g. Columns inside a Grid)
+  parentId  String?
+  parent    Block?   @relation("BlockChildren", fields: [parentId], references: [id], onDelete: Cascade)
+  children  Block[]  @relation("BlockChildren")
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([pageId])
+  @@index([parentId])
 }
