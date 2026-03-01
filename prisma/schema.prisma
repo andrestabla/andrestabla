@@ -1,0 +1,53 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model User {
+  id       String @id @default(uuid())
+  username String @unique
+  password String
+}
+
+model Profile {
+  id       String @id @default(uuid())
+  name     String
+  role     String
+  tagline  String
+  phone    String
+  email    String
+  about    String
+}
+
+model Experience {
+  id          String @id @default(uuid())
+  title       String
+  company     String
+  period      String
+  description String
+  order       Int    @default(0)
+}
+
+model Education {
+  id          String @id @default(uuid())
+  degree      String
+  period      String
+  institution String
+  order       Int    @default(0)
+}
+
+model Publication {
+  id          String @id @default(uuid())
+  content     String
+  order       Int    @default(0)
+}
+
+model Course {
+  id          String @id @default(uuid())
+  title       String
+  order       Int    @default(0)
+}

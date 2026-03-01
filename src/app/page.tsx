@@ -1,65 +1,130 @@
-import Image from "next/image";
+import { prisma } from '@/lib/prisma';
+import { Phone, Mail } from 'lucide-react';
 
-export default function Home() {
+export const revalidate = 0; // Disable static caching for real-time updates
+
+export default async function Home() {
+  const profile = await prisma.profile.findFirst();
+  const experiences = await prisma.experience.findMany({ orderBy: { order: 'asc' } });
+  const educations = await prisma.education.findMany({ orderBy: { order: 'asc' } });
+  const publications = await prisma.publication.findMany({ orderBy: { order: 'asc' } });
+  const courses = await prisma.course.findMany({ orderBy: { order: 'asc' } });
+
+  if (!profile) return <div className="p-10 text-center font-mono">No profile data found. Please seed the database.</div>;
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
+    <main className="container pb-20">
+
+      {/* Sidebar Nav (Desktop Only) */}
+      <nav className="fixed right-10 top-1/2 -translate-y-1/2 hidden md:flex flex-col gap-5 z-50">
+        <a href="#hero" className="w-3 h-3 rounded-full border-2 border-slate-300 hover:bg-black hover:border-black transition-all"></a>
+        <a href="#profile" className="w-3 h-3 rounded-full border-2 border-slate-300 hover:bg-black hover:border-black transition-all"></a>
+        <a href="#experience" className="w-3 h-3 rounded-full border-2 border-slate-300 hover:bg-black hover:border-black transition-all"></a>
+        <a href="#education" className="w-3 h-3 rounded-full border-2 border-slate-300 hover:bg-black hover:border-black transition-all"></a>
+      </nav>
+
+      {/* Hero Section */}
+      <header id="hero" className="min-h-[60vh] flex items-center justify-start py-24">
+        <div>
+          <h1 className="text-4xl md:text-6xl font-bold tracking-tight mb-2 text-slate-900" style={{ fontFamily: 'var(--font-heading)' }}>
+            {profile.name}
           </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+          <h2 className="text-lg text-slate-600 font-medium mb-8 max-w-2xl">{profile.role}</h2>
+
+          <div className="border-l-2 border-black pl-6 mb-10">
+            <p className="text-sm text-slate-500 mb-4">{profile.tagline}</p>
+            <div className="flex gap-6 text-sm font-medium">
+              <a href={`tel:${profile.phone}`} className="flex items-center gap-2 hover:border-b hover:border-black transition-all">
+                <Phone size={16} /> {profile.phone}
+              </a>
+              <a href={`mailto:${profile.email}`} className="flex items-center gap-2 hover:border-b hover:border-black transition-all">
+                <Mail size={16} /> {profile.email}
+              </a>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap gap-3">
+            <a href="https://algoritmot.com" target="_blank" className="glass-btn">algoritmot.com</a>
+            <a href="https://aprenderonline.com.co" target="_blank" className="glass-btn">aprenderonline.com.co</a>
+            <a href="https://profetabla.com" target="_blank" className="glass-btn">profetabla.com</a>
+          </div>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+      </header>
+
+      {/* Profile Section */}
+      <section id="profile" className="mt-24 pt-8">
+        <h3 className="section-title">PERFIL EJECUTIVO</h3>
+        <p className="text-lg text-slate-800 leading-relaxed font-light">{profile.about}</p>
+      </section>
+
+      {/* Experience Section */}
+      <section id="experience" className="mt-24 pt-8">
+        <h3 className="section-title">EXPERIENCIA PROFESIONAL</h3>
+        <div className="pl-0">
+          {experiences.map((exp) => (
+            <div key={exp.id} className="mb-14 relative">
+              <div className="flex flex-col md:flex-row md:justify-between md:items-baseline mb-3">
+                <h4 className="text-xl font-semibold max-w-lg">{exp.title} - {exp.company}</h4>
+                <span className="text-xs font-bold text-slate-500 bg-slate-100 px-3 py-1 rounded-full">{exp.period}</span>
+              </div>
+              <p className="text-slate-700">{exp.description}</p>
+            </div>
+          ))}
         </div>
-      </main>
-    </div>
+      </section>
+
+      {/* Education Section */}
+      <section id="education" className="mt-24 pt-8">
+        <h3 className="section-title">FORMACIÓN ACADÉMICA</h3>
+        <div className="overflow-x-auto">
+          <table className="premium-table">
+            <thead>
+              <tr>
+                <th>Título</th>
+                <th>Año</th>
+                <th>Institución</th>
+              </tr>
+            </thead>
+            <tbody>
+              {educations.map((edu) => (
+                <tr key={edu.id}>
+                  <td className="font-medium text-slate-800">{edu.degree}</td>
+                  <td className="text-slate-600">{edu.period}</td>
+                  <td className="text-slate-600">{edu.institution}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      {/* Publications Section */}
+      <section id="publications" className="mt-24 pt-8">
+        <h3 className="section-title">PUBLICACIONES</h3>
+        <div className="flex flex-col gap-4">
+          {publications.map((pub) => (
+            <div key={pub.id} className="p-6 bg-[#fbfbfd] rounded-xl hover:-translate-y-1 transition-transform border border-[#d2d2d7]" dangerouslySetInnerHTML={{ __html: pub.content }} />
+          ))}
+        </div>
+      </section>
+
+      {/* Courses Section */}
+      <section id="courses" className="mt-24 pt-8">
+        <h3 className="section-title">CURSOS VIRTUALES (AUTORÍA)</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {courses.map((course) => (
+            <div key={course.id} className="p-4 bg-[#fbfbfd] rounded-lg border border-[#d2d2d7] text-slate-800 font-medium">
+              {course.title}
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Footer & Admin Hook */}
+      <footer className="mt-32 pt-10 text-center text-sm text-slate-500 pb-10">
+        <p>&copy; 2026 Andrés Tabla Rico | Estrategia Digital y Excelencia Educativa</p>
+        <a href="/login" className="mt-4 inline-block text-xs uppercase tracking-widest hover:text-black">Administración</a>
+      </footer>
+    </main>
   );
 }

@@ -1,36 +1,29 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Andrés Tabla Rico - Supreme Executive Portfolio (Full-Stack CMS)
 
-## Getting Started
+Esta es la evolución de nivel "Supreme" de la hoja de vida interactiva de **Andrés Tabla Rico**. 
+Se ha reestructurado usando **Next.js, React y SQLite** para garantizar credenciales seguras, persistencia de datos y rendimiento de grado Enterprise.
 
-First, run the development server:
+## ✨ Características Premium
+- **Diseño "Executive Studio"**: Estética minimalista con tipografías suizas, alto contraste y perfecta adaptación a dispositivos de escritorio y móviles.
+- **CMS Integrado Seguro**: Ruta protegida por JWT (`/admin`) para gestionar en tiempo real la información de la base de datos.
+- **Next.js Server Components**: El sitio público procesa la base de datos en el servidor, haciendo la carga web instantánea y garantizando el mejor SEO posible.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## 🛠️ Cómo Utilizar el Sistema
+1. Entra a la ruta protegida desde tu sitio web (`tusitio.com/login`).
+2. Usa el usuario **andres.tabla** y la contraseña **admin123**.
+3. En el Panel de Control (`/admin`), podrás modificar el texto de tu Perfil, Experiencia, Formación y Cursos.
+4. Presiona **Guardar Cambios**; la base de datos se actualizará y la vista pública cambiará de inmediato.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 🚀 Guía de Despliegue (Production)
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Debido a que este proyecto ahora es "Full-Stack" (tiene base de datos y servidor), ya NO puede ser albergado en *GitHub Pages* (que solo permite HTML simple).
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+**El método recomendado para desplegar este repositorio es [Vercel](https://vercel.com/):**
+1. Crea una cuenta gratis en Vercel.com usando tu GitHub.
+2. Haz clic en **Add New Project** y selecciona este repositorio (`andrestabla/andrestabla`).
+3. En la configuración (Environment Variables), asegúrate de añadir:
+   - `JWT_SECRET=tuclavesecreta1`
+4. ¡Clickea "Deploy"! Vercel construirá e inicializará automáticamente el sitio con la base de datos. En minutos tendrás tu dominio público.
 
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+---
+_Desarrollado como una solución tecnológica escalable en 2026._
