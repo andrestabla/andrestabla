@@ -188,10 +188,12 @@ import RichTextInspector from './inspectors/RichTextInspector';
 import TimelineInspector from './inspectors/TimelineInspector';
 import BentoGridInspector from './inspectors/BentoGridInspector';
 import GridInspector from './inspectors/GridInspector';
+import AdvancedStyleInspector from './inspectors/AdvancedStyleInspector';
 
 function InspectorForm({ block, onSaved }: { block: any, onSaved: () => void }) {
     const [isSaving, setIsSaving] = useState(false);
     const [error, setError] = useState('');
+    const [activeTab, setActiveTab] = useState<'content' | 'styles'>('content');
 
     let parsedData = {};
     try {
@@ -213,21 +215,45 @@ function InspectorForm({ block, onSaved }: { block: any, onSaved: () => void }) 
 
     return (
         <div className="flex flex-col gap-4">
+
+            {/* Tabs */}
+            <div className="flex bg-slate-100 p-1 rounded-xl mb-4">
+                <button
+                    onClick={() => setActiveTab('content')}
+                    className={`flex-1 py-2 text-[10px] font-bold uppercase tracking-widest rounded-lg transition-all ${activeTab === 'content' ? 'bg-white shadow-sm text-indigo-700' : 'text-slate-500 hover:text-slate-700'}`}
+                >
+                    Contenido
+                </button>
+                <button
+                    onClick={() => setActiveTab('styles')}
+                    className={`flex-1 py-2 text-[10px] font-bold uppercase tracking-widest rounded-lg transition-all ${activeTab === 'styles' ? 'bg-white shadow-sm text-indigo-700' : 'text-slate-500 hover:text-slate-700'}`}
+                >
+                    Estilos Avanzados
+                </button>
+            </div>
+
             <p className="text-[10px] uppercase font-bold text-slate-500 mb-2 tracking-widest leading-relaxed bg-indigo-50/50 p-3 rounded-lg border border-indigo-100/50">
                 Cambios en tiempo real
             </p>
 
             {error && <div className="p-3 bg-red-50 text-red-600 text-xs rounded-lg border border-red-200">{error}</div>}
 
-            {block.type === 'hero' && <HeroInspector initialData={parsedData} onSave={handleSaveParsed} isSaving={isSaving} />}
-            {block.type === 'richtext' && <RichTextInspector initialData={parsedData} onSave={handleSaveParsed} isSaving={isSaving} />}
-            {block.type === 'timeline' && <TimelineInspector initialData={parsedData} onSave={handleSaveParsed} isSaving={isSaving} />}
-            {block.type === 'bento' && <BentoGridInspector initialData={parsedData} onSave={handleSaveParsed} isSaving={isSaving} />}
-            {block.type === 'grid' && <GridInspector initialData={parsedData} onSave={handleSaveParsed} isSaving={isSaving} />}
+            {activeTab === 'content' && (
+                <>
+                    {block.type === 'hero' && <HeroInspector initialData={parsedData} onSave={handleSaveParsed} isSaving={isSaving} />}
+                    {block.type === 'richtext' && <RichTextInspector initialData={parsedData} onSave={handleSaveParsed} isSaving={isSaving} />}
+                    {block.type === 'timeline' && <TimelineInspector initialData={parsedData} onSave={handleSaveParsed} isSaving={isSaving} />}
+                    {block.type === 'bento' && <BentoGridInspector initialData={parsedData} onSave={handleSaveParsed} isSaving={isSaving} />}
+                    {block.type === 'grid' && <GridInspector initialData={parsedData} onSave={handleSaveParsed} isSaving={isSaving} />}
 
-            {/* Fallback for unknown block types (Raw JSON) */}
-            {!['hero', 'richtext', 'timeline', 'bento', 'grid'].includes(block.type) && (
-                <RawJsonFallback block={block} onSaved={onSaved} />
+                    {!['hero', 'richtext', 'timeline', 'bento', 'grid'].includes(block.type) && (
+                        <RawJsonFallback block={block} onSaved={onSaved} />
+                    )}
+                </>
+            )}
+
+            {activeTab === 'styles' && (
+                <AdvancedStyleInspector block={block} onSaved={onSaved} />
             )}
         </div>
     );

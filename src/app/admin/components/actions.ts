@@ -13,6 +13,16 @@ export async function updateBlockData(id: string, newData: string) {
     revalidatePath('/admin');
 }
 
+// Update a single block's styling overrides (backgrounds, paddings)
+export async function updateBlockStyles(id: string, newStyles: string) {
+    await prisma.block.update({
+        where: { id },
+        data: { styles: newStyles }
+    });
+    revalidatePath('/');
+    revalidatePath('/admin');
+}
+
 // Add a new block to the end of the page (or inside a parent)
 export async function addBlock(pageId: string, type: string, defaultData: any, parentId?: string) {
     const count = await prisma.block.count({ where: { pageId, parentId: parentId || null } });
