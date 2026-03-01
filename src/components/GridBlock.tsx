@@ -10,7 +10,7 @@ export default function GridBlock({ data, childrenNodes }: { data: any, children
     let gridClass = "grid-cols-1";
     if (columns === 2) gridClass = "grid-cols-1 md:grid-cols-2";
     if (columns === 3) gridClass = "grid-cols-1 md:grid-cols-3";
-    if (columns === 4) gridClass = "grid-cols-1 md:grid-cols-2 lg:grid-cols-4";
+    if (columns === 4) gridClass = "grid-cols-1 md:grid-cols-2 xl:grid-cols-4";
 
     return (
         <div className={`w-full py-12 grid ${gridClass} gap-6 md:gap-12 relative`}>
