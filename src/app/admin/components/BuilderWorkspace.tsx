@@ -242,7 +242,7 @@ export default function BuilderWorkspace({ page, settings }: { page: any, settin
                     style={{ width: previewWidth, maxWidth: '100%' }}
                 >
                     <iframe
-                        src="/"
+                        src="/?editor=true"
                         className="w-full h-full border-none"
                         title="Public Site Preview"
                         id="live-preview-iframe"

@@ -23,7 +23,7 @@ const BlockComponents: Record<string, any> = {
 };
 
 // Recursive Node Renderer
-function BlockNode({ block, allBlocks }: { block: any, allBlocks: any[] }) {
+function BlockNode({ block, allBlocks, isEditor }: { block: any, allBlocks: any[], isEditor?: boolean }) {
     const Component = BlockComponents[block.type];
     if (!Component) return null;
 
@@ -61,20 +61,26 @@ function BlockNode({ block, allBlocks }: { block: any, allBlocks: any[] }) {
         .filter(b => b.parentId === block.id)
         .sort((a, b) => a.order - b.order);
 
+    // If it has children, parse them recursively
+    const childrenNodes = childrenBlocks.map((child: any) => (
+        <BlockNode key={child.id} block={child} allBlocks={allBlocks} isEditor={isEditor} />
+    ));
+
     return (
         <div
-            className="group/block relative w-full h-full transition-all duration-300 outline outline-1 outline-transparent hover:outline-indigo-500 hover:ring-2 hover:ring-indigo-500/20 cursor-pointer rounded-sm"
+            className="group/block relative w-full transition-all duration-300 outline outline-1 outline-transparent hover:outline-indigo-500 hover:ring-2 hover:ring-indigo-500/20 cursor-pointer rounded-sm"
             style={styleString}
             data-block-id={block.id}
             id={`block-${block.id}`}
         >
-            <Component data={parsedData} childrenBlocks={childrenBlocks} allBlocks={allBlocks} />
+            <Component data={parsedData} childrenNodes={childrenNodes} isEditor={isEditor} />
         </div>
     );
 }
 
 // Dispatcher Component: Fetches raw JSON blocks and injects them into the recursive tree
-export default async function BlockRenderer() {
+export default async function BlockRenderer({ isEditor }: { isEditor?: boolean }) {
+    // @ts-ignore
     const page = await prisma.page.findFirst({
         where: { slug: 'home' },
         include: { blocks: true },
@@ -91,9 +97,9 @@ export default async function BlockRenderer() {
 
     return (
         <div className="w-full relative admin-canvas-wrapper">
-            <ClickToEditWrapper />
+            {isEditor && <ClickToEditWrapper />}
             {rootBlocks.map((block: any) => (
-                <BlockNode key={block.id} block={block} allBlocks={page.blocks} />
+                <BlockNode key={block.id} block={block} allBlocks={page.blocks} isEditor={isEditor} />
             ))}
         </div>
     );

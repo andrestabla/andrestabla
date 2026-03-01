@@ -4,9 +4,13 @@ import BlockRenderer from './components/BlockRenderer';
 
 export const dynamic = 'force-dynamic';
 
-export default async function Home() {
+export default async function Home({ searchParams }: { searchParams: Promise<{ [key: string]: string | string[] | undefined }> }) {
+
+  const resolvedSearchParams = await searchParams;
+  const isEditor = resolvedSearchParams?.editor === 'true';
 
   // Fetch SiteConfig for the navigation bar
+  // @ts-ignore
   const siteConfig = await prisma.siteSettings.findFirst();
 
   return (
@@ -16,7 +20,8 @@ export default async function Home() {
       <GlobalNav siteConfig={siteConfig} />
 
       {/* Dynamic Content Engine */}
-      <BlockRenderer />
+      {/* @ts-ignore */}
+      <BlockRenderer isEditor={isEditor} />
 
       {/* Footer Element */}
       <footer className="w-full text-center py-12 border-t border-zinc-900 mt-24">
