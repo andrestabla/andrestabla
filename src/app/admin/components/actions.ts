@@ -61,3 +61,19 @@ export async function reorderBlocks(pageId: string, blockIds: string[]) {
     revalidatePath('/');
     revalidatePath('/admin');
 }
+
+// Update Global Settings (SiteSettings)
+export async function updateGlobalSettings(newStyles: string) {
+    await prisma.siteSettings.upsert({
+        where: { id: 'global' },
+        update: { globalStyles: newStyles },
+        create: {
+            id: 'global',
+            title: 'Mi Sitio',
+            globalStyles: newStyles
+        }
+    });
+
+    revalidatePath('/');
+    revalidatePath('/admin');
+}

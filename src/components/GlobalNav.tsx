@@ -16,15 +16,27 @@ export default function GlobalNav({ siteConfig }: { siteConfig?: any }) {
 
     const toggleMenu = () => setIsOpen(!isOpen);
 
+    let parsedStyles: any = null;
+    if (siteConfig?.globalStyles) {
+        try { parsedStyles = JSON.parse(siteConfig.globalStyles); } catch (e) { }
+    }
+    const logoUrl = parsedStyles?.logoUrl;
+
     return (
         <>
             {/* Top Fixed Hamburger Button */}
             <div className={`fixed top-0 right-0 w-full z-50 transition-all duration-500 ${scrolled ? 'bg-zinc-950/80 backdrop-blur-md border-b border-zinc-900 py-4' : 'bg-transparent py-8'}`}>
                 <div className="max-w-6xl mx-auto px-6 md:px-12 flex justify-between items-center">
 
-                    <div className="text-white font-bold tracking-[0.2em] uppercase text-xs z-50">
-                        {siteConfig?.title?.split(' ')[0] || 'A.'} <span className="text-[#f25c54]">{siteConfig?.title?.split(' ')[1] || 'Tabla'}</span>
-                    </div>
+                    <a href="/" className="z-50 flex items-center gap-2">
+                        {logoUrl ? (
+                            <img src={logoUrl} alt="Site Logo" className="h-8 md:h-10 object-contain drop-shadow-md" />
+                        ) : (
+                            <div className="text-white font-bold tracking-[0.2em] uppercase text-xs">
+                                {siteConfig?.title?.split(' ')[0] || 'A.'} <span className="text-[var(--brand)]">{siteConfig?.title?.split(' ').slice(1).join(' ') || 'Tabla'}</span>
+                            </div>
+                        )}
+                    </a>
 
                     <button
                         onClick={toggleMenu}
@@ -61,7 +73,7 @@ export default function GlobalNav({ siteConfig }: { siteConfig?: any }) {
                                     className="text-4xl md:text-6xl font-bold text-slate-500 hover:text-white hover:pl-4 transition-all duration-300 relative group"
                                     style={{ fontFamily: 'var(--font-heading)' }}
                                 >
-                                    <span className="absolute left-[-2rem] top-1/2 -translate-y-1/2 text-[#f25c54] text-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300">0{idx + 1}</span>
+                                    <span className="absolute left-[-2rem] top-1/2 -translate-y-1/2 text-[var(--brand)] text-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300">0{idx + 1}</span>
                                     {item}
                                 </motion.a>
                             ))}
@@ -70,7 +82,7 @@ export default function GlobalNav({ siteConfig }: { siteConfig?: any }) {
                                 initial={{ opacity: 0 }}
                                 animate={{ opacity: 1 }}
                                 transition={{ delay: 0.8 }}
-                                className="mt-12 px-8 py-3 bg-[#f25c54] text-white rounded-full font-bold uppercase tracking-widest text-xs hover:bg-orange-600 transition-colors"
+                                className="mt-12 px-8 py-3 bg-[var(--brand)] text-white rounded-full font-bold uppercase tracking-widest text-xs hover:opacity-80 transition-colors"
                             >
                                 Iniciar Constructor
                             </motion.a>

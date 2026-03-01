@@ -21,6 +21,24 @@ export default async function AdminPage() {
         return <div className="p-12 text-center text-red-500">Error: Base de datos no inicializada (Falta The Home Page).</div>;
     }
 
+    // Fetch Global Settings
+    let siteSettings = await prisma.siteSettings.findUnique({ where: { id: 'global' } });
+    if (!siteSettings) {
+        siteSettings = await prisma.siteSettings.create({
+            data: {
+                id: 'global',
+                title: 'Mi Sitio',
+                description: '',
+                globalStyles: JSON.stringify({
+                    primaryColor: '#4f46e5',
+                    fontFamily: 'Inter',
+                    logoUrl: '',
+                    loaderEnabled: true
+                })
+            }
+        });
+    }
+
     // The Top Navigation Bar for the Admin Route (Full Screen)
     return (
         <div className="h-screen w-full flex flex-col overflow-hidden bg-slate-900 font-sans">
@@ -41,7 +59,7 @@ export default async function AdminPage() {
 
             {/* The Workspace Area */}
             <div className="flex-1 w-full relative overflow-hidden bg-zinc-100">
-                <BuilderWorkspace page={homePage} />
+                <BuilderWorkspace page={homePage} settings={siteSettings} />
             </div>
         </div>
     );

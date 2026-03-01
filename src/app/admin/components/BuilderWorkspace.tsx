@@ -4,10 +4,14 @@ import { useState } from 'react';
 import { updateBlockData, deleteBlock, addBlock } from './actions';
 import { Trash2, Settings, Plus, GripVertical, Layers } from 'lucide-react';
 
-export default function BuilderWorkspace({ page }: { page: any }) {
-    const [selectedBlockId, setSelectedBlockId] = useState<string | null>(null);
+import { Box, Settings2 } from 'lucide-react';
+import GlobalSettingsForm from './GlobalSettingsForm';
 
-    const blocks = page.blocks || [];
+export default function BuilderWorkspace({ page, settings }: { page: any, settings: any }) {
+    const [selectedBlockId, setSelectedBlockId] = useState<string | null>(null);
+    const [viewMode, setViewMode] = useState<'tree' | 'settings'>('tree');
+
+    const blocks = page?.blocks || [];
     const rootBlocks = blocks.filter((b: any) => !b.parentId).sort((a: any, b: any) => a.order - b.order);
     const selectedBlock = blocks.find((b: any) => b.id === selectedBlockId);
 
@@ -55,7 +59,7 @@ export default function BuilderWorkspace({ page }: { page: any }) {
     return (
         <div className="flex h-full w-full">
             <aside className="w-[400px] h-full bg-white border-r border-[#d2d2d7] flex flex-col shadow-2xl relative z-10 shrink-0">
-                <div className="p-4 border-b border-[#e5e7eb] flex justify-between items-center bg-zinc-50">
+                <div className="p-4 border-b border-[#e5e7eb] flex justify-between items-center bg-zinc-50 relative z-20 shadow-sm">
                     <div className="flex items-center gap-3">
                         <div className="bg-indigo-600 text-white p-1.5 rounded-lg shadow-md"><Settings size={16} /></div>
                         <div>
@@ -65,9 +69,31 @@ export default function BuilderWorkspace({ page }: { page: any }) {
                     </div>
                 </div>
 
+                {/* Main Sidebar Toggle */}
+                {!selectedBlock && (
+                    <div className="flex p-2 bg-slate-100 m-4 rounded-xl">
+                        <button
+                            onClick={() => setViewMode('tree')}
+                            className={`flex-1 py-1.5 text-[10px] font-bold uppercase tracking-widest rounded-lg flex items-center justify-center gap-2 transition-all ${viewMode === 'tree' ? 'bg-white shadow-sm text-indigo-700' : 'text-slate-500 hover:text-slate-700'}`}
+                        >
+                            <Box size={14} /> Widgets
+                        </button>
+                        <button
+                            onClick={() => setViewMode('settings')}
+                            className={`flex-1 py-1.5 text-[10px] font-bold uppercase tracking-widest rounded-lg flex items-center justify-center gap-2 transition-all ${viewMode === 'settings' ? 'bg-white shadow-sm text-indigo-700' : 'text-slate-500 hover:text-slate-700'}`}
+                        >
+                            <Settings2 size={14} /> Diseño
+                        </button>
+                    </div>
+                )}
+
                 <div className="flex-1 overflow-y-auto custom-scrollbar flex flex-col">
 
-                    {!selectedBlock && (
+                    {viewMode === 'settings' && !selectedBlock && (
+                        <GlobalSettingsForm settings={settings} onSaved={forcePreviewReload} />
+                    )}
+
+                    {viewMode === 'tree' && !selectedBlock && (
                         <div className="p-4 flex flex-col gap-2 animate-in fade-in slide-in-from-left-4">
                             <h3 className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2 ml-1">Árbol de Nodos</h3>
 
