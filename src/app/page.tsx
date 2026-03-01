@@ -26,16 +26,6 @@ export default async function Home() {
           Powered by NodeBuilder™
         </p>
       </footer>
-      align-items: center;
-      gap: 1rem;
-        }
-      .section-title::after {
-        content: '';
-      flex: 1;
-      height: 1px;
-      background-color: #e2e8f0; /* slate-200 */
-        }
-      `}} />
-    </main>
+    </div>
   );
 }
