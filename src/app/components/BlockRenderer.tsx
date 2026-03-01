@@ -6,6 +6,8 @@ import RichTextBlock from '@/components/RichTextBlock';
 import GridBlock from '@/components/GridBlock';
 import VideoBlock from '@/components/VideoBlock';
 import ImageBlock from '@/components/ImageBlock';
+import AccordionBlock from '@/components/AccordionBlock';
+import CarouselBlock from '@/components/CarouselBlock';
 
 const BlockComponents: Record<string, any> = {
     hero: HeroBlock,
@@ -14,7 +16,9 @@ const BlockComponents: Record<string, any> = {
     bento: BentoGridBlock,
     grid: GridBlock,
     video: VideoBlock,
-    image: ImageBlock
+    image: ImageBlock,
+    accordion: AccordionBlock,
+    carousel: CarouselBlock
 };
 
 // Recursive Node Renderer
