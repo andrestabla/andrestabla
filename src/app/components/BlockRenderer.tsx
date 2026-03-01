@@ -8,6 +8,7 @@ import VideoBlock from '@/components/VideoBlock';
 import ImageBlock from '@/components/ImageBlock';
 import AccordionBlock from '@/components/AccordionBlock';
 import CarouselBlock from '@/components/CarouselBlock';
+import ClickToEditWrapper from '@/components/ClickToEditWrapper';
 
 const BlockComponents: Record<string, any> = {
     hero: HeroBlock,
@@ -33,65 +34,68 @@ function BlockNode({ block, allBlocks }: { block: any, allBlocks: any[] }) {
         return <div className="p-4 border-l-4 border-red-500 bg-red-950/20 text-red-500 font-mono text-xs">Error: JSON Corrupto en bloque {block.type}</div>;
     }
 
-    let customStyles: React.CSSProperties = {};
+    let parsedStyles: any = {};
     if (block.styles) {
         try {
-            const stylesObj = JSON.parse(block.styles);
-            if (stylesObj.backgroundColor) customStyles.backgroundColor = stylesObj.backgroundColor;
-            if (stylesObj.backgroundImage) {
-                customStyles.backgroundImage = `url('${stylesObj.backgroundImage}')`;
-                customStyles.backgroundSize = 'cover';
-                customStyles.backgroundPosition = 'center';
-            }
-            if (stylesObj.paddingTop) customStyles.paddingTop = `${stylesObj.paddingTop}rem`;
-            if (stylesObj.paddingBottom) customStyles.paddingBottom = `${stylesObj.paddingBottom}rem`;
-        } catch (e) { }
+            parsedStyles = JSON.parse(block.styles);
+        } catch (e) {
+            // Handle error if styles JSON is corrupt
+        }
     }
+
+    // Apply parsed styles dynamically
+    const styleString: any = {};
+    if (parsedStyles.backgroundColor) styleString.backgroundColor = parsedStyles.backgroundColor;
+    if (parsedStyles.backgroundImage) {
+        styleString.backgroundImage = `url('${parsedStyles.backgroundImage}')`;
+        styleString.backgroundSize = 'cover';
+        styleString.backgroundPosition = 'center';
+    }
+    if (parsedStyles.paddingTop) styleString.paddingTop = `${parsedStyles.paddingTop}rem`;
+    if (parsedStyles.paddingBottom) styleString.paddingBottom = `${parsedStyles.paddingBottom}rem`;
+    if (parsedStyles.padding) styleString.padding = parsedStyles.padding;
+    if (parsedStyles.margin) styleString.margin = parsedStyles.margin;
 
     // Find children attached to this node
     const childrenBlocks = allBlocks
         .filter(b => b.parentId === block.id)
         .sort((a, b) => a.order - b.order);
 
-    // If it has children, parse them recursively
-    const childrenNodes = childrenBlocks.map(child => (
-        <BlockNode key={child.id} block={child} allBlocks={allBlocks} />
-    ));
-
     return (
         <div
-            className={`w-full relative fade-in-section node-type-${block.type}`}
-            style={customStyles}
+            className="group/block relative w-full h-full transition-all duration-300 outline outline-1 outline-transparent hover:outline-indigo-500 hover:ring-2 hover:ring-indigo-500/20 cursor-pointer rounded-sm"
+            style={styleString}
+            data-block-id={block.id}
+            id={`block-${block.id}`}
         >
-            <Component data={parsedData} childrenNodes={childrenNodes} />
+            <Component data={parsedData} childrenBlocks={childrenBlocks} allBlocks={allBlocks} />
         </div>
     );
 }
 
 // Dispatcher Component: Fetches raw JSON blocks and injects them into the recursive tree
 export default async function BlockRenderer() {
-
-    // 1. Fetch all raw configurations from DB
-    const pages = await prisma.page.findMany({
-        where: { slug: 'home' },
-        include: {
-            blocks: {
-                orderBy: { order: 'asc' }
-            }
-        }
+    // @ts-ignore
+    const page = await prisma.page.findFirst({
+        where: { isHome: true },
+        include: { blocks: true },
     });
 
-    if (!pages || pages.length === 0) return <div className="p-24 text-center text-slate-500">No hay contenido publicado. Usa el Panel de Control para añadir bloques.</div>;
+    if (!page) {
+        return <div className="p-8 text-center text-slate-500">No home page found. Please configure the CMS.</div>;
+    }
 
-    const allBlocks = pages[0].blocks;
-    const rootBlocks = allBlocks.filter((b: any) => !b.parentId).sort((a: any, b: any) => a.order - b.order);
+    // Sort root blocks by order
+    const rootBlocks = page.blocks
+        .filter((b: any) => !b.parentId)
+        .sort((a: any, b: any) => a.order - b.order);
 
-    // 2. Render Root Loop
     return (
-        <main className="w-full flex flex-col gap-0 max-w-[1200px] mx-auto px-6 md:px-12 pt-16">
-            {rootBlocks.map((rootBlock: any) => (
-                <BlockNode key={rootBlock.id} block={rootBlock} allBlocks={allBlocks} />
+        <div className="w-full relative admin-canvas-wrapper">
+            <ClickToEditWrapper />
+            {rootBlocks.map((block: any) => (
+                <BlockNode key={block.id} block={block} allBlocks={page.blocks} />
             ))}
-        </main>
+        </div>
     );
 }

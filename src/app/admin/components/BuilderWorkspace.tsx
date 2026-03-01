@@ -1,15 +1,28 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { updateBlockData, deleteBlock, addBlock } from './actions';
-import { Trash2, Settings, Plus, GripVertical, Layers } from 'lucide-react';
+import { Trash2, Settings, Plus, GripVertical, Layers, Monitor, Tablet, Smartphone } from 'lucide-react';
 
 import { Box, Settings2 } from 'lucide-react';
 import GlobalSettingsForm from './GlobalSettingsForm';
 
 export default function BuilderWorkspace({ page, settings }: { page: any, settings: any }) {
     const [selectedBlockId, setSelectedBlockId] = useState<string | null>(null);
-    const [viewMode, setViewMode] = useState<'tree' | 'settings'>('tree');
+    const [viewMode, setViewMode] = useState<'palette' | 'tree' | 'settings'>('palette');
+    const [previewWidth, setPreviewWidth] = useState<'100%' | '768px' | '375px'>('100%');
+
+    // Listen for clicks inside the Iframe
+    useEffect(() => {
+        const handleMessage = (event: MessageEvent) => {
+            if (event.data?.type === 'BLOCK_SELECTED' && event.data?.blockId) {
+                setSelectedBlockId(event.data.blockId);
+                setViewMode('tree'); // Ensure we are in tree view to see the inspector
+            }
+        };
+        window.addEventListener('message', handleMessage);
+        return () => window.removeEventListener('message', handleMessage);
+    }, []);
 
     const blocks = page?.blocks || [];
     const rootBlocks = blocks.filter((b: any) => !b.parentId).sort((a: any, b: any) => a.order - b.order);
@@ -73,14 +86,23 @@ export default function BuilderWorkspace({ page, settings }: { page: any, settin
                 {!selectedBlock && (
                     <div className="flex p-2 bg-slate-100 m-4 rounded-xl">
                         <button
+                            onClick={() => setViewMode('palette')}
+                            className={`flex-1 py-1.5 text-[10px] font-bold uppercase tracking-widest rounded-lg flex items-center justify-center gap-2 transition-all ${viewMode === 'palette' ? 'bg-white shadow-sm text-indigo-700' : 'text-slate-500 hover:text-slate-700'}`}
+                            title="Paleta de Widgets"
+                        >
+                            <Plus size={14} /> Insertar
+                        </button>
+                        <button
                             onClick={() => setViewMode('tree')}
                             className={`flex-1 py-1.5 text-[10px] font-bold uppercase tracking-widest rounded-lg flex items-center justify-center gap-2 transition-all ${viewMode === 'tree' ? 'bg-white shadow-sm text-indigo-700' : 'text-slate-500 hover:text-slate-700'}`}
+                            title="Árbol de Capas"
                         >
-                            <Box size={14} /> Widgets
+                            <Box size={14} /> Capas
                         </button>
                         <button
                             onClick={() => setViewMode('settings')}
                             className={`flex-1 py-1.5 text-[10px] font-bold uppercase tracking-widest rounded-lg flex items-center justify-center gap-2 transition-all ${viewMode === 'settings' ? 'bg-white shadow-sm text-indigo-700' : 'text-slate-500 hover:text-slate-700'}`}
+                            title="Diseño Global"
                         >
                             <Settings2 size={14} /> Diseño
                         </button>
@@ -93,29 +115,45 @@ export default function BuilderWorkspace({ page, settings }: { page: any, settin
                         <GlobalSettingsForm settings={settings} onSaved={forcePreviewReload} />
                     )}
 
+                    {viewMode === 'palette' && !selectedBlock && (
+                        <div className="p-4 flex flex-col gap-4 animate-in fade-in slide-in-from-left-4">
+                            <div>
+                                <h3 className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-3 ml-1">Estructura</h3>
+                                <div className="grid grid-cols-2 gap-2">
+                                    <WidgetAddBtn pageId={page.id} parentId={null} type="hero" label="Portada (Hero)" defaultData={{ name: "Nuevo Bloque", role: "Tu Cargo", links: [] }} onAdded={forcePreviewReload} />
+                                    <WidgetAddBtn pageId={page.id} parentId={null} type="grid" label="Cuadrícula (Sección)" defaultData={{ columns: 2 }} onAdded={forcePreviewReload} />
+                                    <WidgetAddBtn pageId={page.id} parentId={null} type="bento" label="Bento Grid" defaultData={{ title: "Portafolio", bentoType: "general", items: [] }} onAdded={forcePreviewReload} />
+                                    <WidgetAddBtn pageId={page.id} parentId={null} type="timeline" label="Línea de Vida" defaultData={{ title: "Experiencia", items: [] }} onAdded={forcePreviewReload} />
+                                </div>
+                            </div>
+
+                            <div>
+                                <h3 className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-3 ml-1 mt-2">Básicos</h3>
+                                <div className="grid grid-cols-2 gap-2">
+                                    <WidgetAddBtn pageId={page.id} parentId={null} type="richtext" label="Texto a Medida" defaultData={{ title: "Título Seccion", content: "<p>Escribe algo increíble...</p>" }} onAdded={forcePreviewReload} />
+                                    <WidgetAddBtn pageId={page.id} parentId={null} type="image" label="Imagen" defaultData={{ url: "", alt: "Imagen" }} onAdded={forcePreviewReload} />
+                                    <WidgetAddBtn pageId={page.id} parentId={null} type="video" label="Video" defaultData={{ url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ" }} onAdded={forcePreviewReload} />
+                                </div>
+                            </div>
+
+                            <div>
+                                <h3 className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-3 ml-1 mt-2">Interactivos</h3>
+                                <div className="grid grid-cols-2 gap-2">
+                                    <WidgetAddBtn pageId={page.id} parentId={null} type="accordion" label="Acordeón / FAQ" defaultData={{ title: "FAQ", items: [] }} onAdded={forcePreviewReload} />
+                                    <WidgetAddBtn pageId={page.id} parentId={null} type="carousel" label="Carrusel" defaultData={{ height: "h-[400px]", images: [] }} onAdded={forcePreviewReload} />
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
                     {viewMode === 'tree' && !selectedBlock && (
                         <div className="p-4 flex flex-col gap-2 animate-in fade-in slide-in-from-left-4">
-                            <h3 className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2 ml-1">Árbol de Nodos</h3>
+                            <h3 className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2 ml-1">Capas y Nodos</h3>
 
                             {blocks.length === 0 && <p className="text-xs text-slate-400 italic text-center py-8">La página está vacía.</p>}
 
                             <div className="space-y-1">
                                 {renderBlockTree(rootBlocks)}
-                            </div>
-
-                            <div className="mt-8 border-t border-slate-100 pt-6">
-                                <h3 className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2 ml-1">Añadir Sección / Widget Raíz</h3>
-                                <div className="grid grid-cols-2 gap-2">
-                                    <WidgetAddBtn pageId={page.id} parentId={null} type="grid" label="Grid (Columnas)" defaultData={{ columns: 2 }} onAdded={forcePreviewReload} />
-                                    <WidgetAddBtn pageId={page.id} parentId={null} type="hero" label="Portada (Hero)" defaultData={{ name: "Nuevo Bloque", role: "Tu Cargo", links: [] }} onAdded={forcePreviewReload} />
-                                    <WidgetAddBtn pageId={page.id} parentId={null} type="richtext" label="Texto (Prose)" defaultData={{ title: "Título Seccion", content: "<p>Escribe algo increíble...</p>" }} onAdded={forcePreviewReload} />
-                                    <WidgetAddBtn pageId={page.id} parentId={null} type="image" label="Imagen" defaultData={{ url: "", alt: "Imagen" }} onAdded={forcePreviewReload} />
-                                    <WidgetAddBtn pageId={page.id} parentId={null} type="video" label="Video" defaultData={{ url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ" }} onAdded={forcePreviewReload} />
-                                    <WidgetAddBtn pageId={page.id} parentId={null} type="accordion" label="Acordeón / FAQ" defaultData={{ title: "FAQ", items: [] }} onAdded={forcePreviewReload} />
-                                    <WidgetAddBtn pageId={page.id} parentId={null} type="carousel" label="Carrusel" defaultData={{ height: "h-[400px]", images: [] }} onAdded={forcePreviewReload} />
-                                    <WidgetAddBtn pageId={page.id} parentId={null} type="timeline" label="Línea de Vida" defaultData={{ title: "Experiencia", items: [] }} onAdded={forcePreviewReload} />
-                                    <WidgetAddBtn pageId={page.id} parentId={null} type="bento" label="Bento Grid" defaultData={{ title: "Portafolio", bentoType: "general", items: [] }} onAdded={forcePreviewReload} />
-                                </div>
                             </div>
                         </div>
                     )}
@@ -170,16 +208,39 @@ export default function BuilderWorkspace({ page, settings }: { page: any, settin
             </aside>
 
             {/* RIGHT PANEL: Live Preview Canvas */}
-            <main className="flex-1 bg-zinc-100 p-4 lg:p-4 flex flex-col relative">
-                <div className="mb-2 flex items-center justify-between">
+            <main className="flex-1 bg-zinc-100 p-4 lg:p-4 flex flex-col relative items-center">
+                <div className="w-full max-w-6xl mb-4 flex items-center justify-between">
                     <div className="flex items-center gap-2 text-[10px] font-bold tracking-widest uppercase text-slate-500 bg-white px-3 py-1.5 rounded-full shadow-sm border border-zinc-200">
                         <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
                         Live Canvas
                     </div>
+
+                    {/* Responsive Toggles */}
+                    <div className="flex bg-white rounded-lg shadow-sm border border-zinc-200 p-1 gap-1">
+                        <button
+                            onClick={() => setPreviewWidth('100%')}
+                            className={`p-1.5 rounded-md transition-colors ${previewWidth === '100%' ? 'bg-indigo-100 text-indigo-600' : 'text-slate-400 hover:text-slate-600'}`}
+                            title="Desktop"
+                        ><Monitor size={16} /></button>
+                        <button
+                            onClick={() => setPreviewWidth('768px')}
+                            className={`p-1.5 rounded-md transition-colors ${previewWidth === '768px' ? 'bg-indigo-100 text-indigo-600' : 'text-slate-400 hover:text-slate-600'}`}
+                            title="Tablet"
+                        ><Tablet size={16} /></button>
+                        <button
+                            onClick={() => setPreviewWidth('375px')}
+                            className={`p-1.5 rounded-md transition-colors ${previewWidth === '375px' ? 'bg-indigo-100 text-indigo-600' : 'text-slate-400 hover:text-slate-600'}`}
+                            title="Mobile"
+                        ><Smartphone size={16} /></button>
+                    </div>
+
                     <a href="/" target="_blank" className="text-xs text-indigo-600 hover:text-indigo-800 font-medium">Abrir Público ↗</a>
                 </div>
 
-                <div className="flex-1 bg-white rounded-xl border border-zinc-200 shadow-xl overflow-hidden relative">
+                <div
+                    className="bg-white rounded-xl border border-zinc-200 shadow-xl overflow-hidden relative transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] flex-1"
+                    style={{ width: previewWidth, maxWidth: '100%' }}
+                >
                     <iframe
                         src="/"
                         className="w-full h-full border-none"
