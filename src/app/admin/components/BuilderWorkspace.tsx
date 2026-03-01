@@ -192,6 +192,8 @@ import TimelineInspector from './inspectors/TimelineInspector';
 import BentoGridInspector from './inspectors/BentoGridInspector';
 import GridInspector from './inspectors/GridInspector';
 import AdvancedStyleInspector from './inspectors/AdvancedStyleInspector';
+import VideoInspector from './inspectors/VideoInspector';
+import ImageInspector from './inspectors/ImageInspector';
 
 function InspectorForm({ block, onSaved }: { block: any, onSaved: () => void }) {
     const [isSaving, setIsSaving] = useState(false);
@@ -248,8 +250,10 @@ function InspectorForm({ block, onSaved }: { block: any, onSaved: () => void }) 
                     {block.type === 'timeline' && <TimelineInspector initialData={parsedData} onSave={handleSaveParsed} isSaving={isSaving} />}
                     {block.type === 'bento' && <BentoGridInspector initialData={parsedData} onSave={handleSaveParsed} isSaving={isSaving} />}
                     {block.type === 'grid' && <GridInspector initialData={parsedData} onSave={handleSaveParsed} isSaving={isSaving} />}
+                    {block.type === 'video' && <VideoInspector initialData={parsedData} onSave={handleSaveParsed} isSaving={isSaving} />}
+                    {block.type === 'image' && <ImageInspector initialData={parsedData} onSave={handleSaveParsed} isSaving={isSaving} />}
 
-                    {!['hero', 'richtext', 'timeline', 'bento', 'grid'].includes(block.type) && (
+                    {!['hero', 'richtext', 'timeline', 'bento', 'grid', 'video', 'image'].includes(block.type) && (
                         <RawJsonFallback block={block} onSaved={onSaved} />
                     )}
                 </>
