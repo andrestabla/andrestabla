@@ -68,11 +68,16 @@ function BlockNode({ block, allBlocks, isEditor }: { block: any, allBlocks: any[
 
     return (
         <div
-            className="group/block relative w-full transition-all duration-300 outline outline-1 outline-transparent hover:outline-indigo-500 hover:ring-2 hover:ring-indigo-500/20 cursor-pointer rounded-sm"
+            className={`group/block relative w-full transition-all duration-300 outline outline-1 outline-transparent hover:outline-indigo-500 hover:ring-2 hover:ring-indigo-500/20 cursor-pointer rounded-sm ${isEditor ? 'admin-editor-node' : ''}`}
             style={styleString}
             data-block-id={block.id}
             id={`block-${block.id}`}
         >
+            {isEditor && (
+                <div className="absolute top-0 right-0 bg-indigo-500 text-white text-[9px] font-bold px-2 py-1 rounded-bl-md rounded-tr-sm opacity-0 group-hover/block:opacity-100 transition-opacity z-50 pointer-events-none uppercase tracking-widest">
+                    {block.type}
+                </div>
+            )}
             <Component data={parsedData} childrenNodes={childrenNodes} isEditor={isEditor} />
         </div>
     );
@@ -96,7 +101,7 @@ export default async function BlockRenderer({ isEditor }: { isEditor?: boolean }
         .sort((a: any, b: any) => a.order - b.order);
 
     return (
-        <div className="w-full relative admin-canvas-wrapper">
+        <div className="w-full relative admin-canvas-wrapper max-w-[1200px] mx-auto px-6 md:px-12 pt-16">
             {isEditor && <ClickToEditWrapper />}
             {rootBlocks.map((block: any) => (
                 <BlockNode key={block.id} block={block} allBlocks={page.blocks} isEditor={isEditor} />

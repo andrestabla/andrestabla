@@ -13,13 +13,17 @@ export default function GridBlock({ data, childrenNodes, isEditor }: { data: any
     const hasChildren = React.Children.count(childrenNodes) > 0;
 
     return (
-        <div className={`w-full py-12 grid ${gridClass} gap-6 md:gap-12 relative ${isEditor && !hasChildren ? 'min-h-[200px] border-2 border-dashed border-indigo-500/50 bg-indigo-50/10 rounded-xl place-items-center' : ''}`}>
+        <div className={`w-full py-12 grid ${gridClass} gap-6 md:gap-12 relative ${isEditor ? 'border border-dashed border-indigo-200 hover:border-indigo-400 p-4 rounded-xl transition-colors' : ''}`}>
             {/* Render children passed down from BlockRenderer */}
-            {!hasChildren && isEditor ? (
-                <div className="col-span-full text-center text-sm text-indigo-400 font-bold uppercase tracking-widest pointer-events-none">
-                    [ Cuadrícula Vacía - Haz clic aquí para inyectar un Widget ]
+            {childrenNodes}
+
+            {isEditor && (
+                <div className="col-span-full mt-4 flex justify-center">
+                    <button className="bg-white border border-dashed border-indigo-300 text-indigo-500 px-6 py-2 rounded-lg text-[10px] font-bold uppercase tracking-widest hover:bg-indigo-50 pointer-events-none opacity-50 group-hover/block:opacity-100 transition-opacity">
+                        + Insertar en {columns} columnas
+                    </button>
                 </div>
-            ) : childrenNodes}
+            )}
         </div>
     );
 }
