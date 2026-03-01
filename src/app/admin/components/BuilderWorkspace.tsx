@@ -141,6 +141,17 @@ export default function BuilderWorkspace({ page, settings }: { page: any, settin
                             </div>
 
                             <div>
+                                <h3 className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-3 ml-1 mt-6">Avanzados</h3>
+                                <div className="grid grid-cols-2 gap-2">
+                                    <WidgetAddBtn pageId={page.id} parentId={null} type="progressbar" label="Progress Bars" defaultData={{ items: [{ label: 'Habilidad', percentage: 90 }] }} onAdded={forcePreviewReload} />
+                                    <WidgetAddBtn pageId={page.id} parentId={null} type="form" label="Formulario" defaultData={{ title: "Contacto" }} onAdded={forcePreviewReload} />
+                                    <WidgetAddBtn pageId={page.id} parentId={null} type="testimonial" label="Testimonio" defaultData={{ author: "John Doe" }} onAdded={forcePreviewReload} />
+                                    <WidgetAddBtn pageId={page.id} parentId={null} type="social" label="Redes Sociales" defaultData={{ items: [{ network: 'linkedin', url: '#' }] }} onAdded={forcePreviewReload} />
+                                    <WidgetAddBtn pageId={page.id} parentId={null} type="map" label="Google Maps" defaultData={{ height: "h-[400px]" }} onAdded={forcePreviewReload} />
+                                </div>
+                            </div>
+
+                            <div>
                                 <h3 className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-3 ml-1 mt-2">Interactivos</h3>
                                 <div className="grid grid-cols-2 gap-2">
                                     <WidgetAddBtn pageId={page.id} parentId={null} type="accordion" label="Acordeón / FAQ" defaultData={{ title: "FAQ", items: [] }} onAdded={forcePreviewReload} />
@@ -203,6 +214,11 @@ export default function BuilderWorkspace({ page, settings }: { page: any, settin
                                         <WidgetAddBtn pageId={page.id} parentId={selectedBlock.id} type="video" label="Video" defaultData={{ url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ" }} onAdded={forcePreviewReload} />
                                         <WidgetAddBtn pageId={page.id} parentId={selectedBlock.id} type="accordion" label="Acordeón" defaultData={{ title: "", items: [] }} onAdded={forcePreviewReload} />
                                         <WidgetAddBtn pageId={page.id} parentId={selectedBlock.id} type="carousel" label="Carrusel" defaultData={{ height: "h-[300px]", images: [] }} onAdded={forcePreviewReload} />
+                                        <WidgetAddBtn pageId={page.id} parentId={selectedBlock.id} type="progressbar" label="Barras Progreso" defaultData={{ items: [{ label: 'Habilidad', percentage: 90 }] }} onAdded={forcePreviewReload} />
+                                        <WidgetAddBtn pageId={page.id} parentId={selectedBlock.id} type="form" label="Formulario" defaultData={{ title: "Contacto" }} onAdded={forcePreviewReload} />
+                                        <WidgetAddBtn pageId={page.id} parentId={selectedBlock.id} type="testimonial" label="Testimonio" defaultData={{ author: "John Doe" }} onAdded={forcePreviewReload} />
+                                        <WidgetAddBtn pageId={page.id} parentId={selectedBlock.id} type="social" label="Social Icons" defaultData={{ items: [{ network: 'linkedin', url: '#' }] }} onAdded={forcePreviewReload} />
+                                        <WidgetAddBtn pageId={page.id} parentId={selectedBlock.id} type="map" label="Mapa" defaultData={{ height: "h-[400px]" }} onAdded={forcePreviewReload} />
                                     </div>
                                 </div>
                             )}
@@ -296,6 +312,11 @@ import HeadingInspector from './inspectors/HeadingInspector';
 import ButtonInspector from './inspectors/ButtonInspector';
 import DividerInspector from './inspectors/DividerInspector';
 import SpacerInspector from './inspectors/SpacerInspector';
+import FormInspector from './inspectors/FormInspector';
+import TestimonialInspector from './inspectors/TestimonialInspector';
+import SocialInspector from './inspectors/SocialInspector';
+import MapInspector from './inspectors/MapInspector';
+import ProgressBarInspector from './inspectors/ProgressBarInspector';
 
 function InspectorForm({ block, onSaved }: { block: any, onSaved: () => void }) {
     const [isSaving, setIsSaving] = useState(false);
@@ -361,8 +382,13 @@ function InspectorForm({ block, onSaved }: { block: any, onSaved: () => void }) 
                     {block.type === 'button' && <ButtonInspector initialData={parsedData} onSave={handleSaveParsed} isSaving={isSaving} />}
                     {block.type === 'divider' && <DividerInspector initialData={parsedData} onSave={handleSaveParsed} isSaving={isSaving} />}
                     {block.type === 'spacer' && <SpacerInspector initialData={parsedData} onSave={handleSaveParsed} isSaving={isSaving} />}
+                    {block.type === 'form' && <FormInspector initialData={parsedData} onSave={handleSaveParsed} isSaving={isSaving} />}
+                    {block.type === 'testimonial' && <TestimonialInspector initialData={parsedData} onSave={handleSaveParsed} isSaving={isSaving} />}
+                    {block.type === 'social' && <SocialInspector initialData={parsedData} onSave={handleSaveParsed} isSaving={isSaving} />}
+                    {block.type === 'map' && <MapInspector initialData={parsedData} onSave={handleSaveParsed} isSaving={isSaving} />}
+                    {block.type === 'progressbar' && <ProgressBarInspector initialData={parsedData} onSave={handleSaveParsed} isSaving={isSaving} />}
 
-                    {!['hero', 'richtext', 'timeline', 'bento', 'grid', 'video', 'image', 'accordion', 'carousel', 'heading', 'button', 'divider', 'spacer'].includes(block.type) && (
+                    {!['hero', 'richtext', 'timeline', 'bento', 'grid', 'video', 'image', 'accordion', 'carousel', 'heading', 'button', 'divider', 'spacer', 'form', 'testimonial', 'social', 'map', 'progressbar'].includes(block.type) && (
                         <RawJsonFallback block={block} onSaved={onSaved} />
                     )}
                 </>

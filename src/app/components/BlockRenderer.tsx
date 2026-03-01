@@ -12,6 +12,11 @@ import HeadingBlock from '@/components/HeadingBlock';
 import ButtonBlock from '@/components/ButtonBlock';
 import DividerBlock from '@/components/DividerBlock';
 import SpacerBlock from '@/components/SpacerBlock';
+import FormBlock from '@/components/FormBlock';
+import TestimonialBlock from '@/components/TestimonialBlock';
+import SocialBlock from '@/components/SocialBlock';
+import MapBlock from '@/components/MapBlock';
+import ProgressBarBlock from '@/components/ProgressBarBlock';
 import ClickToEditWrapper from '@/components/ClickToEditWrapper';
 
 const BlockComponents: Record<string, any> = {
@@ -27,7 +32,12 @@ const BlockComponents: Record<string, any> = {
     heading: HeadingBlock,
     button: ButtonBlock,
     divider: DividerBlock,
-    spacer: SpacerBlock
+    spacer: SpacerBlock,
+    form: FormBlock,
+    testimonial: TestimonialBlock,
+    social: SocialBlock,
+    map: MapBlock,
+    progressbar: ProgressBarBlock
 };
 
 // Recursive Node Renderer
