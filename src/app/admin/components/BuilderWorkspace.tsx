@@ -151,51 +151,81 @@ function WidgetAddBtn({ pageId, type, label, defaultData, onAdded }: { pageId: s
     );
 }
 
-// Sub-Component: The Dynamic Form Editor (Simplistic raw JSON editor mapping for Phase B Core)
-function InspectorForm({ block, onSaved }: { block: any, onSaved: () => void }) {
+import HeroInspector from './inspectors/HeroInspector';
+import RichTextInspector from './inspectors/RichTextInspector';
+import TimelineInspector from './inspectors/TimelineInspector';
+import BentoGridInspector from './inspectors/BentoGridInspector';
 
-    // For the very first iteration of the builder, we manipulate the raw structured JSON.
-    // In Phase C, this will be expanded into specific UI inputs (textboxes) per block type.
-    const [jsonString, setJsonString] = useState(block.data);
+function InspectorForm({ block, onSaved }: { block: any, onSaved: () => void }) {
     const [isSaving, setIsSaving] = useState(false);
     const [error, setError] = useState('');
 
+    let parsedData = {};
+    try {
+        parsedData = JSON.parse(block.data);
+    } catch (e) {
+        return <div className="text-red-500 p-4">Error crítico: JSON corrupto en Base de Datos.</div>;
+    }
+
+    const handleSaveParsed = async (newParsedData: any) => {
+        setIsSaving(true);
+        try {
+            await updateBlockData(block.id, JSON.stringify(newParsedData));
+            onSaved();
+        } catch (e) {
+            setError('Error de Red guardando componente.');
+        }
+        setIsSaving(false);
+    };
+
+    return (
+        <div className="flex flex-col gap-4">
+            <p className="text-xs text-slate-500 mb-6 leading-relaxed bg-blue-50 p-3 rounded-lg border border-blue-100 text-blue-800">
+                Los cambios aplicados aquí actualizarán el lienzo al instante.
+            </p>
+
+            {error && <div className="p-3 bg-red-50 text-red-600 text-xs rounded-lg border border-red-200">{error}</div>}
+
+            {block.type === 'hero' && <HeroInspector initialData={parsedData} onSave={handleSaveParsed} isSaving={isSaving} />}
+            {block.type === 'richtext' && <RichTextInspector initialData={parsedData} onSave={handleSaveParsed} isSaving={isSaving} />}
+            {block.type === 'timeline' && <TimelineInspector initialData={parsedData} onSave={handleSaveParsed} isSaving={isSaving} />}
+            {block.type === 'bento' && <BentoGridInspector initialData={parsedData} onSave={handleSaveParsed} isSaving={isSaving} />}
+
+            {/* Fallback for unknown block types (Raw JSON) */}
+            {!['hero', 'richtext', 'timeline', 'bento'].includes(block.type) && (
+                <RawJsonFallback block={block} onSaved={onSaved} />
+            )}
+        </div>
+    );
+}
+
+// Keep the old Raw Editor just for emergencies or unmapped blocks
+function RawJsonFallback({ block, onSaved }: { block: any, onSaved: () => void }) {
+    const [jsonString, setJsonString] = useState(block.data);
+    const [isSaving, setIsSaving] = useState(false);
+
     const handleSave = async () => {
         try {
-            // Validate JSON
             JSON.parse(jsonString);
-            setError('');
             setIsSaving(true);
             await updateBlockData(block.id, jsonString);
             onSaved();
             setIsSaving(false);
         } catch (e) {
-            setError('Error de Sintaxis JSON. Revisa las llaves o comillas.');
+            alert('JSON Inválido');
         }
     };
 
     return (
-        <div className="flex flex-col gap-4">
-            <p className="text-xs text-slate-500 mb-2 leading-relaxed">
-                Edita la estructura de datos del componente abajo. Los cambios se verán en el Canvas al guardar.
-            </p>
-
-            {error && <div className="p-3 bg-red-50 text-red-600 text-xs rounded-lg border border-red-200">{error}</div>}
-
+        <>
             <textarea
                 value={jsonString}
                 onChange={(e) => setJsonString(e.target.value)}
-                className="w-full h-[400px] font-mono text-[11px] p-4 bg-slate-900 text-green-400 rounded-xl focus:outline-none focus:ring-4 focus:ring-blue-500/20 shadow-inner"
-                spellCheck="false"
+                className="w-full h-[300px] font-mono text-[11px] p-4 bg-slate-900 text-green-400 rounded-xl"
             />
-
-            <button
-                onClick={handleSave}
-                disabled={isSaving}
-                className="flex items-center justify-center gap-2 bg-black text-white p-3 rounded-lg font-bold text-xs uppercase tracking-widest hover:bg-slate-800 transition-colors disabled:opacity-50 mt-4"
-            >
-                <Save size={14} /> {isSaving ? 'Guardando...' : 'Aplicar Cambios'}
+            <button onClick={handleSave} disabled={isSaving} className="w-full bg-black text-white p-3 rounded-lg font-bold text-xs uppercase hover:bg-slate-800 mt-4">
+                {isSaving ? 'Guardando...' : 'Aplicar Raw JSON'}
             </button>
-        </div>
+        </>
     );
 }
