@@ -83,6 +83,8 @@ export default function BuilderWorkspace({ page }: { page: any }) {
                                     <WidgetAddBtn pageId={page.id} parentId={null} type="grid" label="Grid (Columnas)" defaultData={{ columns: 2 }} onAdded={forcePreviewReload} />
                                     <WidgetAddBtn pageId={page.id} parentId={null} type="hero" label="Portada (Hero)" defaultData={{ name: "Nuevo Bloque", role: "Tu Cargo", links: [] }} onAdded={forcePreviewReload} />
                                     <WidgetAddBtn pageId={page.id} parentId={null} type="richtext" label="Texto (Prose)" defaultData={{ title: "Título Seccion", content: "<p>Escribe algo increíble...</p>" }} onAdded={forcePreviewReload} />
+                                    <WidgetAddBtn pageId={page.id} parentId={null} type="image" label="Imagen" defaultData={{ url: "", alt: "Imagen" }} onAdded={forcePreviewReload} />
+                                    <WidgetAddBtn pageId={page.id} parentId={null} type="video" label="Video" defaultData={{ url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ" }} onAdded={forcePreviewReload} />
                                     <WidgetAddBtn pageId={page.id} parentId={null} type="timeline" label="Línea de Vida" defaultData={{ title: "Experiencia", items: [] }} onAdded={forcePreviewReload} />
                                     <WidgetAddBtn pageId={page.id} parentId={null} type="bento" label="Bento Grid" defaultData={{ title: "Portafolio", bentoType: "general", items: [] }} onAdded={forcePreviewReload} />
                                 </div>
@@ -126,7 +128,8 @@ export default function BuilderWorkspace({ page }: { page: any }) {
                                     <div className="grid grid-cols-2 gap-2">
                                         <WidgetAddBtn pageId={page.id} parentId={selectedBlock.id} type="hero" label="Portada (Hero)" defaultData={{ name: "Nuevo", role: "..." }} onAdded={forcePreviewReload} />
                                         <WidgetAddBtn pageId={page.id} parentId={selectedBlock.id} type="richtext" label="Texto (Prose)" defaultData={{ title: "Sección", content: "<p>...</p>" }} onAdded={forcePreviewReload} />
-                                        <WidgetAddBtn pageId={page.id} parentId={selectedBlock.id} type="timeline" label="Línea de Vida" defaultData={{ title: "Exp", items: [] }} onAdded={forcePreviewReload} />
+                                        <WidgetAddBtn pageId={page.id} parentId={selectedBlock.id} type="image" label="Imagen" defaultData={{ url: "", alt: "Imagen" }} onAdded={forcePreviewReload} />
+                                        <WidgetAddBtn pageId={page.id} parentId={selectedBlock.id} type="video" label="Video" defaultData={{ url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ" }} onAdded={forcePreviewReload} />
                                     </div>
                                 </div>
                             )}

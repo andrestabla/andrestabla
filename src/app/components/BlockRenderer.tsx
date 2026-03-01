@@ -4,13 +4,17 @@ import TimelineBlock from '@/components/TimelineBlock';
 import BentoGridBlock from '@/components/BentoGridBlock';
 import RichTextBlock from '@/components/RichTextBlock';
 import GridBlock from '@/components/GridBlock';
+import VideoBlock from '@/components/VideoBlock';
+import ImageBlock from '@/components/ImageBlock';
 
 const BlockComponents: Record<string, any> = {
     hero: HeroBlock,
     richtext: RichTextBlock,
     timeline: TimelineBlock,
     bento: BentoGridBlock,
-    grid: GridBlock
+    grid: GridBlock,
+    video: VideoBlock,
+    image: ImageBlock
 };
 
 // Recursive Node Renderer
