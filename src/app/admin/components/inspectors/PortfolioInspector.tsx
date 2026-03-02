@@ -8,6 +8,7 @@ type PortfolioItem = {
     category: string;
     image: string;
     link?: string;
+    openInNewTab?: boolean;
     hoverText?: string;
 };
 
@@ -50,7 +51,7 @@ export default function PortfolioInspector({
         Array.isArray(initialData.items) && initialData.items.length > 0 ? initialData.items : DEFAULT_ITEMS
     );
 
-    const handleItemChange = (index: number, field: keyof PortfolioItem, value: string) => {
+    const handleItemChange = (index: number, field: keyof PortfolioItem, value: string | boolean) => {
         const updated = [...items];
         updated[index] = { ...updated[index], [field]: value };
         setItems(updated);
@@ -59,7 +60,7 @@ export default function PortfolioInspector({
     const addItem = () => {
         setItems([
             ...items,
-            { title: 'Nuevo Proyecto', category: 'web', image: '', link: '#', hoverText: '' },
+            { title: 'Nuevo Proyecto', category: 'web', image: '', link: '#', openInNewTab: false, hoverText: '' },
         ]);
     };
 
@@ -74,6 +75,7 @@ export default function PortfolioInspector({
                 category: (item.category || '').trim() || 'general',
                 image: (item.image || '').trim(),
                 link: (item.link || '').trim(),
+                openInNewTab: Boolean(item.openInNewTab),
                 hoverText: (item.hoverText || '').trim(),
             }))
             .filter((item) => item.title || item.image);
@@ -147,6 +149,15 @@ export default function PortfolioInspector({
                                         className="w-full border border-slate-200 rounded-md p-2 text-xs"
                                         placeholder="https://..."
                                     />
+                                    <label className="mt-1.5 flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-widest text-slate-500 cursor-pointer">
+                                        <input
+                                            type="checkbox"
+                                            checked={Boolean(item.openInNewTab)}
+                                            onChange={e => handleItemChange(idx, 'openInNewTab', e.target.checked)}
+                                            className="rounded border-slate-300"
+                                        />
+                                        Abrir en nueva pestaña
+                                    </label>
                                 </div>
                             </div>
 

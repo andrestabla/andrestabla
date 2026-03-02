@@ -385,7 +385,7 @@ export default function BuilderWorkspace({ page: initialPage, settings }: { page
 
                         {/* Inspector shown when a block is selected */}
                         {selectedBlock && (
-                            <div className="p-4 animate-in fade-in slide-in-from-right-4">
+                            <div className="p-4 animate-in fade-in slide-in-from-right-4 text-slate-900 [&_input]:text-slate-900 [&_input]:placeholder:text-slate-400 [&_textarea]:text-slate-900 [&_textarea]:placeholder:text-slate-400 [&_select]:text-slate-900">
                                 <button onClick={() => setSelectedBlockId(null)}
                                     className="text-[10px] font-bold uppercase tracking-widest text-indigo-600 mb-4 hover:text-indigo-800 flex items-center gap-1">
                                     <ChevronLeft size={12} /> Volver

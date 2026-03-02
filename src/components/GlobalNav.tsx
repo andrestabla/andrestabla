@@ -83,15 +83,6 @@ export default function GlobalNav({ siteConfig }: { siteConfig?: any }) {
                                 </motion.a>
                             ))}
 
-                            <motion.a
-                                href="/admin"
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                transition={{ delay: 0.8 }}
-                                className="mt-12 px-8 py-3 bg-[var(--brand)] text-white rounded-full font-bold uppercase tracking-widest text-xs hover:opacity-80 transition-colors"
-                            >
-                                Iniciar Constructor
-                            </motion.a>
                         </nav>
                     </motion.div>
                 )}

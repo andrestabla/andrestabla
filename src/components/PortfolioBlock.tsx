@@ -69,12 +69,12 @@ export default function PortfolioBlock({ data }: { data: any }) {
                                 alt={item.title || `Proyecto ${idx + 1}`}
                                 className="w-full h-full object-cover transition-transform duration-700 ease-in-out group-hover:scale-110"
                             />
-                            <div className="absolute inset-0 bg-indigo-900/80 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col items-center justify-center p-6 text-center backdrop-blur-sm">
-                                <h4 className="text-xl font-bold text-white mb-2 translate-y-4 group-hover:translate-y-0 transition-transform duration-300" dangerouslySetInnerHTML={safeHtml(item.title || `Proyecto ${idx + 1}`)} />
-                                <span className="text-[10px] font-bold uppercase tracking-widest text-indigo-200 translate-y-4 group-hover:translate-y-0 transition-transform duration-300 delay-75" dangerouslySetInnerHTML={safeHtml(item.category || 'General')} />
+                            <div className="absolute inset-0 bg-indigo-900/80 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-300 flex flex-col items-center justify-center p-6 text-center backdrop-blur-sm">
+                                <h4 className="text-xl font-bold text-white mb-2 translate-y-0 md:translate-y-4 md:group-hover:translate-y-0 transition-transform duration-300" dangerouslySetInnerHTML={safeHtml(item.title || `Proyecto ${idx + 1}`)} />
+                                <span className="text-[10px] font-bold uppercase tracking-widest text-indigo-200 translate-y-0 md:translate-y-4 md:group-hover:translate-y-0 transition-transform duration-300 delay-75" dangerouslySetInnerHTML={safeHtml(item.category || 'General')} />
                                 {item.hoverText && (
                                     <p
-                                        className="mt-3 text-xs text-slate-100 leading-relaxed max-w-[240px] translate-y-4 group-hover:translate-y-0 transition-transform duration-300 delay-100"
+                                        className="mt-3 text-xs text-slate-100 leading-relaxed max-w-[240px] translate-y-0 md:translate-y-4 md:group-hover:translate-y-0 transition-transform duration-300 delay-100"
                                         dangerouslySetInnerHTML={safeHtml(item.hoverText)}
                                     />
                                 )}
@@ -87,6 +87,8 @@ export default function PortfolioBlock({ data }: { data: any }) {
                             <a
                                 key={`${item.title}-${idx}`}
                                 href={item.link}
+                                target={item.openInNewTab ? '_blank' : undefined}
+                                rel={item.openInNewTab ? 'noopener noreferrer' : undefined}
                                 className="relative aspect-square overflow-hidden rounded-2xl group cursor-pointer animate-in fade-in zoom-in duration-500"
                             >
                                 {content}
