@@ -27,9 +27,22 @@ export default async function RootLayout({
     // Ignore DB error during initial build
   }
 
-  let parsedStyles = { primaryColor: '#4f46e5', fontFamily: 'Inter', loaderEnabled: true };
+  let parsedStyles: any = {
+    primaryColor: '#f25c54',
+    secondaryColor: '#18181b',
+    accentColor: '#6366f1',
+    buttonBg: '#f25c54',
+    buttonHover: '#d94a42',
+    textColor: '#cbd5e1',
+    headingColor: '#ffffff',
+    fontFamily: 'Inter',
+    loaderEnabled: true,
+  };
   if (settings && settings.globalStyles) {
-    try { parsedStyles = JSON.parse(settings.globalStyles); } catch (e) { }
+    try {
+      const parsed = JSON.parse(settings.globalStyles);
+      parsedStyles = { ...parsedStyles, ...parsed };
+    } catch (e) { }
   }
 
   let fontClass = inter.variable;
@@ -44,19 +57,26 @@ export default async function RootLayout({
     <html lang="es" className={`${fontClass} scroll-smooth`}>
       <head>
         <style>{`
-                    :root {
-                        --brand: ${parsedStyles.primaryColor};
-                        --font-body: ${fontVar}, sans-serif;
-                        --font-heading: ${fontVar}, serif;
-                    }
-                    /* For compatibility with existing Tailwind classes */
-                    .text-indigo-600 { color: var(--brand) !important; }
-                    .bg-indigo-600 { background-color: var(--brand) !important; }
-                    .border-indigo-600 { border-color: var(--brand) !important; }
-                    /* Ensure hover states adapt if possible, though basic !important helps mostly */
-                    .hover\\:bg-indigo-700:hover { background-color: color-mix(in srgb, var(--brand) 85%, black) !important; }
-                    .hover\\:text-indigo-700:hover { color: color-mix(in srgb, var(--brand) 85%, black) !important; }
-                `}</style>
+          :root {
+            --brand:       ${parsedStyles.primaryColor};
+            --secondary:   ${parsedStyles.secondaryColor};
+            --accent:      ${parsedStyles.accentColor};
+            --btn-bg:      ${parsedStyles.buttonBg};
+            --btn-hover:   ${parsedStyles.buttonHover};
+            --text:        ${parsedStyles.textColor};
+            --heading:     ${parsedStyles.headingColor};
+            --font-body:   ${fontVar}, sans-serif;
+            --font-heading:${fontVar}, serif;
+          }
+          .text-indigo-600 { color: var(--brand) !important; }
+          .bg-indigo-600   { background-color: var(--brand) !important; }
+          .border-indigo-600 { border-color: var(--brand) !important; }
+          .hover\\:bg-indigo-700:hover { background-color: var(--btn-hover) !important; }
+          .hover\\:text-indigo-700:hover { color: var(--btn-hover) !important; }
+          /* Button components */
+          [data-btn] { background-color: var(--btn-bg); }
+          [data-btn]:hover { background-color: var(--btn-hover); }
+        `}</style>
       </head>
       <body className="antialiased bg-zinc-950 text-slate-300 font-sans selection:bg-[var(--brand)] selection:text-white relative">
         {parsedStyles.loaderEnabled && <SiteLoader />}
