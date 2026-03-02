@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Save, Plus, Trash2, Link as LinkIcon } from 'lucide-react';
+import RichTextField from './RichTextField';
 
 export default function HeroInspector({ initialData, onSave, isSaving }: any) {
     const [data, setData] = useState(initialData);
@@ -31,22 +32,43 @@ export default function HeroInspector({ initialData, onSave, isSaving }: any) {
             <div className="space-y-4">
                 <div className="flex flex-col gap-1">
                     <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Saludo (Greeting)</label>
-                    <input name="greeting" value={data.greeting || ''} placeholder="Hello, I am" onChange={handleChange} className="w-full text-sm border border-slate-200 rounded-lg p-3 outline-none focus:border-blue-500 transition-all font-medium text-slate-800" />
+                    <RichTextField
+                        value={data.greeting || ''}
+                        onChange={(value) => setData({ ...data, greeting: value })}
+                        placeholder="Hello, I am"
+                        minHeightClass="min-h-[44px]"
+                        singleLine
+                    />
                 </div>
 
                 <div className="flex flex-col gap-1">
                     <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Nombre Completo</label>
-                    <input name="name" value={data.name || ''} onChange={handleChange} className="w-full text-sm border border-slate-200 rounded-lg p-3 outline-none focus:border-blue-500 transition-all font-medium text-slate-800" />
+                    <RichTextField
+                        value={data.name || ''}
+                        onChange={(value) => setData({ ...data, name: value })}
+                        minHeightClass="min-h-[44px]"
+                        singleLine
+                    />
                 </div>
 
                 <div className="flex flex-col gap-1">
                     <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Cargo / Especialidad</label>
-                    <textarea name="role" value={data.role || ''} onChange={handleChange} rows={2} className="w-full text-sm border border-slate-200 rounded-lg p-3 outline-none focus:border-blue-500 transition-all text-slate-600 resize-none" />
+                    <RichTextField
+                        value={data.role || ''}
+                        onChange={(value) => setData({ ...data, role: value })}
+                        placeholder="Describe tu rol profesional"
+                        minHeightClass="min-h-[72px]"
+                    />
                 </div>
 
                 <div className="flex flex-col gap-1">
                     <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Eslogan / Tagline</label>
-                    <textarea name="tagline" value={data.tagline || ''} onChange={handleChange} rows={2} className="w-full text-sm border border-slate-200 rounded-lg p-3 outline-none focus:border-blue-500 transition-all text-slate-600 resize-none" />
+                    <RichTextField
+                        value={data.tagline || ''}
+                        onChange={(value) => setData({ ...data, tagline: value })}
+                        placeholder="Tu frase de valor"
+                        minHeightClass="min-h-[72px]"
+                    />
                 </div>
             </div>
 
@@ -79,7 +101,12 @@ export default function HeroInspector({ initialData, onSave, isSaving }: any) {
                             </button>
                             <div className="flex flex-col gap-1">
                                 <label className="text-[9px] font-bold text-slate-400 uppercase">Texto del Botón</label>
-                                <input value={link.label} onChange={(e) => handleLinkChange(idx, 'label', e.target.value)} className="w-full text-xs border border-slate-100 p-2 rounded bg-slate-50 focus:bg-white focus:border-blue-300 transition-all" />
+                                <RichTextField
+                                    value={link.label}
+                                    onChange={(value) => handleLinkChange(idx, 'label', value)}
+                                    minHeightClass="min-h-[40px]"
+                                    singleLine
+                                />
                             </div>
                             <div className="flex flex-col gap-1">
                                 <label className="text-[9px] font-bold text-slate-400 uppercase">URL (Enlace)</label>

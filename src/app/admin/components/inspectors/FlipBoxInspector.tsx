@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import RichTextField from './RichTextField';
 
 export default function FlipBoxInspector({ initialData, onSave, isSaving }: { initialData: any, onSave: (data: any) => void, isSaving: boolean }) {
     const [frontIcon, setFrontIcon] = useState(initialData.frontIcon || '🚀');
@@ -49,12 +50,21 @@ export default function FlipBoxInspector({ initialData, onSave, isSaving }: { in
                         </div>
                         <div className="col-span-3">
                             <label className="block text-[9px] text-slate-500">Título</label>
-                            <input type="text" value={frontTitle} onChange={e => setFrontTitle(e.target.value)} className="w-full border border-slate-200 rounded-md p-2 text-xs font-bold" />
+                            <RichTextField
+                                value={frontTitle}
+                                onChange={setFrontTitle}
+                                minHeightClass="min-h-[40px]"
+                                singleLine
+                            />
                         </div>
                     </div>
                     <div>
                         <label className="block text-[9px] text-slate-500">Descripción Corta</label>
-                        <textarea rows={2} value={frontDesc} onChange={e => setFrontDesc(e.target.value)} className="w-full border border-slate-200 rounded-md p-2 text-xs resize-none"></textarea>
+                        <RichTextField
+                            value={frontDesc}
+                            onChange={setFrontDesc}
+                            minHeightClass="min-h-[72px]"
+                        />
                     </div>
                     <div>
                         <label className="block text-[9px] text-slate-500">Color/Clase CSS de Fondo</label>
@@ -68,11 +78,20 @@ export default function FlipBoxInspector({ initialData, onSave, isSaving }: { in
                 <div className="space-y-3">
                     <div>
                         <label className="block text-[9px] text-indigo-500">Título Trasero</label>
-                        <input type="text" value={backTitle} onChange={e => setBackTitle(e.target.value)} className="w-full border border-indigo-200 rounded-md p-2 text-xs font-bold" />
+                        <RichTextField
+                            value={backTitle}
+                            onChange={setBackTitle}
+                            minHeightClass="min-h-[40px]"
+                            singleLine
+                        />
                     </div>
                     <div>
                         <label className="block text-[9px] text-indigo-500">Texto Largo</label>
-                        <textarea rows={2} value={backDesc} onChange={e => setBackDesc(e.target.value)} className="w-full border border-indigo-200 rounded-md p-2 text-xs resize-none"></textarea>
+                        <RichTextField
+                            value={backDesc}
+                            onChange={setBackDesc}
+                            minHeightClass="min-h-[72px]"
+                        />
                     </div>
                     <div>
                         <label className="block text-[9px] text-indigo-500">Color/Clase CSS de Fondo</label>
@@ -81,7 +100,13 @@ export default function FlipBoxInspector({ initialData, onSave, isSaving }: { in
                     <div className="grid grid-cols-2 gap-2 mt-2 pt-2 border-t border-indigo-200/50">
                         <div>
                             <label className="block text-[9px] text-indigo-500">Botón (Opcional)</label>
-                            <input type="text" value={buttonText} onChange={e => setButtonText(e.target.value)} className="w-full border border-indigo-200 rounded-md p-2 text-xs" placeholder="Texto (Vacio=0)" />
+                            <RichTextField
+                                value={buttonText}
+                                onChange={setButtonText}
+                                placeholder="Texto (Vacio=0)"
+                                minHeightClass="min-h-[40px]"
+                                singleLine
+                            />
                         </div>
                         <div>
                             <label className="block text-[9px] text-indigo-500">Link Botón</label>

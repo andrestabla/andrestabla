@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { updateBlockData, deleteBlock, addBlock, reorderBlocks } from './actions';
 import {
     Trash2, Plus, Layers, Box, Settings2,
-    Save, X, ChevronLeft, PanelLeft, Eye, ChevronUp, ChevronDown
+    Save, X, ChevronLeft, PanelLeft, Eye, ChevronUp, ChevronDown, Maximize2, Minimize2
 } from 'lucide-react';
 import GlobalSettingsForm from './GlobalSettingsForm';
 import ClientInlineBlockRenderer from './ClientInlineBlockRenderer';
@@ -61,44 +61,11 @@ function WidgetAddBtn({ pageId, type, label, defaultData, onAdded, parentId }: {
 }
 
 // ── Sub-Component: Inspector Form (Tabs: Layout / Content / Style) ─
-type FieldPath = Array<string | number>;
-
-function formatPath(path: FieldPath): string {
-    return path.reduce<string>((acc, segment, index) => {
-        if (typeof segment === 'number') return `${acc}[${segment}]`;
-        return index === 0 ? segment : `${acc}.${segment}`;
-    }, '');
-}
-
-function collectStringFields(node: any, path: FieldPath = []): Array<{ path: FieldPath; label: string; value: string }> {
-    if (typeof node === 'string') {
-        return [{ path, label: formatPath(path), value: node }];
-    }
-    if (Array.isArray(node)) {
-        return node.flatMap((item, idx) => collectStringFields(item, [...path, idx]));
-    }
-    if (node && typeof node === 'object') {
-        return Object.entries(node).flatMap(([key, value]) => collectStringFields(value, [...path, key]));
-    }
-    return [];
-}
-
-function setStringFieldValue(source: any, path: FieldPath, newValue: string): any {
-    const cloned = JSON.parse(JSON.stringify(source ?? {}));
-    let cursor = cloned;
-    for (let i = 0; i < path.length - 1; i += 1) {
-        const key = path[i];
-        cursor = cursor[key as any];
-    }
-    cursor[path[path.length - 1] as any] = newValue;
-    return cloned;
-}
-
 function InspectorForm({ block, onSaved }: { block: any; onSaved: () => void }) {
     const [isSaving, setIsSaving] = useState(false);
     const [error, setError] = useState('');
     const isContainer = ['grid', 'hero', 'bento', 'timeline', 'accordion', 'carousel', 'gallery', 'tabs', 'toggle'].includes(block.type);
-    const [activeTab, setActiveTab] = useState<'layout' | 'content' | 'styles' | 'html'>(isContainer ? 'layout' : 'content');
+    const [activeTab, setActiveTab] = useState<'layout' | 'content' | 'styles'>(isContainer ? 'layout' : 'content');
 
     useEffect(() => {
         if (isContainer && activeTab === 'content') setActiveTab('layout');
@@ -110,20 +77,12 @@ function InspectorForm({ block, onSaved }: { block: any; onSaved: () => void }) 
         return <div className="text-red-500 p-4 text-xs">Error: JSON corrupto en la BD.</div>;
     }
 
-    const [htmlData, setHtmlData] = useState<any>(parsedData);
-
-    useEffect(() => {
-        setHtmlData(parsedData);
-    }, [block.id, block.data]);
-
     const handleSaveParsed = async (newData: any) => {
         setIsSaving(true);
         try { await updateBlockData(block.id, JSON.stringify(newData)); onSaved(); }
         catch { setError('Error de red guardando.'); }
         setIsSaving(false);
     };
-
-    const htmlFields = collectStringFields(htmlData).filter(field => field.path.length > 0);
 
     return (
         <div className="flex flex-col gap-3">
@@ -142,10 +101,6 @@ function InspectorForm({ block, onSaved }: { block: any; onSaved: () => void }) 
                 <button onClick={() => setActiveTab('styles')}
                     className={`flex-1 py-1.5 text-[10px] font-bold uppercase tracking-widest rounded-lg transition-all ${activeTab === 'styles' ? 'bg-white shadow-sm text-indigo-700' : 'text-slate-500'}`}>
                     Estilos
-                </button>
-                <button onClick={() => setActiveTab('html')}
-                    className={`flex-1 py-1.5 text-[10px] font-bold uppercase tracking-widest rounded-lg transition-all ${activeTab === 'html' ? 'bg-white shadow-sm text-indigo-700' : 'text-slate-500'}`}>
-                    HTML
                 </button>
             </div>
 
@@ -194,48 +149,6 @@ function InspectorForm({ block, onSaved }: { block: any; onSaved: () => void }) 
             )}
 
             {activeTab === 'styles' && <AdvancedStyleInspector block={block} onSaved={onSaved} />}
-
-            {activeTab === 'html' && (
-                <div className="space-y-3">
-                    <div className="p-3 border border-indigo-100 bg-indigo-50 rounded-lg text-[10px] text-indigo-700">
-                        Editor HTML: puedes usar etiquetas HTML en cualquier campo de texto del bloque.
-                    </div>
-                    {htmlFields.length === 0 && (
-                        <div className="p-3 border border-slate-200 rounded-lg text-xs text-slate-500">
-                            Este bloque no tiene campos de texto editables.
-                        </div>
-                    )}
-                    {htmlFields.length > 0 && (
-                        <div className="space-y-3 max-h-[50vh] overflow-y-auto pr-1">
-                            {htmlFields.map((field) => (
-                                <div key={field.label} className="space-y-1">
-                                    <label className="block text-[9px] font-bold uppercase tracking-widest text-slate-500">
-                                        {field.label}
-                                    </label>
-                                    <textarea
-                                        rows={3}
-                                        value={field.value}
-                                        onChange={(e) => {
-                                            setHtmlData((prev: any) => setStringFieldValue(prev, field.path, e.target.value));
-                                        }}
-                                        className="w-full border border-slate-200 rounded-lg p-2 text-xs font-mono resize-y"
-                                        placeholder="<strong>Texto con HTML</strong>"
-                                    />
-                                </div>
-                            ))}
-                        </div>
-                    )}
-                    {htmlFields.length > 0 && (
-                        <button
-                            onClick={() => handleSaveParsed(htmlData)}
-                            disabled={isSaving}
-                            className="w-full bg-black text-white p-3 rounded-xl font-bold text-[11px] uppercase tracking-widest hover:bg-slate-800 disabled:opacity-50 shadow-md"
-                        >
-                            {isSaving ? 'Guardando...' : 'Guardar HTML'}
-                        </button>
-                    )}
-                </div>
-            )}
         </div>
     );
 }
@@ -247,7 +160,9 @@ export default function BuilderWorkspace({ page: initialPage, settings }: { page
     const [selectedBlockId, setSelectedBlockId] = useState<string | null>(null);
     const [viewMode, setViewMode] = useState<'palette' | 'tree' | 'settings'>('palette');
     const [sidebarOpen, setSidebarOpen] = useState(true);
+    const [sidebarExpanded, setSidebarExpanded] = useState(false);
     const [previewOpen, setPreviewOpen] = useState(false);
+    const sidebarWidth = sidebarExpanded ? 'min(50vw, 760px)' : '340px';
 
     // Reload blocks from a real API route so canvas updates without full page refresh
     const reloadBlocks = useCallback(async () => {
@@ -352,10 +267,10 @@ export default function BuilderWorkspace({ page: initialPage, settings }: { page
 
             {/* ── FLOATING SIDEBAR PANEL ────────────────────────────────── */}
             <aside
-                className={`fixed top-0 left-0 h-screen z-50 flex flex-col transition-all duration-300 ease-in-out ${sidebarOpen ? 'w-[340px]' : 'w-0 overflow-hidden'}`}
-                style={{ boxShadow: '4px 0 32px rgba(0,0,0,0.18)' }}
+                className={`fixed top-0 left-0 h-screen z-50 flex flex-col transition-all duration-300 ease-in-out ${sidebarOpen ? '' : 'overflow-hidden'}`}
+                style={{ width: sidebarOpen ? sidebarWidth : '0px', boxShadow: '4px 0 32px rgba(0,0,0,0.18)' }}
             >
-                <div className="w-[340px] h-full flex flex-col bg-white border-r border-slate-200">
+                <div className="h-full flex flex-col bg-white border-r border-slate-200" style={{ width: sidebarWidth }}>
 
                     {/* Header */}
                     <div className="flex items-center justify-between px-4 py-3 bg-indigo-700 text-white shrink-0">
@@ -364,6 +279,13 @@ export default function BuilderWorkspace({ page: initialPage, settings }: { page
                             <span className="text-[11px] font-bold uppercase tracking-widest">Supreme Builder</span>
                         </div>
                         <div className="flex items-center gap-3">
+                            <button
+                                onClick={() => setSidebarExpanded(prev => !prev)}
+                                className="text-indigo-200 hover:text-white"
+                                title={sidebarExpanded ? 'Contraer panel' : 'Expandir panel (50%)'}
+                            >
+                                {sidebarExpanded ? <Minimize2 size={15} /> : <Maximize2 size={15} />}
+                            </button>
                             <button onClick={() => setSidebarOpen(false)} className="text-indigo-200 hover:text-white">
                                 <X size={16} />
                             </button>
@@ -533,7 +455,7 @@ export default function BuilderWorkspace({ page: initialPage, settings }: { page
             {/* ── THE PAGE IS THE CANVAS ────────────────────────────────── */}
             <div
                 className="transition-all duration-300 ease-in-out"
-                style={{ marginLeft: sidebarOpen ? '340px' : '0' }}
+                style={{ marginLeft: sidebarOpen ? sidebarWidth : '0' }}
                 onClick={(e) => {
                     if ((e.target as HTMLElement).closest('[data-block-id]') === null) {
                         setSelectedBlockId(null);

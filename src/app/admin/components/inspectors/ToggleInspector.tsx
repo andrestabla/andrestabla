@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { Trash2, Plus } from 'lucide-react';
+import RichTextField from './RichTextField';
 
 export default function ToggleInspector({ initialData, onSave, isSaving }: { initialData: any, onSave: (data: any) => void, isSaving: boolean }) {
     const [items, setItems] = useState<any[]>(initialData.items || [
@@ -26,9 +27,18 @@ export default function ToggleInspector({ initialData, onSave, isSaving }: { ini
                                 <Trash2 size={14} />
                             </button>
                             <label className="text-[9px] font-bold uppercase tracking-widest text-slate-400">Pregunta / Título</label>
-                            <input type="text" value={item.title} onChange={e => handleItemChange(idx, 'title', e.target.value)} className="w-full border border-slate-200 rounded-md p-2 text-xs font-bold" />
+                            <RichTextField
+                                value={item.title}
+                                onChange={(value) => handleItemChange(idx, 'title', value)}
+                                minHeightClass="min-h-[40px]"
+                                singleLine
+                            />
                             <label className="text-[9px] font-bold uppercase tracking-widest text-slate-400 mt-1">Respuesta / Contenido HTML</label>
-                            <textarea rows={3} value={item.content} onChange={e => handleItemChange(idx, 'content', e.target.value)} className="w-full border border-slate-200 rounded-md p-2 text-xs resize-none"></textarea>
+                            <RichTextField
+                                value={item.content}
+                                onChange={(value) => handleItemChange(idx, 'content', value)}
+                                minHeightClass="min-h-[96px]"
+                            />
                         </div>
                     ))}
                 </div>

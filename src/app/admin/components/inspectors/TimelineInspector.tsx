@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Save, Plus, Trash2, GripVertical } from 'lucide-react';
+import RichTextField from './RichTextField';
 
 export default function TimelineInspector({ initialData, onSave, isSaving }: any) {
     const [data, setData] = useState(initialData);
@@ -29,7 +30,12 @@ export default function TimelineInspector({ initialData, onSave, isSaving }: any
         <div className="flex flex-col gap-6">
             <div className="flex flex-col gap-1">
                 <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Título de la Línea de Tiempo</label>
-                <input name="title" value={data.title || ''} onChange={handleTitleChange} className="w-full text-sm border-b-2 border-slate-200 bg-transparent py-2 outline-none focus:border-black transition-all font-bold text-slate-800" />
+                <RichTextField
+                    value={data.title || ''}
+                    onChange={(value) => setData({ ...data, title: value })}
+                    minHeightClass="min-h-[44px]"
+                    singleLine
+                />
             </div>
 
             <div className="space-y-4">
@@ -46,11 +52,35 @@ export default function TimelineInspector({ initialData, onSave, isSaving }: any
                         </div>
 
                         <div className="grid grid-cols-2 gap-3 mb-2">
-                            <input name="title" value={item.title} onChange={(e) => handleItemChange(idx, e)} className="text-sm font-bold border border-slate-200 rounded-md p-2 w-full focus:border-blue-500 focus:outline-none" placeholder="Cargo o Título" />
-                            <input name="subtitle" value={item.subtitle} onChange={(e) => handleItemChange(idx, e)} className="text-sm border border-slate-200 rounded-md p-2 w-full focus:border-blue-500 focus:outline-none" placeholder="Empresa o Institución" />
+                            <RichTextField
+                                value={item.title}
+                                onChange={(value) => handleItemChange(idx, { target: { name: 'title', value } })}
+                                placeholder="Cargo o Título"
+                                minHeightClass="min-h-[40px]"
+                                singleLine
+                            />
+                            <RichTextField
+                                value={item.subtitle}
+                                onChange={(value) => handleItemChange(idx, { target: { name: 'subtitle', value } })}
+                                placeholder="Empresa o Institución"
+                                minHeightClass="min-h-[40px]"
+                                singleLine
+                            />
                         </div>
-                        <input name="meta" value={item.meta} onChange={(e) => handleItemChange(idx, e)} className="text-xs text-blue-600 font-semibold border border-slate-200 bg-white rounded-md p-2 w-full mb-2 focus:border-blue-500 focus:outline-none" placeholder="Periodo (Ej. 2020 - 2023)" />
-                        <textarea name="body" value={item.body} onChange={(e) => handleItemChange(idx, e)} rows={3} className="text-xs text-slate-600 border border-slate-200 rounded-md p-2 w-full resize-none focus:border-blue-500 focus:outline-none" placeholder="Descripción de las funciones..." />
+                        <RichTextField
+                            value={item.meta}
+                            onChange={(value) => handleItemChange(idx, { target: { name: 'meta', value } })}
+                            placeholder="Periodo (Ej. 2020 - 2023)"
+                            minHeightClass="min-h-[40px]"
+                            singleLine
+                            className="mb-2"
+                        />
+                        <RichTextField
+                            value={item.body}
+                            onChange={(value) => handleItemChange(idx, { target: { name: 'body', value } })}
+                            placeholder="Descripción de las funciones..."
+                            minHeightClass="min-h-[84px]"
+                        />
                     </div>
                 ))}
             </div>

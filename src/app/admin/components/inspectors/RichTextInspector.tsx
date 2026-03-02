@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Save } from 'lucide-react';
+import RichTextField from './RichTextField';
 
 export default function RichTextInspector({ initialData, onSave, isSaving }: any) {
     const [data, setData] = useState(initialData);
@@ -12,18 +13,21 @@ export default function RichTextInspector({ initialData, onSave, isSaving }: any
         <div className="flex flex-col gap-4">
             <div className="flex flex-col gap-1">
                 <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Título de la Sección</label>
-                <input name="title" value={data.title || ''} onChange={handleChange} className="w-full text-sm border border-slate-200 rounded-lg p-3 outline-none focus:border-blue-500 transition-all font-medium text-slate-800" />
+                <RichTextField
+                    value={data.title || ''}
+                    onChange={(value) => setData({ ...data, title: value })}
+                    minHeightClass="min-h-[44px]"
+                    singleLine
+                />
             </div>
 
             <div className="flex flex-col gap-1">
-                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Contenido HTML / Editor de Texto</label>
-                <textarea
-                    name="content"
+                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Contenido Enriquecido</label>
+                <RichTextField
                     value={data.content || ''}
-                    onChange={handleChange}
-                    rows={12}
-                    className="w-full font-mono text-xs bg-slate-50 border border-slate-200 rounded-lg p-3 outline-none focus:border-blue-500 transition-all text-slate-700 resize-none shadow-inner"
-                    placeholder="<p>Escribe en HTML o texto plano...</p>"
+                    onChange={(value) => setData({ ...data, content: value })}
+                    placeholder="Escribe texto enriquecido aquí..."
+                    minHeightClass="min-h-[240px]"
                 />
             </div>
 

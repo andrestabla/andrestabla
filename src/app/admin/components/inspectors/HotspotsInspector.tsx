@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { Trash2, Plus } from 'lucide-react';
+import RichTextField from './RichTextField';
 
 export default function HotspotsInspector({ initialData, onSave, isSaving }: { initialData: any, onSave: (data: any) => void, isSaving: boolean }) {
     const [bgImage, setBgImage] = useState(initialData.bgImage || 'https://images.unsplash.com/photo-1542831371-29b0f74f9713?q=80&w=1200&auto=format&fit=crop');
@@ -45,10 +46,20 @@ export default function HotspotsInspector({ initialData, onSave, isSaving }: { i
                             </div>
 
                             <label className="text-[9px] font-bold uppercase tracking-widest text-slate-400">Título del Hover</label>
-                            <input type="text" value={spot.title} onChange={e => handleSpotChange(idx, 'title', e.target.value)} className="w-full border border-slate-200 rounded-md p-2 text-xs font-bold mb-2" />
+                            <RichTextField
+                                value={spot.title}
+                                onChange={(value) => handleSpotChange(idx, 'title', value)}
+                                minHeightClass="min-h-[40px]"
+                                singleLine
+                                className="mb-2"
+                            />
 
                             <label className="text-[9px] font-bold uppercase tracking-widest text-slate-400">Descripción Larga</label>
-                            <textarea rows={2} value={spot.desc} onChange={e => handleSpotChange(idx, 'desc', e.target.value)} className="w-full border border-slate-200 rounded-md p-2 text-xs resize-none"></textarea>
+                            <RichTextField
+                                value={spot.desc}
+                                onChange={(value) => handleSpotChange(idx, 'desc', value)}
+                                minHeightClass="min-h-[72px]"
+                            />
                         </div>
                     ))}
                 </div>

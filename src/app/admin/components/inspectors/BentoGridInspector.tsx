@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Save, Plus, Trash2, GripVertical } from 'lucide-react';
+import RichTextField from './RichTextField';
 
 export default function BentoGridInspector({ initialData, onSave, isSaving }: any) {
     const [data, setData] = useState(initialData);
@@ -29,7 +30,12 @@ export default function BentoGridInspector({ initialData, onSave, isSaving }: an
         <div className="flex flex-col gap-6">
             <div className="flex flex-col gap-1">
                 <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Título del Grid</label>
-                <input name="title" value={data.title || ''} onChange={handleFieldChange} className="w-full text-sm border-b-2 border-slate-200 bg-transparent py-2 outline-none focus:border-black transition-all font-bold text-slate-800" />
+                <RichTextField
+                    value={data.title || ''}
+                    onChange={(value) => setData({ ...data, title: value })}
+                    minHeightClass="min-h-[44px]"
+                    singleLine
+                />
             </div>
 
             <div className="flex flex-col gap-1">
@@ -54,17 +60,43 @@ export default function BentoGridInspector({ initialData, onSave, isSaving }: an
                             <span className="text-[10px] font-bold uppercase tracking-widest">Tarjeta #{idx + 1}</span>
                         </div>
 
-                        <input name="title" value={item.title} onChange={(e) => handleItemChange(idx, e)} className="text-sm font-bold border border-slate-200 rounded-md p-2 w-full focus:border-blue-500 focus:outline-none mb-2" placeholder="Título Principal" />
+                        <RichTextField
+                            value={item.title}
+                            onChange={(value) => handleItemChange(idx, { target: { name: 'title', value } })}
+                            placeholder="Título Principal"
+                            minHeightClass="min-h-[40px]"
+                            singleLine
+                            className="mb-2"
+                        />
 
                         {data.bentoType === 'education' && (
                             <>
-                                <input name="subtitle" value={item.subtitle} onChange={(e) => handleItemChange(idx, e)} className="text-sm border border-slate-200 rounded-md p-2 w-full mb-2 focus:border-blue-500 focus:outline-none" placeholder="Institución (Ej. Univ. Complutense)" />
-                                <input name="meta" value={item.meta} onChange={(e) => handleItemChange(idx, e)} className="text-[10px] uppercase font-bold text-blue-600 border border-slate-200 rounded-md p-2 w-full mb-2 focus:border-blue-500 focus:outline-none" placeholder="Etiqueta / Año (Ej. 2024)" />
+                                <RichTextField
+                                    value={item.subtitle}
+                                    onChange={(value) => handleItemChange(idx, { target: { name: 'subtitle', value } })}
+                                    placeholder="Institución (Ej. Univ. Complutense)"
+                                    minHeightClass="min-h-[40px]"
+                                    singleLine
+                                    className="mb-2"
+                                />
+                                <RichTextField
+                                    value={item.meta}
+                                    onChange={(value) => handleItemChange(idx, { target: { name: 'meta', value } })}
+                                    placeholder="Etiqueta / Año (Ej. 2024)"
+                                    minHeightClass="min-h-[40px]"
+                                    singleLine
+                                    className="mb-2"
+                                />
                             </>
                         )}
 
                         {data.bentoType === 'general' && (
-                            <textarea name="body" value={item.body} onChange={(e) => handleItemChange(idx, e)} rows={3} className="text-xs text-slate-600 border border-slate-200 rounded-md p-2 w-full resize-none focus:border-blue-500 focus:outline-none" placeholder="Contenido o detalle..." />
+                            <RichTextField
+                                value={item.body}
+                                onChange={(value) => handleItemChange(idx, { target: { name: 'body', value } })}
+                                placeholder="Contenido o detalle..."
+                                minHeightClass="min-h-[84px]"
+                            />
                         )}
 
                     </div>

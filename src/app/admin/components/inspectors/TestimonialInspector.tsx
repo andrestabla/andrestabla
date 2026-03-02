@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import RichTextField from './RichTextField';
 
 export default function TestimonialInspector({ initialData, onSave, isSaving }: { initialData: any, onSave: (data: any) => void, isSaving: boolean }) {
     const [quote, setQuote] = useState(initialData.quote || 'Excelente profesional, una experiencia increíble de trabajo.');
@@ -12,16 +13,31 @@ export default function TestimonialInspector({ initialData, onSave, isSaving }: 
         <div className="flex flex-col gap-4">
             <div>
                 <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Cita / Testimonio (Quote)</label>
-                <textarea rows={3} value={quote} onChange={e => setQuote(e.target.value)} className="w-full border border-slate-200 rounded-lg p-2.5 text-sm resize-none"></textarea>
+                <RichTextField
+                    value={quote}
+                    onChange={setQuote}
+                    minHeightClass="min-h-[96px]"
+                />
             </div>
             <div className="grid grid-cols-2 gap-2">
                 <div>
                     <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Autor</label>
-                    <input type="text" value={author} onChange={e => setAuthor(e.target.value)} className="w-full border border-slate-200 rounded-lg p-2.5 text-sm" />
+                    <RichTextField
+                        value={author}
+                        onChange={setAuthor}
+                        minHeightClass="min-h-[44px]"
+                        singleLine
+                    />
                 </div>
                 <div>
                     <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Rol / Cargo</label>
-                    <input type="text" value={role} onChange={e => setRole(e.target.value)} className="w-full border border-slate-200 rounded-lg p-2.5 text-sm" placeholder="Ej: CEO" />
+                    <RichTextField
+                        value={role}
+                        onChange={setRole}
+                        placeholder="Ej: CEO"
+                        minHeightClass="min-h-[44px]"
+                        singleLine
+                    />
                 </div>
             </div>
             <div>

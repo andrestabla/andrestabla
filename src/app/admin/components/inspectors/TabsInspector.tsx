@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { Trash2, Plus } from 'lucide-react';
+import RichTextField from './RichTextField';
 
 export default function TabsInspector({ initialData, onSave, isSaving }: { initialData: any, onSave: (data: any) => void, isSaving: boolean }) {
     const [style, setStyle] = useState(initialData.style || 'underline');
@@ -43,9 +44,18 @@ export default function TabsInspector({ initialData, onSave, isSaving }: { initi
                                 <Trash2 size={14} />
                             </button>
                             <label className="text-[9px] font-bold uppercase tracking-widest text-slate-400">Título pestaña</label>
-                            <input type="text" value={item.label} onChange={e => handleItemChange(idx, 'label', e.target.value)} className="w-full border border-slate-200 rounded-md p-2 text-xs" />
+                            <RichTextField
+                                value={item.label}
+                                onChange={(value) => handleItemChange(idx, 'label', value)}
+                                minHeightClass="min-h-[40px]"
+                                singleLine
+                            />
                             <label className="text-[9px] font-bold uppercase tracking-widest text-slate-400 mt-1">Contenido (HTML permitido)</label>
-                            <textarea rows={3} value={item.content} onChange={e => handleItemChange(idx, 'content', e.target.value)} className="w-full border border-slate-200 rounded-md p-2 text-xs resize-none"></textarea>
+                            <RichTextField
+                                value={item.content}
+                                onChange={(value) => handleItemChange(idx, 'content', value)}
+                                minHeightClass="min-h-[96px]"
+                            />
                         </div>
                     ))}
                 </div>

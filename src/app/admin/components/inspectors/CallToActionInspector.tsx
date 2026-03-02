@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import RichTextField from './RichTextField';
 
 export default function CallToActionInspector({ initialData, onSave, isSaving }: { initialData: any, onSave: (data: any) => void, isSaving: boolean }) {
     const [title, setTitle] = useState(initialData.title || '¿Listo para empezar tu proyecto?');
@@ -14,18 +15,33 @@ export default function CallToActionInspector({ initialData, onSave, isSaving }:
         <div className="flex flex-col gap-4">
             <div>
                 <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Título Principal (H2)</label>
-                <input type="text" value={title} onChange={e => setTitle(e.target.value)} className="w-full border border-slate-200 rounded-lg p-2.5 text-sm font-bold" />
+                <RichTextField
+                    value={title}
+                    onChange={setTitle}
+                    minHeightClass="min-h-[44px]"
+                    singleLine
+                />
             </div>
 
             <div>
                 <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Subtítulo / Bajada</label>
-                <textarea rows={2} value={subtitle} onChange={e => setSubtitle(e.target.value)} className="w-full border border-slate-200 rounded-lg p-2 text-xs resize-none"></textarea>
+                <RichTextField
+                    value={subtitle}
+                    onChange={setSubtitle}
+                    minHeightClass="min-h-[72px]"
+                />
             </div>
 
             <div className="bg-slate-50 p-3 rounded-lg border border-slate-200">
                 <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Botón de Llamado a la Acción</label>
                 <div className="grid grid-cols-2 gap-2">
-                    <input type="text" value={buttonText} onChange={e => setButtonText(e.target.value)} className="w-full border border-slate-200 rounded-md p-2 text-xs" placeholder="Texto (ej: Comprar)" />
+                    <RichTextField
+                        value={buttonText}
+                        onChange={setButtonText}
+                        placeholder="Texto (ej: Comprar)"
+                        minHeightClass="min-h-[40px]"
+                        singleLine
+                    />
                     <input type="text" value={buttonLink} onChange={e => setButtonLink(e.target.value)} className="w-full border border-slate-200 rounded-md p-2 text-xs font-mono" placeholder="Enlace (URL)" />
                 </div>
             </div>

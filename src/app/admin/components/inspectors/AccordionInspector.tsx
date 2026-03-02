@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Plus, Trash2 } from 'lucide-react';
+import RichTextField from './RichTextField';
 
 export default function AccordionInspector({ initialData, onSave, isSaving }: { initialData: any, onSave: (data: any) => void, isSaving: boolean }) {
     const [title, setTitle] = useState(initialData.title || '');
@@ -23,14 +24,32 @@ export default function AccordionInspector({ initialData, onSave, isSaving }: { 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4 animate-in fade-in">
             <div className="bg-slate-50 p-4 rounded-xl border border-slate-200">
                 <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1 block">Título del Acordeón (Opcional)</label>
-                <input type="text" value={title} onChange={e => setTitle(e.target.value)} placeholder="Ej: Preguntas Frecuentes (FAQ)" className="w-full text-xs p-3 border border-slate-200 rounded-lg focus:ring-1 focus:ring-indigo-500 mb-4" />
+                <RichTextField
+                    value={title}
+                    onChange={setTitle}
+                    placeholder="Ej: Preguntas Frecuentes (FAQ)"
+                    minHeightClass="min-h-[44px]"
+                    singleLine
+                    className="mb-4"
+                />
 
                 <div className="space-y-3">
                     {items.map((item, index) => (
                         <div key={index} className="flex flex-col gap-2 p-3 bg-white border border-slate-200 rounded-lg relative group">
                             <button type="button" onClick={() => removeItem(index)} className="absolute top-2 right-2 text-slate-300 hover:text-red-500 transition-colors"><Trash2 size={14} /></button>
-                            <input type="text" value={item.question} onChange={e => updateItem(index, 'question', e.target.value)} placeholder="Pregunta/Título" className="w-full text-xs p-2 font-bold border-none bg-slate-50 rounded focus:ring-1 focus:ring-indigo-100" />
-                            <textarea value={item.answer} onChange={e => updateItem(index, 'answer', e.target.value)} placeholder="Respuesta..." className="w-full text-xs p-2 border-none bg-slate-50 rounded min-h-[60px] focus:ring-1 focus:ring-indigo-100" />
+                            <RichTextField
+                                value={item.question}
+                                onChange={(value) => updateItem(index, 'question', value)}
+                                placeholder="Pregunta/Título"
+                                minHeightClass="min-h-[40px]"
+                                singleLine
+                            />
+                            <RichTextField
+                                value={item.answer}
+                                onChange={(value) => updateItem(index, 'answer', value)}
+                                placeholder="Respuesta..."
+                                minHeightClass="min-h-[80px]"
+                            />
                         </div>
                     ))}
                 </div>
