@@ -3,8 +3,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { updateBlockData, deleteBlock, addBlock } from './actions';
 import {
-    Trash2, Settings, Plus, Layers, Box, Settings2,
-    Save, ExternalLink, X, ChevronLeft, PanelLeft
+    Trash2, Plus, Layers, Box, Settings2,
+    Save, X, ChevronLeft, PanelLeft, Eye
 } from 'lucide-react';
 import GlobalSettingsForm from './GlobalSettingsForm';
 import ClientInlineBlockRenderer from './ClientInlineBlockRenderer';
@@ -160,6 +160,7 @@ export default function BuilderWorkspace({ page: initialPage, settings }: { page
     const [selectedBlockId, setSelectedBlockId] = useState<string | null>(null);
     const [viewMode, setViewMode] = useState<'palette' | 'tree' | 'settings'>('palette');
     const [sidebarOpen, setSidebarOpen] = useState(true);
+    const [previewOpen, setPreviewOpen] = useState(false);
 
     // Reload blocks from a real API route so canvas updates without full page refresh
     const reloadBlocks = useCallback(async () => {
@@ -232,9 +233,6 @@ export default function BuilderWorkspace({ page: initialPage, settings }: { page
                             <span className="text-[11px] font-bold uppercase tracking-widest">Supreme Builder</span>
                         </div>
                         <div className="flex items-center gap-3">
-                            <a href="/" target="_blank" className="text-indigo-200 hover:text-white" title="Ver Sitio">
-                                <ExternalLink size={14} />
-                            </a>
                             <button onClick={() => setSidebarOpen(false)} className="text-indigo-200 hover:text-white">
                                 <X size={16} />
                             </button>
@@ -371,7 +369,11 @@ export default function BuilderWorkspace({ page: initialPage, settings }: { page
                     </div>
 
                     {/* Footer */}
-                    <div className="shrink-0 p-3 border-t border-slate-100 bg-slate-50">
+                    <div className="shrink-0 p-3 border-t border-slate-100 bg-slate-50 flex flex-col gap-2">
+                        <button onClick={() => setPreviewOpen(true)}
+                            className="w-full flex items-center justify-center gap-2 py-2 border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 rounded-lg text-[11px] font-bold uppercase tracking-widest transition-colors">
+                            <Eye size={14} /> Vista Previa
+                        </button>
                         <button onClick={forceFullReload}
                             className="w-full flex items-center justify-center gap-2 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-[11px] font-bold uppercase tracking-widest transition-colors shadow-md">
                             <Save size={14} /> Actualizar y Publicar
@@ -415,6 +417,37 @@ export default function BuilderWorkspace({ page: initialPage, settings }: { page
                 .custom-scrollbar::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 10px; }
                 .custom-scrollbar:hover::-webkit-scrollbar-thumb { background: #9ca3af; }
             `}} />
+            {/* PREVIEW MODAL */}
+            {previewOpen && (
+                <div
+                    className="fixed inset-0 z-[100] flex flex-col bg-black/75 backdrop-blur-sm animate-in fade-in"
+                    onClick={(e) => { if (e.target === e.currentTarget) setPreviewOpen(false); }}
+                >
+                    <div className="flex items-center justify-between px-6 py-3 bg-[#1a1a1e] border-b border-white/10 shrink-0">
+                        <div className="flex items-center gap-3">
+                            <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                            <span className="text-white text-[11px] font-bold uppercase tracking-widest">Vista Previa</span>
+                        </div>
+                        <div className="flex items-center gap-3">
+                            <a href="/" target="_blank"
+                                className="text-white/60 hover:text-white text-[10px] font-bold uppercase tracking-widest flex items-center gap-1.5 px-3 py-1.5 border border-white/20 rounded-lg hover:bg-white/10 transition-colors">
+                                Abrir en Pestaña
+                            </a>
+                            <button onClick={() => setPreviewOpen(false)}
+                                className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-colors">
+                                <X size={16} />
+                            </button>
+                        </div>
+                    </div>
+                    <div className="flex-1 relative bg-zinc-900 p-4">
+                        <iframe
+                            src="/"
+                            className="w-full h-full rounded-xl border-none shadow-2xl"
+                            title="Vista Previa del Sitio"
+                        />
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
