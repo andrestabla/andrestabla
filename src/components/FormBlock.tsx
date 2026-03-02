@@ -21,7 +21,7 @@ export default function FormBlock({ data }: { data: any }) {
     return (
         <div className="w-full max-w-2xl mx-auto bg-zinc-900 border border-zinc-800 p-8 rounded-2xl shadow-xl">
             <h3 className="text-2xl font-heading text-white font-bold mb-2" dangerouslySetInnerHTML={safeHtml(title)} />
-            <p className="text-zinc-400 text-sm mb-6" dangerouslySetInnerHTML={safeHtml(subtitle)} />
+            <div className="rich-html text-zinc-400 text-sm mb-6" dangerouslySetInnerHTML={safeHtml(subtitle)} />
 
             {status === 'success' ? (
                 <div className="p-4 bg-green-500/10 border border-green-500/20 text-green-400 rounded-xl text-center font-medium">

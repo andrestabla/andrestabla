@@ -41,7 +41,7 @@ export default function ToggleBlock({ data }: { data: any }) {
                             className="overflow-hidden transition-all duration-300 ease-in-out"
                             style={{ maxHeight: isOpen ? '500px' : '0px', opacity: isOpen ? 1 : 0 }}
                         >
-                            <div className="p-5 pt-0 border-t border-slate-100 dark:border-zinc-800/50 text-slate-600 dark:text-zinc-400 prose dark:prose-invert">
+                            <div className="rich-html p-5 pt-0 border-t border-slate-100 dark:border-zinc-800/50 text-slate-600 dark:text-zinc-400 prose dark:prose-invert">
                                 <div dangerouslySetInnerHTML={safeHtml(item.content)} />
                             </div>
                         </div>

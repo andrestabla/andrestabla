@@ -41,7 +41,12 @@ export default function TimelineBlock({ data }: { data: any }) {
                             <div className="bg-zinc-900/50 backdrop-blur-sm p-6 md:p-8 rounded-2xl border border-zinc-800/50 hover:border-zinc-700 hover:bg-zinc-900 transition-all duration-500 group-hover:-translate-y-1">
                                 <h4 className="text-xl md:text-2xl font-bold text-white mb-2" style={{ fontFamily: 'var(--font-heading)' }} dangerouslySetInnerHTML={safeHtml(item.title, 'Título')} />
                                 {item.subtitle && <p className="text-sm font-bold tracking-widest uppercase text-slate-500 mb-4" dangerouslySetInnerHTML={safeHtml(item.subtitle)} />}
-                                {item.body && <p className="text-slate-400 leading-relaxed font-light text-base" dangerouslySetInnerHTML={safeHtml(item.body)} />}
+                                {item.body && (
+                                    <div
+                                        className="rich-html text-slate-400 leading-relaxed font-light text-base"
+                                        dangerouslySetInnerHTML={safeHtml(item.body)}
+                                    />
+                                )}
                             </div>
                         </motion.div>
                     ))}

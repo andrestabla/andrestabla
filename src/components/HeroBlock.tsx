@@ -34,20 +34,20 @@ export default function HeroBlock({ data }: { data: any }) {
                     <span dangerouslySetInnerHTML={safeHtml(lastName, 'Apellido')} />
                 </h1>
 
-                <motion.h2
+                <motion.div
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.4, duration: 0.8 }}
-                    className="text-2xl md:text-4xl text-slate-300 font-light mb-4 max-w-4xl leading-tight" style={{ fontFamily: 'var(--font-heading)', color: 'var(--text)' }}
+                    className="rich-html text-2xl md:text-4xl text-slate-300 font-light mb-4 max-w-4xl leading-tight" style={{ fontFamily: 'var(--font-heading)', color: 'var(--text)' }}
                     dangerouslySetInnerHTML={safeHtml(data.role, 'Describe el Cargo Principal')}
                 />
 
                 {data.tagline && (
-                    <motion.p
+                    <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         transition={{ delay: 0.5, duration: 0.8 }}
-                        className="text-lg text-slate-400 font-light mb-12 max-w-2xl italic"
+                        className="rich-html text-lg text-slate-400 font-light mb-12 max-w-2xl italic"
                         dangerouslySetInnerHTML={safeHtml(data.tagline)}
                     />
                 )}

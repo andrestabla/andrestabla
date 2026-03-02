@@ -21,7 +21,10 @@ export default function AccordionBlock({ data }: { data: any }) {
                         {openIndex === i ? <ChevronUp size={20} className="text-indigo-500" /> : <ChevronDown size={20} className="text-slate-400" />}
                     </button>
                     {openIndex === i && (
-                        <div className="p-5 text-slate-600 leading-relaxed border-t border-slate-100 bg-white animate-in slide-in-from-top-2" dangerouslySetInnerHTML={safeHtml(item.answer, 'Respuesta...')} />
+                        <div
+                            className="rich-html p-5 text-slate-600 leading-relaxed border-t border-slate-100 bg-white animate-in slide-in-from-top-2"
+                            dangerouslySetInnerHTML={safeHtml(item.answer, 'Respuesta...')}
+                        />
                     )}
                 </div>
             ))}

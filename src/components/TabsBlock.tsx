@@ -41,7 +41,7 @@ export default function TabsBlock({ data }: { data: any }) {
 
             {/* Tab Content */}
             <div className={`w-full prose dark:prose-invert max-w-none text-slate-700 dark:text-zinc-300 ${style === 'default' ? 'p-6 bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-b-lg rounded-tr-lg -mt-[1px]' : ''}`}>
-                <div dangerouslySetInnerHTML={safeHtml(items[activeIdx]?.content || '')} />
+                <div className="rich-html" dangerouslySetInnerHTML={safeHtml(items[activeIdx]?.content || '')} />
             </div>
         </div>
     );

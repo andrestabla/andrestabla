@@ -104,3 +104,61 @@
   color: var(--bg-main);
   border-color: var(--text-primary);
 }
+
+/* Shared styles for rich text HTML rendered from the admin editor */
+.rich-html p {
+  margin: 0;
+}
+
+.rich-html p + p {
+  margin-top: 0.75rem;
+}
+
+.rich-html h2 {
+  font-family: var(--font-heading), serif;
+  font-size: 1.35em;
+  font-weight: 700;
+  line-height: 1.2;
+  margin: 0.5rem 0 0.75rem;
+}
+
+.rich-html ul,
+.rich-html ol {
+  margin: 0.75rem 0;
+  padding-left: 1.5rem;
+}
+
+.rich-html ul {
+  list-style-type: disc;
+}
+
+.rich-html ol {
+  list-style-type: decimal;
+}
+
+.rich-html li {
+  display: list-item;
+}
+
+.rich-html li + li {
+  margin-top: 0.35rem;
+}
+
+.rich-html a {
+  color: var(--brand, #60a5fa);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.rich-html strong {
+  font-weight: 700;
+}
+
+.rich-html em {
+  font-style: italic;
+}
+
+.rich-html u {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}

@@ -16,7 +16,7 @@ export default function RichTextBlock({ data }: { data: any }) {
 
                 <div className="md:w-2/3">
                     <div
-                        className="text-lg md:text-xl text-slate-400 leading-relaxed font-light prose prose-invert prose-p:mb-6 prose-a:text-[var(--brand)] hover:prose-a:text-white transition-colors"
+                        className="rich-html text-lg md:text-xl text-slate-400 leading-relaxed font-light prose prose-invert prose-p:mb-6 prose-a:text-[var(--brand)] hover:prose-a:text-white transition-colors"
                         dangerouslySetInnerHTML={safeHtml(data.content, 'Escribe tu contenido aquí...')}
                     />
                 </div>

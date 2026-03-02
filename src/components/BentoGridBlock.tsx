@@ -73,7 +73,10 @@ export default function BentoGridBlock({ data }: { data: any }) {
                                 {item.subtitle && <p className="text-sm font-bold tracking-widest uppercase text-slate-500 mb-4" dangerouslySetInnerHTML={safeHtml(item.subtitle)} />}
 
                                 {item.body && (
-                                    <p className={`text-slate-400 font-light leading-relaxed ${isLarge ? 'text-lg max-w-2xl' : 'text-sm'}`} dangerouslySetInnerHTML={safeHtml(item.body)} />
+                                    <div
+                                        className={`rich-html text-slate-400 font-light leading-relaxed ${isLarge ? 'text-lg max-w-2xl' : 'text-sm'}`}
+                                        dangerouslySetInnerHTML={safeHtml(item.body)}
+                                    />
                                 )}
                             </div>
                         </motion.div>

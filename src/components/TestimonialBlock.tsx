@@ -12,9 +12,7 @@ export default function TestimonialBlock({ data }: { data: any }) {
         <div className="w-full bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 p-8 md:p-10 rounded-3xl shadow-lg relative group transition-all hover:-translate-y-1 hover:shadow-xl">
             <Quote className="absolute top-6 right-6 text-indigo-500/10 dark:text-indigo-500/20 w-16 h-16 pointer-events-none" />
 
-            <p className="text-slate-700 dark:text-zinc-300 text-lg md:text-xl font-medium leading-relaxed italic mb-8 relative z-10">
-                {'"'}<span dangerouslySetInnerHTML={safeHtml(quote)} />{'"'}
-            </p>
+            <div className="rich-html text-slate-700 dark:text-zinc-300 text-lg md:text-xl font-medium leading-relaxed italic mb-8 relative z-10" dangerouslySetInnerHTML={safeHtml(quote)} />
 
             <div className="flex items-center gap-4 relative z-10">
                 {/* eslint-disable-next-line @next/next/no-img-element */}

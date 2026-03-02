@@ -41,7 +41,7 @@ export default function HotspotsBlock({ data }: { data: any }) {
                     >
                         <div className="absolute -top-1.5 left-1/2 -translate-x-1/2 w-3 h-3 bg-white dark:bg-zinc-900 border-t border-l border-slate-200 dark:border-zinc-800 rotate-45"></div>
                         <h4 className="text-sm font-bold text-slate-800 dark:text-zinc-100 mb-1 relative z-10" dangerouslySetInnerHTML={safeHtml(spot.title)} />
-                        <p className="text-xs text-slate-500 dark:text-zinc-400 relative z-10" dangerouslySetInnerHTML={safeHtml(spot.desc)} />
+                        <div className="rich-html text-xs text-slate-500 dark:text-zinc-400 relative z-10" dangerouslySetInnerHTML={safeHtml(spot.desc)} />
                     </div>
                 </div>
             ))}

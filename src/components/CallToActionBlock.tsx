@@ -22,7 +22,7 @@ export default function CallToActionBlock({ data }: { data: any }) {
                         </svg>
                     </div>
                     <h2 className="text-3xl md:text-5xl font-black text-white mb-6 relative z-10 leading-tight" dangerouslySetInnerHTML={safeHtml(title)} />
-                    <p className="text-indigo-100 font-medium text-lg mb-8 relative z-10" dangerouslySetInnerHTML={safeHtml(subtitle)} />
+                    <div className="rich-html text-indigo-100 font-medium text-lg mb-8 relative z-10" dangerouslySetInnerHTML={safeHtml(subtitle)} />
                     <div className="relative z-10">
                         <a href={buttonLink} className="inline-flex items-center justify-center px-8 py-4 bg-white text-indigo-600 font-bold text-xs uppercase tracking-widest rounded-xl shadow-lg hover:shadow-xl hover:scale-105 transition-all">
                             <span dangerouslySetInnerHTML={safeHtml(buttonText)} /> <ArrowRight size={16} className="ml-2" />
@@ -42,7 +42,7 @@ export default function CallToActionBlock({ data }: { data: any }) {
             <div className="w-full relative overflow-hidden rounded-2xl bg-indigo-50 dark:bg-zinc-800/50 border border-indigo-100 dark:border-zinc-700/50 p-8 md:p-12 flex flex-col md:flex-row items-center justify-between gap-8">
                 <div className="flex-1 text-center md:text-left">
                     <h2 className="text-2xl md:text-3xl font-black text-slate-800 dark:text-white mb-3" dangerouslySetInnerHTML={safeHtml(title)} />
-                    <p className="text-slate-600 dark:text-zinc-400 font-medium" dangerouslySetInnerHTML={safeHtml(subtitle)} />
+                    <div className="rich-html text-slate-600 dark:text-zinc-400 font-medium" dangerouslySetInnerHTML={safeHtml(subtitle)} />
                 </div>
                 <div className="flex-shrink-0">
                     <a href={buttonLink} className="inline-flex items-center justify-center px-8 py-4 bg-indigo-600 text-white font-bold text-xs uppercase tracking-widest rounded-xl shadow-md hover:bg-indigo-700 hover:shadow-lg transition-all">
@@ -61,7 +61,7 @@ export default function CallToActionBlock({ data }: { data: any }) {
 
             <div className="relative z-10 text-center max-w-3xl flex flex-col items-center">
                 <h2 className="text-4xl md:text-6xl font-black text-white mb-6 leading-tight drop-shadow-lg" dangerouslySetInnerHTML={safeHtml(title)} />
-                <p className="text-xl md:text-2xl font-medium text-white/80 mb-10 max-w-2xl drop-shadow-md" dangerouslySetInnerHTML={safeHtml(subtitle)} />
+                <div className="rich-html text-xl md:text-2xl font-medium text-white/80 mb-10 max-w-2xl drop-shadow-md" dangerouslySetInnerHTML={safeHtml(subtitle)} />
                 <a href={buttonLink} className="inline-flex items-center justify-center px-8 py-4 bg-indigo-500 text-white font-bold text-xs uppercase tracking-widest rounded-xl shadow-lg hover:bg-indigo-600 hover:-translate-y-1 hover:shadow-indigo-500/25 transition-all">
                     <span dangerouslySetInnerHTML={safeHtml(buttonText)} /> <ArrowRight size={16} className="ml-2" />
                 </a>
