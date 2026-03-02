@@ -15,12 +15,20 @@ export default function BuilderWorkspace({ page, settings }: { page: any, settin
         const handleMessage = (event: MessageEvent) => {
             if (event.data?.type === 'BLOCK_SELECTED' && event.data?.blockId) {
                 setSelectedBlockId(event.data.blockId);
-                setViewMode('tree'); // Ensure we are in tree view to see the inspector
+                // Do NOT change viewMode — inspector will render automatically when selectedBlock is set
             }
         };
         window.addEventListener('message', handleMessage);
         return () => window.removeEventListener('message', handleMessage);
     }, []);
+
+    // When selectedBlockId changes, tell the iframe to highlight it
+    useEffect(() => {
+        const iframe = document.getElementById('live-preview-iframe') as HTMLIFrameElement;
+        if (iframe?.contentWindow) {
+            iframe.contentWindow.postMessage({ type: 'HIGHLIGHT_BLOCK', blockId: selectedBlockId ?? null }, '*');
+        }
+    }, [selectedBlockId]);
 
     const blocks = page?.blocks || [];
     const rootBlocks = blocks.filter((b: any) => !b.parentId).sort((a: any, b: any) => a.order - b.order);
