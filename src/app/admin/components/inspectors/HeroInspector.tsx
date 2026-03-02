@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Save } from 'lucide-react';
+import { Save, Plus, Trash2, Link as LinkIcon } from 'lucide-react';
 
 export default function HeroInspector({ initialData, onSave, isSaving }: any) {
     const [data, setData] = useState(initialData);
@@ -8,40 +8,102 @@ export default function HeroInspector({ initialData, onSave, isSaving }: any) {
         setData({ ...data, [e.target.name]: e.target.value });
     };
 
+    const handleLinkChange = (index: number, field: string, value: string) => {
+        const newLinks = [...(data.links || [])];
+        newLinks[index] = { ...newLinks[index], [field]: value };
+        setData({ ...data, links: newLinks });
+    };
+
+    const addLink = () => {
+        const newLinks = [...(data.links || []), { label: 'Nuevo Enlace', url: 'https://' }];
+        setData({ ...data, links: newLinks });
+    };
+
+    const removeLink = (index: number) => {
+        const newLinks = data.links.filter((_: any, i: number) => i !== index);
+        setData({ ...data, links: newLinks });
+    };
+
     return (
-        <div className="flex flex-col gap-4">
-            <div className="flex flex-col gap-1">
-                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Nombre Completo</label>
-                <input name="name" value={data.name || ''} onChange={handleChange} className="w-full text-sm border border-slate-200 rounded-lg p-3 outline-none focus:border-blue-500 transition-all font-medium text-slate-800" />
+        <div className="flex flex-col gap-6 animate-in fade-in slide-in-from-right-4">
+
+            {/* Información Principal */}
+            <div className="space-y-4">
+                <div className="flex flex-col gap-1">
+                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Saludo (Greeting)</label>
+                    <input name="greeting" value={data.greeting || ''} placeholder="Hello, I am" onChange={handleChange} className="w-full text-sm border border-slate-200 rounded-lg p-3 outline-none focus:border-blue-500 transition-all font-medium text-slate-800" />
+                </div>
+
+                <div className="flex flex-col gap-1">
+                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Nombre Completo</label>
+                    <input name="name" value={data.name || ''} onChange={handleChange} className="w-full text-sm border border-slate-200 rounded-lg p-3 outline-none focus:border-blue-500 transition-all font-medium text-slate-800" />
+                </div>
+
+                <div className="flex flex-col gap-1">
+                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Cargo / Especialidad</label>
+                    <textarea name="role" value={data.role || ''} onChange={handleChange} rows={2} className="w-full text-sm border border-slate-200 rounded-lg p-3 outline-none focus:border-blue-500 transition-all text-slate-600 resize-none" />
+                </div>
+
+                <div className="flex flex-col gap-1">
+                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Eslogan / Tagline</label>
+                    <textarea name="tagline" value={data.tagline || ''} onChange={handleChange} rows={2} className="w-full text-sm border border-slate-200 rounded-lg p-3 outline-none focus:border-blue-500 transition-all text-slate-600 resize-none" />
+                </div>
             </div>
 
-            <div className="flex flex-col gap-1">
-                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Cargo / Especialidad</label>
-                <textarea name="role" value={data.role || ''} onChange={handleChange} rows={2} className="w-full text-sm border border-slate-200 rounded-lg p-3 outline-none focus:border-blue-500 transition-all text-slate-600 resize-none" />
-            </div>
-
-            <div className="flex flex-col gap-1">
-                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Eslogan</label>
-                <input name="tagline" value={data.tagline || ''} onChange={handleChange} className="w-full text-sm border border-slate-200 rounded-lg p-3 outline-none focus:border-blue-500 transition-all text-slate-600" />
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
+            {/* Contacto */}
+            <div className="grid grid-cols-2 gap-3 bg-slate-50 p-3 rounded-xl border border-slate-100">
                 <div className="flex flex-col gap-1">
                     <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Teléfono</label>
-                    <input name="phone" value={data.phone || ''} onChange={handleChange} className="w-full text-xs border border-slate-200 rounded-lg p-3 outline-none focus:border-blue-500 transition-all text-slate-600" />
+                    <input name="phone" value={data.phone || ''} onChange={handleChange} className="w-full text-xs border border-slate-200 rounded-lg p-2.5 outline-none focus:border-blue-500 transition-all text-slate-600" />
                 </div>
                 <div className="flex flex-col gap-1">
                     <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Email</label>
-                    <input name="email" value={data.email || ''} onChange={handleChange} className="w-full text-xs border border-slate-200 rounded-lg p-3 outline-none focus:border-blue-500 transition-all text-slate-600" />
+                    <input name="email" value={data.email || ''} onChange={handleChange} className="w-full text-xs border border-slate-200 rounded-lg p-2.5 outline-none focus:border-blue-500 transition-all text-slate-600" />
+                </div>
+            </div>
+
+            {/* Enlaces (Links) */}
+            <div className="space-y-4">
+                <div className="flex items-center justify-between ml-1">
+                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Botones de Enlace</label>
+                    <button onClick={addLink} className="text-blue-600 hover:text-blue-700 p-1 flex items-center gap-1 font-bold text-[10px] uppercase">
+                        <Plus size={12} /> Añadir
+                    </button>
+                </div>
+
+                <div className="space-y-3">
+                    {(data.links || []).map((link: any, idx: number) => (
+                        <div key={idx} className="bg-white border border-slate-200 p-3 rounded-xl shadow-sm space-y-2 group relative">
+                            <button onClick={() => removeLink(idx)} className="absolute top-2 right-2 text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all">
+                                <Trash2 size={14} />
+                            </button>
+                            <div className="flex flex-col gap-1">
+                                <label className="text-[9px] font-bold text-slate-400 uppercase">Texto del Botón</label>
+                                <input value={link.label} onChange={(e) => handleLinkChange(idx, 'label', e.target.value)} className="w-full text-xs border border-slate-100 p-2 rounded bg-slate-50 focus:bg-white focus:border-blue-300 transition-all" />
+                            </div>
+                            <div className="flex flex-col gap-1">
+                                <label className="text-[9px] font-bold text-slate-400 uppercase">URL (Enlace)</label>
+                                <div className="flex items-center gap-2">
+                                    <LinkIcon size={12} className="text-slate-400" />
+                                    <input value={link.url} onChange={(e) => handleLinkChange(idx, 'url', e.target.value)} className="flex-1 text-xs border border-slate-100 p-2 rounded bg-slate-50 focus:bg-white focus:border-blue-300 transition-all" />
+                                </div>
+                            </div>
+                        </div>
+                    ))}
+                    {(!data.links || data.links.length === 0) && (
+                        <div className="text-center p-6 border-2 border-dashed border-slate-100 rounded-2xl text-slate-400 text-xs italic">
+                            No hay enlaces añadidos
+                        </div>
+                    )}
                 </div>
             </div>
 
             <button
                 onClick={() => onSave(data)}
                 disabled={isSaving}
-                className="flex items-center justify-center gap-2 bg-black text-white p-3 rounded-lg font-bold text-xs uppercase tracking-widest hover:bg-slate-800 transition-colors disabled:opacity-50 mt-4 shadow-md"
+                className="flex items-center justify-center gap-2 bg-indigo-600 text-white p-4 rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-indigo-700 transition-all disabled:opacity-50 mt-4 shadow-lg shadow-indigo-100"
             >
-                <Save size={14} /> {isSaving ? 'Actualizando...' : 'Guardar y Previsualizar'}
+                <Save size={16} /> {isSaving ? 'Actualizando...' : 'Guardar y Previsualizar'}
             </button>
         </div>
     );

@@ -18,7 +18,9 @@ export default function HeroBlock({ data }: { data: any }) {
             >
                 <div className="flex items-center gap-4 mb-8">
                     <span className="w-12 h-[2px] bg-[var(--brand)]"></span>
-                    <span className="text-[var(--brand)] text-sm md:text-base font-bold tracking-[0.2em] uppercase">Hello, I am</span>
+                    <span className="text-[var(--brand)] text-sm md:text-base font-bold tracking-[0.2em] uppercase">
+                        {data.greeting || 'Hello, I am'}
+                    </span>
                 </div>
 
                 <h1 className="text-6xl md:text-8xl lg:text-[120px] font-bold mb-6 text-white leading-[0.9]" style={{ fontFamily: 'var(--font-heading)', color: 'var(--heading)' }}>
@@ -30,10 +32,21 @@ export default function HeroBlock({ data }: { data: any }) {
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.4, duration: 0.8 }}
-                    className="text-2xl md:text-4xl text-slate-300 font-light mb-12 max-w-4xl leading-tight" style={{ fontFamily: 'var(--font-heading)', color: 'var(--text)' }}
+                    className="text-2xl md:text-4xl text-slate-300 font-light mb-4 max-w-4xl leading-tight" style={{ fontFamily: 'var(--font-heading)', color: 'var(--text)' }}
                 >
                     {data.role || 'Describe el Cargo Principal'}
                 </motion.h2>
+
+                {data.tagline && (
+                    <motion.p
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 0.5, duration: 0.8 }}
+                        className="text-lg text-slate-400 font-light mb-12 max-w-2xl italic"
+                    >
+                        {data.tagline}
+                    </motion.p>
+                )}
 
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
