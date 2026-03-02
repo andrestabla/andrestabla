@@ -1,355 +1,15 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { updateBlockData, deleteBlock, addBlock } from './actions';
-import { Trash2, Settings, Plus, GripVertical, Layers, Monitor, Tablet, Smartphone, Box, Settings2, Save, ExternalLink } from 'lucide-react';
+import {
+    Trash2, Settings, Plus, Layers, Box, Settings2,
+    Save, ExternalLink, X, ChevronLeft, PanelLeft
+} from 'lucide-react';
 import GlobalSettingsForm from './GlobalSettingsForm';
+import ClientInlineBlockRenderer from './ClientInlineBlockRenderer';
 
-export default function BuilderWorkspace({ page, settings }: { page: any, settings: any }) {
-    const [selectedBlockId, setSelectedBlockId] = useState<string | null>(null);
-    const [viewMode, setViewMode] = useState<'palette' | 'tree' | 'settings'>('palette');
-    const [previewWidth, setPreviewWidth] = useState<'100%' | '768px' | '375px'>('100%');
-
-    // Listen for clicks inside the Iframe
-    useEffect(() => {
-        const handleMessage = (event: MessageEvent) => {
-            if (event.data?.type === 'BLOCK_SELECTED' && event.data?.blockId) {
-                setSelectedBlockId(event.data.blockId);
-                // Do NOT change viewMode — inspector will render automatically when selectedBlock is set
-            }
-        };
-        window.addEventListener('message', handleMessage);
-        return () => window.removeEventListener('message', handleMessage);
-    }, []);
-
-    // When selectedBlockId changes, tell the iframe to highlight it
-    useEffect(() => {
-        const iframe = document.getElementById('live-preview-iframe') as HTMLIFrameElement;
-        if (iframe?.contentWindow) {
-            iframe.contentWindow.postMessage({ type: 'HIGHLIGHT_BLOCK', blockId: selectedBlockId ?? null }, '*');
-        }
-    }, [selectedBlockId]);
-
-    const blocks = page?.blocks || [];
-    const rootBlocks = blocks.filter((b: any) => !b.parentId).sort((a: any, b: any) => a.order - b.order);
-    const selectedBlock = blocks.find((b: any) => b.id === selectedBlockId);
-
-    const forcePreviewReload = () => {
-        const iframe = document.getElementById('live-preview-iframe') as HTMLIFrameElement;
-        if (iframe) iframe.src = iframe.src;
-    };
-
-    // Recursive function to show tree of blocks
-    const renderBlockTree = (blockLayer: any[], depth = 0) => {
-        return blockLayer.map((block: any) => {
-            const children = blocks.filter((b: any) => b.parentId === block.id).sort((a: any, b: any) => a.order - b.order);
-            const isGrid = block.type === 'grid';
-
-            return (
-                <div key={block.id} className="relative">
-                    <button
-                        onClick={() => setSelectedBlockId(block.id)}
-                        className={`w-full flex items-center gap-3 p-3 bg-white border ${selectedBlockId === block.id ? 'border-indigo-500 shadow-md ring-1 ring-indigo-500' : 'border-slate-200'} rounded-xl hover:border-indigo-400 hover:shadow-sm transition-all text-left group mb-2`}
-                        style={{ marginLeft: `${depth * 16}px`, width: `calc(100% - ${depth * 16}px)` }}
-                    >
-                        <div className="text-slate-300 group-hover:text-indigo-400 cursor-grab"><GripVertical size={16} /></div>
-
-                        {isGrid && <Layers size={14} className="text-indigo-500" />}
-
-                        <div className="flex-1">
-                            <div className="text-xs font-bold text-slate-800 uppercase tracking-wider">{block.type}</div>
-                            <div className="text-[10px] text-slate-500 truncate max-w-[180px]">
-                                {isGrid ? 'Contenedor de Columnas' : block.data.substring(0, 40) + '...'}
-                            </div>
-                        </div>
-                    </button>
-
-                    {/* Render Children Recursively */}
-                    {children.length > 0 && (
-                        <div className="border-l-2 border-indigo-100 ml-4 pl-2">
-                            {renderBlockTree(children, depth + 1)}
-                        </div>
-                    )}
-                </div>
-            );
-        });
-    };
-
-    return (
-        <div className="flex h-full w-full">
-            <aside className="w-[400px] h-full bg-white border-r border-[#d2d2d7] flex flex-col shadow-2xl relative z-10 shrink-0">
-                <div className="p-4 border-b border-[#e5e7eb] flex justify-between items-center bg-zinc-50 relative z-20 shadow-sm">
-                    <div className="flex items-center gap-3">
-                        <div className="bg-indigo-600 text-white p-1.5 rounded-lg shadow-md"><Settings size={16} /></div>
-                        <div>
-                            <h2 className="font-bold text-xs tracking-tight text-slate-900 leading-none">Supreme Builder</h2>
-                            <span className="text-[9px] uppercase tracking-widest text-slate-500 font-semibold mt-1 block">Página: {page.title}</span>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Main Sidebar Toggle */}
-                {!selectedBlock && (
-                    <div className="flex p-2 bg-slate-100 m-4 rounded-xl">
-                        <button
-                            onClick={() => setViewMode('palette')}
-                            className={`flex-1 py-1.5 text-[10px] font-bold uppercase tracking-widest rounded-lg flex items-center justify-center gap-2 transition-all ${viewMode === 'palette' ? 'bg-white shadow-sm text-indigo-700' : 'text-slate-500 hover:text-slate-700'}`}
-                            title="Paleta de Widgets"
-                        >
-                            <Plus size={14} /> Insertar
-                        </button>
-                        <button
-                            onClick={() => setViewMode('tree')}
-                            className={`flex-1 py-1.5 text-[10px] font-bold uppercase tracking-widest rounded-lg flex items-center justify-center gap-2 transition-all ${viewMode === 'tree' ? 'bg-white shadow-sm text-indigo-700' : 'text-slate-500 hover:text-slate-700'}`}
-                            title="Árbol de Capas"
-                        >
-                            <Box size={14} /> Capas
-                        </button>
-                        <button
-                            onClick={() => setViewMode('settings')}
-                            className={`flex-1 py-1.5 text-[10px] font-bold uppercase tracking-widest rounded-lg flex items-center justify-center gap-2 transition-all ${viewMode === 'settings' ? 'bg-white shadow-sm text-indigo-700' : 'text-slate-500 hover:text-slate-700'}`}
-                            title="Diseño Global"
-                        >
-                            <Settings2 size={14} /> Diseño
-                        </button>
-                    </div>
-                )}
-
-                <div className="flex-1 overflow-y-auto custom-scrollbar flex flex-col">
-
-                    {viewMode === 'settings' && !selectedBlock && (
-                        <GlobalSettingsForm settings={settings} onSaved={forcePreviewReload} />
-                    )}
-
-                    {viewMode === 'palette' && !selectedBlock && (
-                        <div className="p-4 flex flex-col gap-4 animate-in fade-in slide-in-from-left-4">
-                            <div>
-                                <h3 className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-3 ml-1">Estructura</h3>
-                                <div className="grid grid-cols-2 gap-2">
-                                    <WidgetAddBtn pageId={page.id} parentId={null} type="hero" label="Portada (Hero)" defaultData={{ name: "Nuevo Bloque", role: "Tu Cargo", links: [] }} onAdded={forcePreviewReload} />
-                                    <WidgetAddBtn pageId={page.id} parentId={null} type="grid" label="Cuadrícula (Sección)" defaultData={{ columns: 2 }} onAdded={forcePreviewReload} />
-                                    <WidgetAddBtn pageId={page.id} parentId={null} type="bento" label="Bento Grid" defaultData={{ title: "Portafolio", bentoType: "general", items: [] }} onAdded={forcePreviewReload} />
-                                    <WidgetAddBtn pageId={page.id} parentId={null} type="timeline" label="Línea de Vida" defaultData={{ title: "Experiencia", items: [] }} onAdded={forcePreviewReload} />
-                                </div>
-                            </div>
-
-                            <div>
-                                <h3 className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-3 ml-1 mt-2">Básicos</h3>
-                                <div className="grid grid-cols-2 gap-2">
-                                    <WidgetAddBtn pageId={page.id} parentId={null} type="heading" label="Encabezados" defaultData={{ text: "Nuevo Encabezado", tag: "h2" }} onAdded={forcePreviewReload} />
-                                    <WidgetAddBtn pageId={page.id} parentId={null} type="richtext" label="Texto a Medida" defaultData={{ title: "Título Seccion", content: "<p>Escribe algo increíble...</p>" }} onAdded={forcePreviewReload} />
-                                    <WidgetAddBtn pageId={page.id} parentId={null} type="button" label="Botón (CTA)" defaultData={{ text: "Haz clic aquí", link: "#", style: "primary" }} onAdded={forcePreviewReload} />
-                                    <WidgetAddBtn pageId={page.id} parentId={null} type="image" label="Imagen" defaultData={{ url: "", alt: "Imagen" }} onAdded={forcePreviewReload} />
-                                    <WidgetAddBtn pageId={page.id} parentId={null} type="video" label="Video" defaultData={{ url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ" }} onAdded={forcePreviewReload} />
-                                    <WidgetAddBtn pageId={page.id} parentId={null} type="divider" label="Divider (Línea)" defaultData={{ style: "solid" }} onAdded={forcePreviewReload} />
-                                    <WidgetAddBtn pageId={page.id} parentId={null} type="spacer" label="Spacer (Espaciador)" defaultData={{ height: "h-12" }} onAdded={forcePreviewReload} />
-                                </div>
-                            </div>
-
-                            <div>
-                                <h3 className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-3 ml-1 mt-6">Avanzados</h3>
-                                <div className="grid grid-cols-2 gap-2">
-                                    <WidgetAddBtn pageId={page.id} parentId={null} type="progressbar" label="Progress Bars" defaultData={{ items: [{ label: 'Habilidad', percentage: 90 }] }} onAdded={forcePreviewReload} />
-                                    <WidgetAddBtn pageId={page.id} parentId={null} type="form" label="Formulario" defaultData={{ title: "Contacto" }} onAdded={forcePreviewReload} />
-                                    <WidgetAddBtn pageId={page.id} parentId={null} type="testimonial" label="Testimonio" defaultData={{ author: "John Doe" }} onAdded={forcePreviewReload} />
-                                    <WidgetAddBtn pageId={page.id} parentId={null} type="social" label="Redes Sociales" defaultData={{ items: [{ network: 'linkedin', url: '#' }] }} onAdded={forcePreviewReload} />
-                                    <WidgetAddBtn pageId={page.id} parentId={null} type="map" label="Google Maps" defaultData={{ height: "h-[400px]" }} onAdded={forcePreviewReload} />
-                                    <WidgetAddBtn pageId={page.id} parentId={null} type="tabs" label="Pestañas" defaultData={{ items: [{ label: "Visión", content: "..." }] }} onAdded={forcePreviewReload} />
-                                    <WidgetAddBtn pageId={page.id} parentId={null} type="toggle" label="Toggle (Colapso)" defaultData={{ items: [{ title: "Pregunta", content: "..." }] }} onAdded={forcePreviewReload} />
-                                    <WidgetAddBtn pageId={page.id} parentId={null} type="gallery" label="Galería" defaultData={{ images: [{ url: "https://images.unsplash.com/photo-1542831371-29b0f74f9713?q=80&w=600&auto=format&fit=crop", alt: "Img" }] }} onAdded={forcePreviewReload} />
-                                    <WidgetAddBtn pageId={page.id} parentId={null} type="counter" label="Contador" defaultData={{ items: [{ label: "Proyectos", value: 150, suffix: "+" }] }} onAdded={forcePreviewReload} />
-                                    <WidgetAddBtn pageId={page.id} parentId={null} type="lottie" label="Lottie (Animación)" defaultData={{ jsonUrl: "https://assets3.lottiefiles.com/packages/lf20_UJNc2t.json" }} onAdded={forcePreviewReload} />
-                                </div>
-                            </div>
-
-                            <div>
-                                <h3 className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-3 ml-1 mt-2">Interactivos</h3>
-                                <div className="grid grid-cols-2 gap-2">
-                                    <WidgetAddBtn pageId={page.id} parentId={null} type="accordion" label="Acordeón / FAQ" defaultData={{ title: "FAQ", items: [] }} onAdded={forcePreviewReload} />
-                                    <WidgetAddBtn pageId={page.id} parentId={null} type="carousel" label="Carrusel" defaultData={{ height: "h-[400px]", images: [] }} onAdded={forcePreviewReload} />
-                                </div>
-                            </div>
-
-                            <div className="mb-8">
-                                <h3 className="text-[10px] font-bold uppercase tracking-widest text-indigo-400 mb-3 ml-1 mt-6">Profesionales (PRO)</h3>
-                                <div className="grid grid-cols-2 gap-2">
-                                    <WidgetAddBtn pageId={page.id} parentId={null} type="loopgrid" label="Posts Dinámicos" defaultData={{ postType: "blog" }} onAdded={forcePreviewReload} />
-                                    <WidgetAddBtn pageId={page.id} parentId={null} type="portfolio" label="Portafolio" defaultData={{ columns: "grid-cols-1 md:grid-cols-3" }} onAdded={forcePreviewReload} />
-                                    <WidgetAddBtn pageId={page.id} parentId={null} type="pricing" label="Tablas de Precio" defaultData={{ title: "Pro", price: "$99" }} onAdded={forcePreviewReload} />
-                                    <WidgetAddBtn pageId={page.id} parentId={null} type="flipbox" label="Flip Boxes 3D" defaultData={{ frontTitle: "Gírame" }} onAdded={forcePreviewReload} />
-                                    <WidgetAddBtn pageId={page.id} parentId={null} type="hotspots" label="Hotspots (Puntos)" defaultData={{ spots: [{ id: 1, x: 50, y: 50, title: "Punto" }] }} onAdded={forcePreviewReload} />
-                                    <WidgetAddBtn pageId={page.id} parentId={null} type="cta" label="Call to Action" defaultData={{ title: "Únete Ahora" }} onAdded={forcePreviewReload} />
-                                    <WidgetAddBtn pageId={page.id} parentId={null} type="navmenu" label="Nav Menu" defaultData={{ style: "horizontal" }} onAdded={forcePreviewReload} />
-                                </div>
-                            </div>
-                        </div>
-                    )}
-
-                    {viewMode === 'tree' && !selectedBlock && (
-                        <div className="p-4 flex flex-col gap-2 animate-in fade-in slide-in-from-left-4">
-                            <h3 className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2 ml-1">Capas y Nodos</h3>
-
-                            {blocks.length === 0 && <p className="text-xs text-slate-400 italic text-center py-8">La página está vacía.</p>}
-
-                            <div className="space-y-1">
-                                {renderBlockTree(rootBlocks)}
-                            </div>
-                        </div>
-                    )}
-
-                    {selectedBlock && (
-                        <div className="p-4 animate-in fade-in slide-in-from-right-4">
-                            <button onClick={() => setSelectedBlockId(null)} className="text-[10px] font-bold uppercase tracking-widest text-indigo-600 mb-4 hover:text-indigo-800 flex items-center gap-1">
-                                ← Volver al Árbol Global
-                            </button>
-
-                            <div className="flex justify-between items-center mb-6 border-b border-slate-100 pb-4">
-                                <h3 className="text-sm font-bold text-slate-800 tracking-tight uppercase">Inspector: {selectedBlock.type}</h3>
-                                <button
-                                    onClick={async () => {
-                                        if (confirm('¿Eliminar este bloque y sus hijos?')) {
-                                            await deleteBlock(selectedBlock.id);
-                                            setSelectedBlockId(null);
-                                            forcePreviewReload();
-                                        }
-                                    }}
-                                    className="text-red-500 hover:bg-red-50 p-1.5 rounded-md transition-colors"
-                                >
-                                    <Trash2 size={16} />
-                                </button>
-                            </div>
-
-                            <InspectorForm
-                                block={selectedBlock}
-                                onSaved={forcePreviewReload}
-                            />
-
-                            {/* If exactly GRID is selected, show "ADD WIDGET INSIDE GRID" controls */}
-                            {selectedBlock.type === 'grid' && (
-                                <div className="mt-8 pt-6 border-t border-indigo-100 bg-indigo-50/50 -mx-4 px-4 pb-4">
-                                    <h3 className="text-[10px] font-bold uppercase tracking-widest text-indigo-500 mb-4 flex items-center gap-2">
-                                        <Layers size={14} /> Inyectar Widget dentro de Grid
-                                    </h3>
-                                    <div className="grid grid-cols-2 gap-2">
-                                        <WidgetAddBtn pageId={page.id} parentId={selectedBlock.id} type="heading" label="Encabezados (H2+)" defaultData={{ text: "Título", tag: "h3" }} onAdded={forcePreviewReload} />
-                                        <WidgetAddBtn pageId={page.id} parentId={selectedBlock.id} type="richtext" label="Texto (Prose)" defaultData={{ title: "Sección", content: "<p>...</p>" }} onAdded={forcePreviewReload} />
-                                        <WidgetAddBtn pageId={page.id} parentId={selectedBlock.id} type="button" label="Botón" defaultData={{ text: "Ir", style: "primary" }} onAdded={forcePreviewReload} />
-                                        <WidgetAddBtn pageId={page.id} parentId={selectedBlock.id} type="image" label="Imagen" defaultData={{ url: "", alt: "Imagen" }} onAdded={forcePreviewReload} />
-                                        <WidgetAddBtn pageId={page.id} parentId={selectedBlock.id} type="video" label="Video" defaultData={{ url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ" }} onAdded={forcePreviewReload} />
-                                        <WidgetAddBtn pageId={page.id} parentId={selectedBlock.id} type="accordion" label="Acordeón" defaultData={{ title: "", items: [] }} onAdded={forcePreviewReload} />
-                                        <WidgetAddBtn pageId={page.id} parentId={selectedBlock.id} type="carousel" label="Carrusel" defaultData={{ height: "h-[300px]", images: [] }} onAdded={forcePreviewReload} />
-                                        <WidgetAddBtn pageId={page.id} parentId={selectedBlock.id} type="progressbar" label="Barras Progreso" defaultData={{ items: [{ label: 'Habilidad', percentage: 90 }] }} onAdded={forcePreviewReload} />
-                                        <WidgetAddBtn pageId={page.id} parentId={selectedBlock.id} type="form" label="Formulario" defaultData={{ title: "Contacto" }} onAdded={forcePreviewReload} />
-                                        <WidgetAddBtn pageId={page.id} parentId={selectedBlock.id} type="testimonial" label="Testimonio" defaultData={{ author: "John Doe" }} onAdded={forcePreviewReload} />
-                                        <WidgetAddBtn pageId={page.id} parentId={selectedBlock.id} type="social" label="Social Icons" defaultData={{ items: [{ network: 'linkedin', url: '#' }] }} onAdded={forcePreviewReload} />
-                                        <WidgetAddBtn pageId={page.id} parentId={selectedBlock.id} type="map" label="Mapa" defaultData={{ height: "h-[400px]" }} onAdded={forcePreviewReload} />
-                                        <WidgetAddBtn pageId={page.id} parentId={selectedBlock.id} type="tabs" label="Pestañas" defaultData={{ items: [{ label: "Tab 1", content: "..." }] }} onAdded={forcePreviewReload} />
-                                        <WidgetAddBtn pageId={page.id} parentId={selectedBlock.id} type="toggle" label="Toggle (Colapso)" defaultData={{ items: [{ title: "Pregunta", content: "..." }] }} onAdded={forcePreviewReload} />
-                                        <WidgetAddBtn pageId={page.id} parentId={selectedBlock.id} type="gallery" label="Galería" defaultData={{ images: [{ url: "https://images.unsplash.com/photo-1542831371-29b0f74f9713?q=80&w=600&auto=format&fit=crop", alt: "Img" }] }} onAdded={forcePreviewReload} />
-                                        <WidgetAddBtn pageId={page.id} parentId={selectedBlock.id} type="counter" label="Contador" defaultData={{ items: [{ label: "Proyectos", value: 150, suffix: "+" }] }} onAdded={forcePreviewReload} />
-                                        <WidgetAddBtn pageId={page.id} parentId={selectedBlock.id} type="counter" label="Contador" defaultData={{ items: [{ label: "Proyectos", value: 150, suffix: "+" }] }} onAdded={forcePreviewReload} />
-                                        <WidgetAddBtn pageId={page.id} parentId={selectedBlock.id} type="lottie" label="Lottie" defaultData={{ jsonUrl: "https://assets3.lottiefiles.com/packages/lf20_UJNc2t.json" }} onAdded={forcePreviewReload} />
-
-                                        {/* PRO Widgets inside a Selected Container */}
-                                        <WidgetAddBtn pageId={page.id} parentId={selectedBlock.id} type="loopgrid" label="Posts Dinámicos" defaultData={{ postType: "blog" }} onAdded={forcePreviewReload} />
-                                        <WidgetAddBtn pageId={page.id} parentId={selectedBlock.id} type="portfolio" label="Portafolio" defaultData={{ columns: "grid-cols-1 md:grid-cols-3" }} onAdded={forcePreviewReload} />
-                                        <WidgetAddBtn pageId={page.id} parentId={selectedBlock.id} type="pricing" label="Tablas de Precio" defaultData={{ title: "Pro", price: "$99" }} onAdded={forcePreviewReload} />
-                                        <WidgetAddBtn pageId={page.id} parentId={selectedBlock.id} type="flipbox" label="Flip Boxes 3D" defaultData={{ frontTitle: "Gírame" }} onAdded={forcePreviewReload} />
-                                        <WidgetAddBtn pageId={page.id} parentId={selectedBlock.id} type="hotspots" label="Hotspots (Puntos)" defaultData={{ spots: [{ id: 1, x: 50, y: 50, title: "Punto" }] }} onAdded={forcePreviewReload} />
-                                        <WidgetAddBtn pageId={page.id} parentId={selectedBlock.id} type="cta" label="Call to Action" defaultData={{ title: "Únete Ahora" }} onAdded={forcePreviewReload} />
-                                        <WidgetAddBtn pageId={page.id} parentId={selectedBlock.id} type="navmenu" label="Nav Menu" defaultData={{ style: "horizontal" }} onAdded={forcePreviewReload} />
-                                    </div>
-                                </div>
-                            )}
-
-                        </div>
-                    )}
-                </div>
-            </aside>
-
-            {/* RIGHT PANEL: Live Preview Canvas */}
-            <main className="flex-1 bg-zinc-100 p-4 lg:p-4 flex flex-col relative items-center">
-                <div className="w-full max-w-6xl mb-4 flex items-center justify-between bg-white p-2 rounded-xl shadow-sm border border-zinc-200">
-                    {/* Left: Navigator Toggle */}
-                    <div className="flex items-center gap-2">
-                        <button
-                            onClick={() => { setSelectedBlockId(null); setViewMode('tree'); }}
-                            className="flex items-center gap-2 px-3 py-1.5 text-[11px] uppercase tracking-widest font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors"
-                        >
-                            <Layers size={14} /> Navigator
-                        </button>
-                    </div>
-
-                    {/* Center: Responsive Toggles */}
-                    <div className="flex bg-slate-100 rounded-lg p-1 gap-1">
-                        <button
-                            onClick={() => setPreviewWidth('100%')}
-                            className={`p-1.5 rounded-md transition-colors ${previewWidth === '100%' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
-                            title="Desktop"
-                        ><Monitor size={16} /></button>
-                        <button
-                            onClick={() => setPreviewWidth('768px')}
-                            className={`p-1.5 rounded-md transition-colors ${previewWidth === '768px' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
-                            title="Tablet"
-                        ><Tablet size={16} /></button>
-                        <button
-                            onClick={() => setPreviewWidth('375px')}
-                            className={`p-1.5 rounded-md transition-colors ${previewWidth === '375px' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
-                            title="Mobile"
-                        ><Smartphone size={16} /></button>
-                    </div>
-
-                    {/* Right: Publish & Open */}
-                    <div className="flex items-center gap-2">
-                        <a href="/" target="_blank" className="flex items-center gap-2 px-3 py-1.5 text-[11px] uppercase tracking-widest font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors">
-                            <ExternalLink size={14} /> Vista Previa
-                        </a>
-                        <button onClick={forcePreviewReload} className="flex items-center gap-2 px-4 py-1.5 text-[11px] uppercase tracking-widest font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-colors shadow-md">
-                            <Save size={14} /> Actualizar
-                        </button>
-                    </div>
-                </div>
-
-                <div
-                    className="bg-white rounded-xl border border-zinc-200 shadow-xl overflow-hidden relative transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] flex-1"
-                    style={{ width: previewWidth, maxWidth: '100%' }}
-                >
-                    <iframe
-                        src="/?editor=true"
-                        className="w-full h-full border-none"
-                        title="Public Site Preview"
-                        id="live-preview-iframe"
-                    />
-                </div>
-            </main>
-
-            <style dangerouslySetInnerHTML={{
-                __html: `
-        .custom-scrollbar::-webkit-scrollbar { width: 5px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 10px; }
-        .custom-scrollbar:hover::-webkit-scrollbar-thumb { background: #9ca3af; }
-      `}} />
-        </div>
-    );
-}
-
-// Sub-Component: Add Widget Button
-function WidgetAddBtn({ pageId, type, label, defaultData, onAdded, parentId }: { pageId: string, type: string, label: string, defaultData: any, onAdded: () => void, parentId: string | null }) {
-    return (
-        <button
-            onClick={async () => {
-                await addBlock(pageId, type, defaultData, parentId || undefined);
-                onAdded();
-            }}
-            className="flex flex-col items-center justify-center gap-2 p-3 bg-white border border-slate-200 rounded-xl hover:border-indigo-500 hover:ring-1 hover:ring-indigo-500 transition-all group shadow-sm"
-        >
-            <div className="bg-slate-50 p-1.5 rounded-md text-slate-400 group-hover:text-indigo-500 transition-colors"><Plus size={16} /></div>
-            <span className="text-[9px] font-bold uppercase tracking-widest text-slate-600">{label}</span>
-        </button>
-    );
-}
-
+// ── Inspector Imports ──────────────────────────────────────────────
 import HeroInspector from './inspectors/HeroInspector';
 import RichTextInspector from './inspectors/RichTextInspector';
 import TimelineInspector from './inspectors/TimelineInspector';
@@ -382,74 +42,74 @@ import PortfolioInspector from './inspectors/PortfolioInspector';
 import HotspotsInspector from './inspectors/HotspotsInspector';
 import LoopGridInspector from './inspectors/LoopGridInspector';
 
-function InspectorForm({ block, onSaved }: { block: any, onSaved: () => void }) {
+// ── Sub-Component: Add Widget Button ──────────────────────────────
+function WidgetAddBtn({ pageId, type, label, defaultData, onAdded, parentId }: {
+    pageId: string; type: string; label: string; defaultData: any;
+    onAdded: () => void; parentId: string | null;
+}) {
+    return (
+        <button
+            onClick={async () => { await addBlock(pageId, type, defaultData, parentId || undefined); onAdded(); }}
+            className="flex flex-col items-center justify-center gap-1.5 p-2.5 bg-white border border-slate-200 rounded-xl hover:border-indigo-500 hover:ring-1 hover:ring-indigo-500 transition-all group shadow-sm"
+        >
+            <div className="bg-slate-50 p-1 rounded-md text-slate-400 group-hover:text-indigo-500 transition-colors">
+                <Plus size={14} />
+            </div>
+            <span className="text-[9px] font-bold uppercase tracking-widest text-slate-600 text-center leading-tight">{label}</span>
+        </button>
+    );
+}
+
+// ── Sub-Component: Inspector Form (Tabs: Layout / Content / Style) ─
+function InspectorForm({ block, onSaved }: { block: any; onSaved: () => void }) {
     const [isSaving, setIsSaving] = useState(false);
     const [error, setError] = useState('');
-
     const isContainer = ['grid', 'hero', 'bento', 'timeline', 'accordion', 'carousel', 'gallery', 'tabs', 'toggle'].includes(block.type);
     const [activeTab, setActiveTab] = useState<'layout' | 'content' | 'styles'>(isContainer ? 'layout' : 'content');
 
-    // Auto-switch tabs when selecting different types of blocks
     useEffect(() => {
         if (isContainer && activeTab === 'content') setActiveTab('layout');
         if (!isContainer && activeTab === 'layout') setActiveTab('content');
     }, [block.id, isContainer]);
 
-    let parsedData = {};
-    try {
-        parsedData = JSON.parse(block.data);
-    } catch (e) {
-        return <div className="text-red-500 p-4">Error crítico: JSON corrupto en Base de Datos.</div>;
+    let parsedData: any = {};
+    try { parsedData = JSON.parse(block.data); } catch {
+        return <div className="text-red-500 p-4 text-xs">Error: JSON corrupto en la BD.</div>;
     }
 
-    const handleSaveParsed = async (newParsedData: any) => {
+    const handleSaveParsed = async (newData: any) => {
         setIsSaving(true);
-        try {
-            await updateBlockData(block.id, JSON.stringify(newParsedData));
-            onSaved();
-        } catch (e) {
-            setError('Error de Red guardando componente.');
-        }
+        try { await updateBlockData(block.id, JSON.stringify(newData)); onSaved(); }
+        catch { setError('Error de red guardando.'); }
         setIsSaving(false);
     };
 
     return (
-        <div className="flex flex-col gap-4">
-
+        <div className="flex flex-col gap-3">
             {/* Tabs */}
-            <div className="flex bg-slate-100 p-1 rounded-xl mb-4">
+            <div className="flex bg-slate-100 p-1 rounded-xl">
                 {isContainer && (
-                    <button
-                        onClick={() => setActiveTab('layout')}
-                        className={`flex-1 py-2 text-[10px] font-bold uppercase tracking-widest rounded-lg transition-all ${activeTab === 'layout' ? 'bg-white shadow-sm text-indigo-700' : 'text-slate-500 hover:text-slate-700'}`}
-                    >
+                    <button onClick={() => setActiveTab('layout')}
+                        className={`flex-1 py-1.5 text-[10px] font-bold uppercase tracking-widest rounded-lg transition-all ${activeTab === 'layout' ? 'bg-white shadow-sm text-indigo-700' : 'text-slate-500'}`}>
                         Layout
                     </button>
                 )}
-                <button
-                    onClick={() => setActiveTab('content')}
-                    className={`flex-1 py-2 text-[10px] font-bold uppercase tracking-widest rounded-lg transition-all ${activeTab === 'content' ? 'bg-white shadow-sm text-indigo-700' : 'text-slate-500 hover:text-slate-700'}`}
-                >
+                <button onClick={() => setActiveTab('content')}
+                    className={`flex-1 py-1.5 text-[10px] font-bold uppercase tracking-widest rounded-lg transition-all ${activeTab === 'content' ? 'bg-white shadow-sm text-indigo-700' : 'text-slate-500'}`}>
                     Contenido
                 </button>
-                <button
-                    onClick={() => setActiveTab('styles')}
-                    className={`flex-1 py-2 text-[10px] font-bold uppercase tracking-widest rounded-lg transition-all ${activeTab === 'styles' ? 'bg-white shadow-sm text-indigo-700' : 'text-slate-500 hover:text-slate-700'}`}
-                >
+                <button onClick={() => setActiveTab('styles')}
+                    className={`flex-1 py-1.5 text-[10px] font-bold uppercase tracking-widest rounded-lg transition-all ${activeTab === 'styles' ? 'bg-white shadow-sm text-indigo-700' : 'text-slate-500'}`}>
                     Estilos
                 </button>
             </div>
 
-            <p className="text-[10px] uppercase font-bold text-slate-500 mb-2 tracking-widest leading-relaxed bg-indigo-50/50 p-3 rounded-lg border border-indigo-100/50">
-                Cambios en tiempo real
-            </p>
-
-            {error && <div className="p-3 bg-red-50 text-red-600 text-xs rounded-lg border border-red-200">{error}</div>}
+            {error && <div className="p-2 bg-red-50 text-red-600 text-xs rounded-lg">{error}</div>}
 
             {isContainer && activeTab === 'content' && (
-                <div className="p-6 text-center border-2 border-dashed border-slate-200 rounded-xl bg-slate-50">
-                    <Box className="w-8 h-8 text-slate-300 mx-auto mb-3" />
-                    <p className="text-xs text-slate-500 font-medium">Este bloque es un contenedor estructural.<br /><br />Usa la pestaña <b>Layout</b> para configurarlo, o inserta Elementos dentro de él desde la Paleta principal.</p>
+                <div className="p-4 text-center border-2 border-dashed border-slate-200 rounded-xl bg-slate-50">
+                    <Box className="w-7 h-7 text-slate-300 mx-auto mb-2" />
+                    <p className="text-xs text-slate-500">Contenedor estructural.<br />Usa <b>Layout</b> para configurarlo.</p>
                 </div>
             )}
 
@@ -464,7 +124,6 @@ function InspectorForm({ block, onSaved }: { block: any, onSaved: () => void }) 
                     {block.type === 'image' && <ImageInspector initialData={parsedData} onSave={handleSaveParsed} isSaving={isSaving} />}
                     {block.type === 'accordion' && <AccordionInspector initialData={parsedData} onSave={handleSaveParsed} isSaving={isSaving} />}
                     {block.type === 'carousel' && <CarouselInspector initialData={parsedData} onSave={handleSaveParsed} isSaving={isSaving} />}
-
                     {block.type === 'heading' && <HeadingInspector initialData={parsedData} onSave={handleSaveParsed} isSaving={isSaving} />}
                     {block.type === 'button' && <ButtonInspector initialData={parsedData} onSave={handleSaveParsed} isSaving={isSaving} />}
                     {block.type === 'divider' && <DividerInspector initialData={parsedData} onSave={handleSaveParsed} isSaving={isSaving} />}
@@ -486,46 +145,276 @@ function InspectorForm({ block, onSaved }: { block: any, onSaved: () => void }) 
                     {block.type === 'portfolio' && <PortfolioInspector initialData={parsedData} onSave={handleSaveParsed} isSaving={isSaving} />}
                     {block.type === 'hotspots' && <HotspotsInspector initialData={parsedData} onSave={handleSaveParsed} isSaving={isSaving} />}
                     {block.type === 'loopgrid' && <LoopGridInspector initialData={parsedData} onSave={handleSaveParsed} isSaving={isSaving} />}
-
-                    {!['hero', 'richtext', 'timeline', 'bento', 'grid', 'video', 'image', 'accordion', 'carousel', 'heading', 'button', 'divider', 'spacer', 'form', 'testimonial', 'social', 'map', 'progressbar', 'tabs', 'toggle', 'gallery', 'counter', 'lottie', 'pricing', 'flipbox', 'cta', 'navmenu', 'portfolio', 'hotspots', 'loopgrid'].includes(block.type) && (
-                        <RawJsonFallback block={block} onSaved={onSaved} />
-                    )}
                 </>
             )}
 
-            {activeTab === 'styles' && (
-                <AdvancedStyleInspector block={block} onSaved={onSaved} />
-            )}
+            {activeTab === 'styles' && <AdvancedStyleInspector block={block} onSaved={onSaved} />}
         </div>
     );
 }
 
-function RawJsonFallback({ block, onSaved }: { block: any, onSaved: () => void }) {
-    const [jsonString, setJsonString] = useState(block.data);
-    const [isSaving, setIsSaving] = useState(false);
+// ── Main Component ─────────────────────────────────────────────────
+export default function BuilderWorkspace({ page: initialPage, settings }: { page: any; settings: any }) {
+    const [blocks, setBlocks] = useState<any[]>(initialPage?.blocks || []);
+    const [page] = useState(initialPage);
+    const [selectedBlockId, setSelectedBlockId] = useState<string | null>(null);
+    const [viewMode, setViewMode] = useState<'palette' | 'tree' | 'settings'>('palette');
+    const [sidebarOpen, setSidebarOpen] = useState(true);
 
-    const handleSave = async () => {
+    // Reload blocks from a real API route so canvas updates without full page refresh
+    const reloadBlocks = useCallback(async () => {
         try {
-            JSON.parse(jsonString);
-            setIsSaving(true);
-            await updateBlockData(block.id, jsonString);
-            onSaved();
-            setIsSaving(false);
-        } catch (e) {
-            alert('JSON Inválido');
-        }
+            const res = await fetch(`/api/blocks?pageId=${page.id}`, { cache: 'no-store' });
+            if (res.ok) { setBlocks(await res.json()); return; }
+        } catch { /* fall through */ }
+        window.location.reload();
+    }, [page.id]);
+
+    const forceFullReload = useCallback(() => { window.location.reload(); }, []);
+
+    const handleBlockAdded = useCallback(async () => { await reloadBlocks(); }, [reloadBlocks]);
+
+    // Scroll selected block into view in the canvas
+    useEffect(() => {
+        if (!selectedBlockId) return;
+        const el = document.querySelector(`[data-block-id="${selectedBlockId}"]`);
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }, [selectedBlockId]);
+
+    // Derived
+    const rootBlocks = blocks.filter((b: any) => !b.parentId).sort((a: any, b: any) => a.order - b.order);
+    const selectedBlock = blocks.find((b: any) => b.id === selectedBlockId) ?? null;
+
+    // Layer Tree renderer
+    const renderBlockTree = (blockLayer: any[], depth = 0): React.ReactNode => {
+        return blockLayer.map((block: any) => {
+            const children = blocks.filter((b: any) => b.parentId === block.id).sort((a: any, b: any) => a.order - b.order);
+            const isGrid = block.type === 'grid';
+            return (
+                <div key={block.id}>
+                    <button
+                        onClick={() => setSelectedBlockId(block.id)}
+                        className={`w-full flex items-center gap-2 p-2 rounded-lg text-left transition-colors ${selectedBlockId === block.id ? 'bg-indigo-100 text-indigo-800' : 'hover:bg-slate-100'}`}
+                        style={{ paddingLeft: `${8 + depth * 12}px` }}
+                    >
+                        {isGrid && <Layers size={14} className="text-indigo-500" />}
+                        <div className="flex-1">
+                            <div className="text-xs font-bold text-slate-800 uppercase tracking-wider">{block.type}</div>
+                            <div className="text-[10px] text-slate-500 truncate max-w-[180px]">
+                                {isGrid ? 'Contenedor de Columnas' : block.data.substring(0, 40) + '...'}
+                            </div>
+                        </div>
+                    </button>
+                    {children.length > 0 && (
+                        <div className="border-l-2 border-indigo-100 ml-4 pl-2">
+                            {renderBlockTree(children, depth + 1)}
+                        </div>
+                    )}
+                </div>
+            );
+        });
     };
 
     return (
-        <>
-            <textarea
-                value={jsonString}
-                onChange={(e) => setJsonString(e.target.value)}
-                className="w-full h-[300px] font-mono text-[11px] p-4 bg-slate-900 text-green-400 rounded-xl"
-            />
-            <button onClick={handleSave} disabled={isSaving} className="w-full bg-black text-white p-3 rounded-lg font-bold text-xs uppercase hover:bg-slate-800 mt-4 shadow-lg">
-                {isSaving ? 'Guardando...' : 'Aplicar Raw JSON'}
-            </button>
-        </>
+        <div className="relative w-full min-h-screen">
+
+            {/* ── FLOATING SIDEBAR PANEL ────────────────────────────────── */}
+            <aside
+                className={`fixed top-0 left-0 h-screen z-50 flex flex-col transition-all duration-300 ease-in-out ${sidebarOpen ? 'w-[340px]' : 'w-0 overflow-hidden'}`}
+                style={{ boxShadow: '4px 0 32px rgba(0,0,0,0.18)' }}
+            >
+                <div className="w-[340px] h-full flex flex-col bg-white border-r border-slate-200">
+
+                    {/* Header */}
+                    <div className="flex items-center justify-between px-4 py-3 bg-indigo-700 text-white shrink-0">
+                        <div className="flex items-center gap-2">
+                            <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                            <span className="text-[11px] font-bold uppercase tracking-widest">Supreme Builder</span>
+                        </div>
+                        <div className="flex items-center gap-3">
+                            <a href="/" target="_blank" className="text-indigo-200 hover:text-white" title="Ver Sitio">
+                                <ExternalLink size={14} />
+                            </a>
+                            <button onClick={() => setSidebarOpen(false)} className="text-indigo-200 hover:text-white">
+                                <X size={16} />
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Mode Tabs (when no block selected) */}
+                    {!selectedBlock && (
+                        <div className="flex bg-slate-100 mx-3 mt-3 rounded-xl p-1 shrink-0">
+                            <button onClick={() => setViewMode('palette')} className={`flex-1 py-1.5 text-[10px] font-bold uppercase tracking-widest rounded-lg flex items-center justify-center gap-1 transition-all ${viewMode === 'palette' ? 'bg-white shadow-sm text-indigo-700' : 'text-slate-500'}`}>
+                                <Plus size={12} /> Insertar
+                            </button>
+                            <button onClick={() => setViewMode('tree')} className={`flex-1 py-1.5 text-[10px] font-bold uppercase tracking-widest rounded-lg flex items-center justify-center gap-1 transition-all ${viewMode === 'tree' ? 'bg-white shadow-sm text-indigo-700' : 'text-slate-500'}`}>
+                                <Layers size={12} /> Capas
+                            </button>
+                            <button onClick={() => setViewMode('settings')} className={`flex-1 py-1.5 text-[10px] font-bold uppercase tracking-widest rounded-lg flex items-center justify-center gap-1 transition-all ${viewMode === 'settings' ? 'bg-white shadow-sm text-indigo-700' : 'text-slate-500'}`}>
+                                <Settings2 size={12} /> Diseño
+                            </button>
+                        </div>
+                    )}
+
+                    {/* Scrollable Panel Body */}
+                    <div className="flex-1 overflow-y-auto custom-scrollbar">
+
+                        {viewMode === 'settings' && !selectedBlock && (
+                            <GlobalSettingsForm settings={settings} onSaved={forceFullReload} />
+                        )}
+
+                        {viewMode === 'palette' && !selectedBlock && (
+                            <div className="p-4 flex flex-col gap-4 animate-in fade-in slide-in-from-left-4">
+                                <section>
+                                    <h3 className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-3 ml-1">Estructura</h3>
+                                    <div className="grid grid-cols-2 gap-2">
+                                        <WidgetAddBtn pageId={page.id} parentId={null} type="hero" label="Portada (Hero)" defaultData={{ name: 'Nuevo Bloque', role: 'Tu Cargo', links: [] }} onAdded={handleBlockAdded} />
+                                        <WidgetAddBtn pageId={page.id} parentId={null} type="grid" label="Cuadrícula" defaultData={{ columns: 2 }} onAdded={handleBlockAdded} />
+                                        <WidgetAddBtn pageId={page.id} parentId={null} type="bento" label="Bento Grid" defaultData={{ title: 'Portafolio', bentoType: 'general', items: [] }} onAdded={handleBlockAdded} />
+                                        <WidgetAddBtn pageId={page.id} parentId={null} type="timeline" label="Línea de Vida" defaultData={{ title: 'Experiencia', items: [] }} onAdded={handleBlockAdded} />
+                                    </div>
+                                </section>
+                                <section>
+                                    <h3 className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-3 ml-1">Básicos</h3>
+                                    <div className="grid grid-cols-2 gap-2">
+                                        <WidgetAddBtn pageId={page.id} parentId={null} type="heading" label="Encabezado" defaultData={{ text: 'Nuevo Encabezado', tag: 'h2' }} onAdded={handleBlockAdded} />
+                                        <WidgetAddBtn pageId={page.id} parentId={null} type="richtext" label="Texto" defaultData={{ title: 'Sección', content: '<p>Escribe algo...</p>' }} onAdded={handleBlockAdded} />
+                                        <WidgetAddBtn pageId={page.id} parentId={null} type="button" label="Botón" defaultData={{ text: 'Haz clic', link: '#', style: 'primary' }} onAdded={handleBlockAdded} />
+                                        <WidgetAddBtn pageId={page.id} parentId={null} type="image" label="Imagen" defaultData={{ url: '', alt: '' }} onAdded={handleBlockAdded} />
+                                        <WidgetAddBtn pageId={page.id} parentId={null} type="video" label="Video" defaultData={{ url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ' }} onAdded={handleBlockAdded} />
+                                        <WidgetAddBtn pageId={page.id} parentId={null} type="divider" label="Divider" defaultData={{ style: 'solid' }} onAdded={handleBlockAdded} />
+                                        <WidgetAddBtn pageId={page.id} parentId={null} type="spacer" label="Espaciador" defaultData={{ height: 'h-12' }} onAdded={handleBlockAdded} />
+                                    </div>
+                                </section>
+                                <section>
+                                    <h3 className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-3 ml-1">Avanzados</h3>
+                                    <div className="grid grid-cols-2 gap-2">
+                                        <WidgetAddBtn pageId={page.id} parentId={null} type="progressbar" label="Progress Bars" defaultData={{ items: [{ label: 'Skill', percentage: 90 }] }} onAdded={handleBlockAdded} />
+                                        <WidgetAddBtn pageId={page.id} parentId={null} type="form" label="Formulario" defaultData={{ title: 'Contacto' }} onAdded={handleBlockAdded} />
+                                        <WidgetAddBtn pageId={page.id} parentId={null} type="testimonial" label="Testimonio" defaultData={{ author: 'John' }} onAdded={handleBlockAdded} />
+                                        <WidgetAddBtn pageId={page.id} parentId={null} type="social" label="Redes Sociales" defaultData={{ items: [{ network: 'linkedin', url: '#' }] }} onAdded={handleBlockAdded} />
+                                        <WidgetAddBtn pageId={page.id} parentId={null} type="map" label="Google Maps" defaultData={{ height: 'h-[400px]' }} onAdded={handleBlockAdded} />
+                                        <WidgetAddBtn pageId={page.id} parentId={null} type="tabs" label="Pestañas" defaultData={{ items: [{ label: 'Tab', content: '...' }] }} onAdded={handleBlockAdded} />
+                                        <WidgetAddBtn pageId={page.id} parentId={null} type="toggle" label="Toggle" defaultData={{ items: [{ title: 'P', content: 'R' }] }} onAdded={handleBlockAdded} />
+                                        <WidgetAddBtn pageId={page.id} parentId={null} type="gallery" label="Galería" defaultData={{ images: [{ url: 'https://images.unsplash.com/photo-1542831371-29b0f74f9713?q=80&w=600', alt: '' }] }} onAdded={handleBlockAdded} />
+                                        <WidgetAddBtn pageId={page.id} parentId={null} type="counter" label="Contador" defaultData={{ items: [{ label: 'Proyectos', value: 150, suffix: '+' }] }} onAdded={handleBlockAdded} />
+                                        <WidgetAddBtn pageId={page.id} parentId={null} type="lottie" label="Lottie" defaultData={{ jsonUrl: 'https://assets3.lottiefiles.com/packages/lf20_UJNc2t.json' }} onAdded={handleBlockAdded} />
+                                        <WidgetAddBtn pageId={page.id} parentId={null} type="accordion" label="Acordeón" defaultData={{ title: 'FAQ', items: [] }} onAdded={handleBlockAdded} />
+                                        <WidgetAddBtn pageId={page.id} parentId={null} type="carousel" label="Carrusel" defaultData={{ height: 'h-[400px]', images: [] }} onAdded={handleBlockAdded} />
+                                    </div>
+                                </section>
+                                <section className="mb-8">
+                                    <h3 className="text-[10px] font-bold uppercase tracking-widest text-indigo-400 mb-3 ml-1">Profesionales (PRO)</h3>
+                                    <div className="grid grid-cols-2 gap-2">
+                                        <WidgetAddBtn pageId={page.id} parentId={null} type="loopgrid" label="Posts Dinámicos" defaultData={{ postType: 'blog' }} onAdded={handleBlockAdded} />
+                                        <WidgetAddBtn pageId={page.id} parentId={null} type="portfolio" label="Portafolio" defaultData={{ columns: 'grid-cols-1 md:grid-cols-3' }} onAdded={handleBlockAdded} />
+                                        <WidgetAddBtn pageId={page.id} parentId={null} type="pricing" label="Precios" defaultData={{ title: 'Pro', price: '$99' }} onAdded={handleBlockAdded} />
+                                        <WidgetAddBtn pageId={page.id} parentId={null} type="flipbox" label="Flip Boxes" defaultData={{ frontTitle: 'Gírame' }} onAdded={handleBlockAdded} />
+                                        <WidgetAddBtn pageId={page.id} parentId={null} type="hotspots" label="Hotspots" defaultData={{ spots: [{ id: 1, x: 50, y: 50, title: 'Pin' }] }} onAdded={handleBlockAdded} />
+                                        <WidgetAddBtn pageId={page.id} parentId={null} type="cta" label="Call to Action" defaultData={{ title: 'Únete' }} onAdded={handleBlockAdded} />
+                                        <WidgetAddBtn pageId={page.id} parentId={null} type="navmenu" label="Nav Menu" defaultData={{ style: 'horizontal' }} onAdded={handleBlockAdded} />
+                                    </div>
+                                </section>
+                            </div>
+                        )}
+
+                        {viewMode === 'tree' && !selectedBlock && (
+                            <div className="p-4 flex flex-col gap-2">
+                                <h3 className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2 ml-1">Capas y Nodos</h3>
+                                {blocks.length === 0 && <p className="text-xs text-slate-400 italic text-center py-8">La página está vacía.</p>}
+                                <div className="space-y-1">{renderBlockTree(rootBlocks)}</div>
+                            </div>
+                        )}
+
+                        {/* Inspector shown when a block is selected */}
+                        {selectedBlock && (
+                            <div className="p-4 animate-in fade-in slide-in-from-right-4">
+                                <button onClick={() => setSelectedBlockId(null)}
+                                    className="text-[10px] font-bold uppercase tracking-widest text-indigo-600 mb-4 hover:text-indigo-800 flex items-center gap-1">
+                                    <ChevronLeft size={12} /> Volver
+                                </button>
+
+                                <div className="flex justify-between items-center mb-4 border-b border-slate-100 pb-3">
+                                    <h3 className="text-sm font-bold text-slate-800 uppercase tracking-tight">✏️ {selectedBlock.type}</h3>
+                                    <button
+                                        onClick={async () => {
+                                            if (confirm('¿Eliminar este bloque?')) {
+                                                await deleteBlock(selectedBlock.id);
+                                                setSelectedBlockId(null);
+                                                await reloadBlocks();
+                                            }
+                                        }}
+                                        className="text-red-500 hover:bg-red-50 p-1.5 rounded-md"
+                                    ><Trash2 size={16} /></button>
+                                </div>
+
+                                <InspectorForm block={selectedBlock} onSaved={reloadBlocks} />
+
+                                {/* Insert inside Grid */}
+                                {selectedBlock.type === 'grid' && (
+                                    <div className="mt-6 pt-4 border-t border-indigo-100">
+                                        <h3 className="text-[10px] font-bold uppercase tracking-widest text-indigo-500 mb-3">Insertar dentro del Grid</h3>
+                                        <div className="grid grid-cols-2 gap-2">
+                                            <WidgetAddBtn pageId={page.id} parentId={selectedBlock.id} type="heading" label="Encabezado" defaultData={{ text: 'Título', tag: 'h3' }} onAdded={handleBlockAdded} />
+                                            <WidgetAddBtn pageId={page.id} parentId={selectedBlock.id} type="richtext" label="Texto" defaultData={{ title: 'Sección', content: '<p>...</p>' }} onAdded={handleBlockAdded} />
+                                            <WidgetAddBtn pageId={page.id} parentId={selectedBlock.id} type="button" label="Botón" defaultData={{ text: 'Ir', style: 'primary' }} onAdded={handleBlockAdded} />
+                                            <WidgetAddBtn pageId={page.id} parentId={selectedBlock.id} type="image" label="Imagen" defaultData={{ url: '', alt: '' }} onAdded={handleBlockAdded} />
+                                            <WidgetAddBtn pageId={page.id} parentId={selectedBlock.id} type="gallery" label="Galería" defaultData={{ images: [] }} onAdded={handleBlockAdded} />
+                                            <WidgetAddBtn pageId={page.id} parentId={selectedBlock.id} type="counter" label="Contador" defaultData={{ items: [] }} onAdded={handleBlockAdded} />
+                                            <WidgetAddBtn pageId={page.id} parentId={selectedBlock.id} type="pricing" label="Precios" defaultData={{ title: 'Pro', price: '$99' }} onAdded={handleBlockAdded} />
+                                            <WidgetAddBtn pageId={page.id} parentId={selectedBlock.id} type="cta" label="CTA" defaultData={{ title: 'Únete' }} onAdded={handleBlockAdded} />
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Footer */}
+                    <div className="shrink-0 p-3 border-t border-slate-100 bg-slate-50">
+                        <button onClick={forceFullReload}
+                            className="w-full flex items-center justify-center gap-2 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-[11px] font-bold uppercase tracking-widest transition-colors shadow-md">
+                            <Save size={14} /> Actualizar y Publicar
+                        </button>
+                    </div>
+                </div>
+            </aside>
+
+            {/* Toggle button (when sidebar is closed) */}
+            {!sidebarOpen && (
+                <button
+                    onClick={() => setSidebarOpen(true)}
+                    className="fixed top-4 left-4 z-50 w-10 h-10 bg-indigo-600 text-white rounded-full shadow-xl flex items-center justify-center hover:bg-indigo-700 transition-colors"
+                    title="Abrir Panel"
+                >
+                    <PanelLeft size={18} />
+                </button>
+            )}
+
+            {/* ── THE PAGE IS THE CANVAS ────────────────────────────────── */}
+            <div
+                className="transition-all duration-300 ease-in-out"
+                style={{ marginLeft: sidebarOpen ? '340px' : '0' }}
+                onClick={(e) => {
+                    if ((e.target as HTMLElement).closest('[data-block-id]') === null) {
+                        setSelectedBlockId(null);
+                    }
+                }}
+            >
+                <ClientInlineBlockRenderer
+                    blocks={blocks}
+                    selectedBlockId={selectedBlockId}
+                    onSelect={setSelectedBlockId}
+                />
+            </div>
+
+            <style dangerouslySetInnerHTML={{
+                __html: `
+                .custom-scrollbar::-webkit-scrollbar { width: 5px; }
+                .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+                .custom-scrollbar::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 10px; }
+                .custom-scrollbar:hover::-webkit-scrollbar-thumb { background: #9ca3af; }
+            `}} />
+        </div>
     );
 }
