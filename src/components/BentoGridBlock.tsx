@@ -51,22 +51,22 @@ export default function BentoGridBlock({ data }: { data: any }) {
                             className={`group relative overflow-hidden bg-zinc-900/40 backdrop-blur-md rounded-3xl p-8 md:p-10 border border-zinc-800 hover:border-zinc-700 transition-all duration-500 hover:-translate-y-2 flex flex-col justify-between ${spanClass}`}
                         >
                             {/* Neon Top Border on Hover */}
-                            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#f25c54] to-orange-500 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[var(--brand)] to-orange-500 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
 
                             <div className="relative z-10 flex-1">
                                 {bentoType === 'education' && (
                                     <div className="w-12 h-12 rounded-full bg-zinc-900 border border-zinc-800 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-500">
-                                        <GraduationCap size={20} className="text-[#f25c54]" />
+                                        <GraduationCap size={20} className="text-[var(--brand)]" />
                                     </div>
                                 )}
                                 {(bentoType === 'courses' || bentoType === 'general') && (
-                                    <div className="w-12 h-12 rounded-full bg-zinc-900 border border-zinc-800 flex items-center justify-center mb-6 group-hover:scale-110 group-hover:bg-[#f25c54] transition-all duration-500">
+                                    <div className="w-12 h-12 rounded-full bg-zinc-900 border border-zinc-800 flex items-center justify-center mb-6 group-hover:scale-110 group-hover:bg-[var(--brand)] transition-all duration-500">
                                         <Award size={20} className="text-slate-500 group-hover:text-white" />
                                     </div>
                                 )}
 
                                 {item.meta && (
-                                    <span className="inline-block px-3 py-1 bg-zinc-900 text-[#f25c54] text-[10px] font-bold uppercase tracking-widest rounded-full border border-zinc-800 mb-4">{item.meta}</span>
+                                    <span className="inline-block px-3 py-1 bg-zinc-900 text-[var(--brand)] text-[10px] font-bold uppercase tracking-widest rounded-full border border-zinc-800 mb-4">{item.meta}</span>
                                 )}
 
                                 <h4 className={`font-bold text-white mb-3 ${isLarge ? 'text-3xl md:text-4xl' : 'text-2xl'}`} style={{ fontFamily: 'var(--font-heading)' }}>

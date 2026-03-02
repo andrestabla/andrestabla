@@ -30,12 +30,12 @@ export default function TimelineBlock({ data }: { data: any }) {
                             className="relative pl-8 md:pl-12 group"
                         >
                             {/* Glowing Dot */}
-                            <div className="absolute left-[-9px] top-2 w-4 h-4 rounded-full bg-zinc-900 border-2 border-zinc-700 group-hover:border-[#f25c54] transition-colors duration-300 z-10">
-                                <div className="absolute inset-0 rounded-full bg-[#f25c54] opacity-0 group-hover:opacity-100 scale-50 transition-all duration-300"></div>
+                            <div className="absolute left-[-9px] top-2 w-4 h-4 rounded-full bg-zinc-900 border-2 border-zinc-700 group-hover:border-[var(--brand)] transition-colors duration-300 z-10">
+                                <div className="absolute inset-0 rounded-full bg-[var(--brand)] opacity-0 group-hover:opacity-100 scale-50 transition-all duration-300"></div>
                             </div>
 
                             {item.meta && (
-                                <span className="inline-block mb-3 px-4 py-1.5 bg-zinc-900 text-[#f25c54] text-xs font-bold uppercase tracking-widest rounded-full border border-zinc-800">{item.meta}</span>
+                                <span className="inline-block mb-3 px-4 py-1.5 bg-zinc-900 text-[var(--brand)] text-xs font-bold uppercase tracking-widest rounded-full border border-zinc-800">{item.meta}</span>
                             )}
 
                             {/* Card */}

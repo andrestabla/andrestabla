@@ -96,6 +96,31 @@ function BlockNode({ block, allBlocks, selectedBlockId, onSelect }: BlockNodePro
     if (parsedStyles.padding) styleObj.padding = parsedStyles.padding;
     if (parsedStyles.margin) styleObj.margin = parsedStyles.margin;
 
+    // New Styles
+    if (parsedStyles.textColor) styleObj.color = parsedStyles.textColor;
+    if (parsedStyles.fontSize) styleObj.fontSize = `${parsedStyles.fontSize}rem`;
+
+    // Mapping font families to their CSS variables if needed, or just applying the string
+    if (parsedStyles.fontFamily) {
+        const fontMap: Record<string, string> = {
+            'Inter': 'var(--font-inter)',
+            'Roboto': 'var(--font-roboto)',
+            'Playfair Display': 'var(--font-playfair)',
+            'Outfit': 'var(--font-outfit)',
+            'DM Sans': 'var(--font-dmsans)'
+        };
+        styleObj.fontFamily = fontMap[parsedStyles.fontFamily] || parsedStyles.fontFamily;
+    }
+
+    // Custom variable for headings within this block
+    if (parsedStyles.titleColor) {
+        (styleObj as any)['--heading'] = parsedStyles.titleColor;
+        (styleObj as any)['--brand'] = parsedStyles.titleColor; // Optional: make brand color match title color in this block?
+    }
+    if (parsedStyles.textColor) {
+        (styleObj as any)['--text'] = parsedStyles.textColor;
+    }
+
     const childrenBlocks = allBlocks
         .filter((b: any) => b.parentId === block.id)
         .sort((a: any, b: any) => a.order - b.order);

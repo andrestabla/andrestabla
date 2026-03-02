@@ -98,6 +98,30 @@ function BlockNode({ block, allBlocks, isEditor }: { block: any, allBlocks: any[
     if (parsedStyles.padding) styleString.padding = parsedStyles.padding;
     if (parsedStyles.margin) styleString.margin = parsedStyles.margin;
 
+    // New Styles
+    if (parsedStyles.textColor) {
+        styleString.color = parsedStyles.textColor;
+        styleString['--text'] = parsedStyles.textColor;
+    }
+    if (parsedStyles.fontSize) styleString.fontSize = `${parsedStyles.fontSize}rem`;
+
+    if (parsedStyles.fontFamily) {
+        const fontMap: Record<string, string> = {
+            'Inter': 'var(--font-inter)',
+            'Roboto': 'var(--font-roboto)',
+            'Playfair Display': 'var(--font-playfair)',
+            'Outfit': 'var(--font-outfit)',
+            'DM Sans': 'var(--font-dmsans)'
+        };
+        styleString.fontFamily = fontMap[parsedStyles.fontFamily] || parsedStyles.fontFamily;
+    }
+
+    if (parsedStyles.titleColor) {
+        styleString['--heading'] = parsedStyles.titleColor;
+        // If they set a title color, we often want the brand accents in that block to match
+        // but let's keep it strictly to --heading for now as requested.
+    }
+
     // Find children attached to this node
     const childrenBlocks = allBlocks
         .filter(b => b.parentId === block.id)
