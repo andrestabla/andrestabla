@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { safeHtml } from '@/lib/html';
 
 export default function PortfolioBlock({ data }: { data: any }) {
     const items = data.items || [
@@ -34,7 +35,7 @@ export default function PortfolioBlock({ data }: { data: any }) {
                         onClick={() => setActiveFilter(f.value)}
                         className={`px-4 py-2 rounded-full text-xs font-bold uppercase tracking-widest transition-all ${activeFilter === f.value ? 'bg-indigo-500 text-white shadow-md' : 'bg-slate-100 dark:bg-zinc-800 text-slate-500 hover:bg-slate-200 dark:hover:bg-zinc-700'}`}
                     >
-                        {f.label}
+                        <span dangerouslySetInnerHTML={safeHtml(f.label)} />
                     </button>
                 ))}
             </div>
@@ -50,8 +51,8 @@ export default function PortfolioBlock({ data }: { data: any }) {
                             className="w-full h-full object-cover transition-transform duration-700 ease-in-out group-hover:scale-110"
                         />
                         <div className="absolute inset-0 bg-indigo-900/80 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col items-center justify-center p-6 text-center backdrop-blur-sm">
-                            <h4 className="text-xl font-bold text-white mb-2 translate-y-4 group-hover:translate-y-0 transition-transform duration-300">{item.title}</h4>
-                            <span className="text-[10px] font-bold uppercase tracking-widest text-indigo-200 translate-y-4 group-hover:translate-y-0 transition-transform duration-300 delay-75">{item.category}</span>
+                            <h4 className="text-xl font-bold text-white mb-2 translate-y-4 group-hover:translate-y-0 transition-transform duration-300" dangerouslySetInnerHTML={safeHtml(item.title)} />
+                            <span className="text-[10px] font-bold uppercase tracking-widest text-indigo-200 translate-y-4 group-hover:translate-y-0 transition-transform duration-300 delay-75" dangerouslySetInnerHTML={safeHtml(item.category)} />
                         </div>
                     </div>
                 ))}

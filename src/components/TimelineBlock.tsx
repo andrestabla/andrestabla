@@ -1,6 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
+import { safeHtml } from '@/lib/html';
 
 export default function TimelineBlock({ data }: { data: any }) {
     const items = data.items || [];
@@ -11,9 +12,7 @@ export default function TimelineBlock({ data }: { data: any }) {
             <div className="max-w-4xl mx-auto px-6 w-full">
                 {data.title && (
                     <div className="mb-16 flex items-center gap-6">
-                        <h3 className="text-4xl md:text-5xl font-bold text-white m-0" style={{ fontFamily: 'var(--font-heading)' }}>
-                            {data.title}
-                        </h3>
+                        <h3 className="text-4xl md:text-5xl font-bold text-white m-0" style={{ fontFamily: 'var(--font-heading)' }} dangerouslySetInnerHTML={safeHtml(data.title)} />
                         <div className="h-[1px] flex-1 bg-zinc-800"></div>
                     </div>
                 )}
@@ -35,14 +34,14 @@ export default function TimelineBlock({ data }: { data: any }) {
                             </div>
 
                             {item.meta && (
-                                <span className="inline-block mb-3 px-4 py-1.5 bg-zinc-900 text-[var(--brand)] text-xs font-bold uppercase tracking-widest rounded-full border border-zinc-800">{item.meta}</span>
+                                <span className="inline-block mb-3 px-4 py-1.5 bg-zinc-900 text-[var(--brand)] text-xs font-bold uppercase tracking-widest rounded-full border border-zinc-800" dangerouslySetInnerHTML={safeHtml(item.meta)} />
                             )}
 
                             {/* Card */}
                             <div className="bg-zinc-900/50 backdrop-blur-sm p-6 md:p-8 rounded-2xl border border-zinc-800/50 hover:border-zinc-700 hover:bg-zinc-900 transition-all duration-500 group-hover:-translate-y-1">
-                                <h4 className="text-xl md:text-2xl font-bold text-white mb-2" style={{ fontFamily: 'var(--font-heading)' }}>{item.title}</h4>
-                                {item.subtitle && <p className="text-sm font-bold tracking-widest uppercase text-slate-500 mb-4">{item.subtitle}</p>}
-                                {item.body && <p className="text-slate-400 leading-relaxed font-light text-base">{item.body}</p>}
+                                <h4 className="text-xl md:text-2xl font-bold text-white mb-2" style={{ fontFamily: 'var(--font-heading)' }} dangerouslySetInnerHTML={safeHtml(item.title, 'Título')} />
+                                {item.subtitle && <p className="text-sm font-bold tracking-widest uppercase text-slate-500 mb-4" dangerouslySetInnerHTML={safeHtml(item.subtitle)} />}
+                                {item.body && <p className="text-slate-400 leading-relaxed font-light text-base" dangerouslySetInnerHTML={safeHtml(item.body)} />}
                             </div>
                         </motion.div>
                     ))}

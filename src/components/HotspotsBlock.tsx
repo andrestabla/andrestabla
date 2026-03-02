@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { Info } from 'lucide-react';
+import { safeHtml } from '@/lib/html';
 
 export default function HotspotsBlock({ data }: { data: any }) {
     const bgImage = data.bgImage || 'https://images.unsplash.com/photo-1542831371-29b0f74f9713?q=80&w=1200&auto=format&fit=crop';
@@ -39,8 +40,8 @@ export default function HotspotsBlock({ data }: { data: any }) {
                         className={`absolute top-full left-1/2 -translate-x-1/2 mt-3 w-48 p-4 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-xl shadow-2xl z-20 transition-all duration-300 origin-top pointer-events-none ${activeSpot === spot.id ? 'opacity-100 scale-100 visible' : 'opacity-0 scale-95 invisible'}`}
                     >
                         <div className="absolute -top-1.5 left-1/2 -translate-x-1/2 w-3 h-3 bg-white dark:bg-zinc-900 border-t border-l border-slate-200 dark:border-zinc-800 rotate-45"></div>
-                        <h4 className="text-sm font-bold text-slate-800 dark:text-zinc-100 mb-1 relative z-10">{spot.title}</h4>
-                        <p className="text-xs text-slate-500 dark:text-zinc-400 relative z-10">{spot.desc}</p>
+                        <h4 className="text-sm font-bold text-slate-800 dark:text-zinc-100 mb-1 relative z-10" dangerouslySetInnerHTML={safeHtml(spot.title)} />
+                        <p className="text-xs text-slate-500 dark:text-zinc-400 relative z-10" dangerouslySetInnerHTML={safeHtml(spot.desc)} />
                     </div>
                 </div>
             ))}

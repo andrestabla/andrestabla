@@ -1,4 +1,5 @@
 import React from 'react';
+import { safeHtml } from '@/lib/html';
 
 export default function ImageBlock({ data }: { data: any }) {
     const imageUrl = data.url || 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=2564&auto=format&fit=crop';
@@ -18,7 +19,7 @@ export default function ImageBlock({ data }: { data: any }) {
 
             {data.caption && (
                 <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-6 pt-12">
-                    <p className="text-white text-sm font-medium">{data.caption}</p>
+                    <p className="text-white text-sm font-medium" dangerouslySetInnerHTML={safeHtml(data.caption)} />
                 </div>
             )}
         </div>

@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { safeHtml } from '@/lib/html';
 
 export default function CarouselBlock({ data }: { data: any }) {
     const images = data.images || [];
@@ -33,7 +34,7 @@ export default function CarouselBlock({ data }: { data: any }) {
                     <img src={img.url} alt={`Slide ${i}`} className="w-full h-full object-cover" />
                     {img.caption && (
                         <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-6 pt-16">
-                            <p className="text-white font-medium text-lg">{img.caption}</p>
+                            <p className="text-white font-medium text-lg" dangerouslySetInnerHTML={safeHtml(img.caption)} />
                         </div>
                     )}
                 </div>

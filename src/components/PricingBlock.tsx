@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { Check, X } from 'lucide-react';
+import { safeHtml } from '@/lib/html';
 
 export default function PricingBlock({ data }: { data: any }) {
     const title = data.title || 'Membresía Pro';
@@ -25,12 +26,12 @@ export default function PricingBlock({ data }: { data: any }) {
                 {isPopular && <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 bg-indigo-500 text-white text-[10px] uppercase tracking-widest font-bold rounded-full">Más Popular</div>}
 
                 <div className="flex-1 md:pr-8 mb-6 md:mb-0 text-center md:text-left">
-                    <h3 className="text-xl font-bold text-slate-800 dark:text-zinc-100 mb-2">{title}</h3>
+                    <h3 className="text-xl font-bold text-slate-800 dark:text-zinc-100 mb-2" dangerouslySetInnerHTML={safeHtml(title)} />
                     <ul className="space-y-2 mt-4 text-left">
                         {features.map((feat: any, idx: number) => (
                             <li key={idx} className="flex items-center gap-2 text-sm text-slate-600 dark:text-zinc-400">
                                 {feat.included ? <Check size={16} className="text-emerald-500 flex-shrink-0" /> : <X size={16} className="text-rose-400 opacity-50 flex-shrink-0" />}
-                                <span className={!feat.included ? 'line-through opacity-70' : ''}>{feat.text}</span>
+                                <span className={!feat.included ? 'line-through opacity-70' : ''} dangerouslySetInnerHTML={safeHtml(feat.text)} />
                             </li>
                         ))}
                     </ul>
@@ -38,11 +39,11 @@ export default function PricingBlock({ data }: { data: any }) {
 
                 <div className="flex flex-col items-center justify-center min-w-[200px] md:border-l border-slate-100 dark:border-zinc-800 md:pl-8">
                     <div className="flex items-baseline mb-4">
-                        <span className="text-4xl font-black text-slate-800 dark:text-white tracking-tighter">{price}</span>
-                        <span className="text-sm font-bold text-slate-400 dark:text-zinc-500 ml-1">{period}</span>
+                        <span className="text-4xl font-black text-slate-800 dark:text-white tracking-tighter" dangerouslySetInnerHTML={safeHtml(price)} />
+                        <span className="text-sm font-bold text-slate-400 dark:text-zinc-500 ml-1" dangerouslySetInnerHTML={safeHtml(period)} />
                     </div>
                     <a href={buttonLink} className={`w-full py-3 px-6 rounded-xl font-bold text-xs uppercase tracking-widest text-center transition-all shadow-md hover:shadow-lg ${isPopular ? `${color} text-white` : 'bg-slate-100 dark:bg-zinc-800 text-slate-800 dark:text-white hover:bg-slate-200 dark:hover:bg-zinc-700'}`}>
-                        {buttonText}
+                        <span dangerouslySetInnerHTML={safeHtml(buttonText)} />
                     </a>
                 </div>
             </div>
@@ -55,11 +56,11 @@ export default function PricingBlock({ data }: { data: any }) {
             {isPopular && <div className={`absolute top-0 inset-x-0 h-2 rounded-t-3xl ${color}`}></div>}
             {isPopular && <div className={`absolute -top-4 right-8 px-4 py-1.5 ${color} text-white text-[9px] uppercase tracking-widest font-black rounded-full shadow-lg`}>Popular</div>}
 
-            <h3 className="text-2xl font-black text-slate-800 dark:text-white mb-2">{title}</h3>
+            <h3 className="text-2xl font-black text-slate-800 dark:text-white mb-2" dangerouslySetInnerHTML={safeHtml(title)} />
 
             <div className="flex items-baseline my-6">
-                <span className="text-5xl font-heading font-black tracking-tighter text-slate-900 dark:text-white">{price}</span>
-                <span className="text-sm font-bold text-slate-500 dark:text-zinc-500 ml-2">{period}</span>
+                <span className="text-5xl font-heading font-black tracking-tighter text-slate-900 dark:text-white" dangerouslySetInnerHTML={safeHtml(price)} />
+                <span className="text-sm font-bold text-slate-500 dark:text-zinc-500 ml-2" dangerouslySetInnerHTML={safeHtml(period)} />
             </div>
 
             <div className="border-t border-slate-100 dark:border-zinc-800 my-6"></div>
@@ -76,13 +77,13 @@ export default function PricingBlock({ data }: { data: any }) {
                                 <X size={12} strokeWidth={3} />
                             </div>
                         )}
-                        <span className={!feat.included ? 'line-through opacity-70' : ''}>{feat.text}</span>
+                        <span className={!feat.included ? 'line-through opacity-70' : ''} dangerouslySetInnerHTML={safeHtml(feat.text)} />
                     </li>
                 ))}
             </ul>
 
             <a href={buttonLink} className={`w-full py-4 px-6 rounded-2xl font-bold text-xs uppercase tracking-widest text-center transition-all shadow-md hover:shadow-lg ${isPopular ? `${color} text-white hover:brightness-110` : 'bg-slate-100 dark:bg-zinc-800 text-slate-800 dark:text-white hover:bg-slate-200 dark:hover:bg-zinc-700'}`}>
-                {buttonText}
+                <span dangerouslySetInnerHTML={safeHtml(buttonText)} />
             </a>
         </div>
     );

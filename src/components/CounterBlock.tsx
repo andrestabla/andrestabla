@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState, useRef } from 'react';
 import { useInView } from 'framer-motion';
+import { safeHtml } from '@/lib/html';
 
 function CounterItem({ item }: { item: any }) {
     const ref = useRef(null);
@@ -37,9 +38,7 @@ function CounterItem({ item }: { item: any }) {
             <h4 className="text-4xl md:text-5xl font-heading font-black text-indigo-500 mb-2">
                 {count}{item.suffix}
             </h4>
-            <span className="text-xs uppercase tracking-widest font-bold text-slate-500 dark:text-zinc-400">
-                {item.label}
-            </span>
+            <span className="text-xs uppercase tracking-widest font-bold text-slate-500 dark:text-zinc-400" dangerouslySetInnerHTML={safeHtml(item.label)} />
         </div>
     );
 }

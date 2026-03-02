@@ -1,4 +1,5 @@
 import React from 'react';
+import { safeHtml } from '@/lib/html';
 
 export default function ButtonBlock({ data }: { data: any }) {
     const text = data.text || 'Haz clic aquí';
@@ -26,7 +27,7 @@ export default function ButtonBlock({ data }: { data: any }) {
     return (
         <div className={`w-full ${align}`}>
             <a href={link} className={`${baseClasses} ${styleClasses} ${sizeClasses}`}>
-                {text}
+                <span dangerouslySetInnerHTML={safeHtml(text, 'Haz clic aquí')} />
             </a>
         </div>
     );

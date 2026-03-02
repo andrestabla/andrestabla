@@ -1,4 +1,5 @@
 import React from 'react';
+import { safeHtml } from '@/lib/html';
 
 export default function HeadingBlock({ data }: { data: any }) {
     const text = data.text || 'Nuevo Encabezado';
@@ -16,8 +17,8 @@ export default function HeadingBlock({ data }: { data: any }) {
                             tag === 'h4' ? 'text-2xl md:text-3xl mb-3' :
                                 tag === 'h5' ? 'text-xl md:text-2xl mb-2' :
                                     'text-lg md:text-xl mb-2'
-                }`
-        },
-        text
+                }`,
+            dangerouslySetInnerHTML: safeHtml(text, 'Nuevo Encabezado')
+        }
     );
 }

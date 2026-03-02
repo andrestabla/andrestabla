@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { safeHtml } from '@/lib/html';
 
 export default function FlipBoxBlock({ data }: { data: any }) {
     const frontIcon = data.frontIcon || '🚀';
@@ -39,9 +40,9 @@ export default function FlipBoxBlock({ data }: { data: any }) {
             >
                 {/* FRONT FACE */}
                 <div className={`absolute inset-0 backface-hidden flex flex-col items-center justify-center p-8 text-center rounded-3xl border border-slate-200 dark:border-zinc-800 shadow-sm ${frontBgColor}`}>
-                    <div className="text-6xl mb-6">{frontIcon}</div>
-                    <h3 className="text-2xl font-black mb-2 text-slate-800 dark:text-white title-font">{frontTitle}</h3>
-                    <p className="text-sm font-medium text-slate-500 dark:text-zinc-400">{frontDesc}</p>
+                    <div className="text-6xl mb-6" dangerouslySetInnerHTML={safeHtml(frontIcon)} />
+                    <h3 className="text-2xl font-black mb-2 text-slate-800 dark:text-white title-font" dangerouslySetInnerHTML={safeHtml(frontTitle)} />
+                    <p className="text-sm font-medium text-slate-500 dark:text-zinc-400" dangerouslySetInnerHTML={safeHtml(frontDesc)} />
                 </div>
 
                 {/* BACK FACE */}
@@ -49,11 +50,11 @@ export default function FlipBoxBlock({ data }: { data: any }) {
                     className={`absolute inset-0 backface-hidden flex flex-col items-center justify-center p-8 text-center rounded-3xl shadow-xl ${backBgColor}`}
                     style={{ transform: backFlipTransform }}
                 >
-                    <h3 className="text-2xl font-black mb-4 title-font text-white">{backTitle}</h3>
-                    <p className="text-sm font-medium text-white/90">{backDesc}</p>
+                    <h3 className="text-2xl font-black mb-4 title-font text-white" dangerouslySetInnerHTML={safeHtml(backTitle)} />
+                    <p className="text-sm font-medium text-white/90" dangerouslySetInnerHTML={safeHtml(backDesc)} />
                     {data.buttonText && (
                         <a href={data.buttonLink || '#'} className="mt-6 px-6 py-2 bg-white/20 hover:bg-white/30 text-white font-bold text-xs uppercase tracking-widest rounded-full transition-colors backdrop-blur-sm">
-                            {data.buttonText}
+                            <span dangerouslySetInnerHTML={safeHtml(data.buttonText)} />
                         </a>
                     )}
                 </div>

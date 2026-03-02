@@ -1,10 +1,10 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { updateBlockData, deleteBlock, addBlock } from './actions';
+import { updateBlockData, deleteBlock, addBlock, reorderBlocks } from './actions';
 import {
     Trash2, Plus, Layers, Box, Settings2,
-    Save, X, ChevronLeft, PanelLeft, Eye
+    Save, X, ChevronLeft, PanelLeft, Eye, ChevronUp, ChevronDown
 } from 'lucide-react';
 import GlobalSettingsForm from './GlobalSettingsForm';
 import ClientInlineBlockRenderer from './ClientInlineBlockRenderer';
@@ -61,11 +61,44 @@ function WidgetAddBtn({ pageId, type, label, defaultData, onAdded, parentId }: {
 }
 
 // ── Sub-Component: Inspector Form (Tabs: Layout / Content / Style) ─
+type FieldPath = Array<string | number>;
+
+function formatPath(path: FieldPath): string {
+    return path.reduce<string>((acc, segment, index) => {
+        if (typeof segment === 'number') return `${acc}[${segment}]`;
+        return index === 0 ? segment : `${acc}.${segment}`;
+    }, '');
+}
+
+function collectStringFields(node: any, path: FieldPath = []): Array<{ path: FieldPath; label: string; value: string }> {
+    if (typeof node === 'string') {
+        return [{ path, label: formatPath(path), value: node }];
+    }
+    if (Array.isArray(node)) {
+        return node.flatMap((item, idx) => collectStringFields(item, [...path, idx]));
+    }
+    if (node && typeof node === 'object') {
+        return Object.entries(node).flatMap(([key, value]) => collectStringFields(value, [...path, key]));
+    }
+    return [];
+}
+
+function setStringFieldValue(source: any, path: FieldPath, newValue: string): any {
+    const cloned = JSON.parse(JSON.stringify(source ?? {}));
+    let cursor = cloned;
+    for (let i = 0; i < path.length - 1; i += 1) {
+        const key = path[i];
+        cursor = cursor[key as any];
+    }
+    cursor[path[path.length - 1] as any] = newValue;
+    return cloned;
+}
+
 function InspectorForm({ block, onSaved }: { block: any; onSaved: () => void }) {
     const [isSaving, setIsSaving] = useState(false);
     const [error, setError] = useState('');
     const isContainer = ['grid', 'hero', 'bento', 'timeline', 'accordion', 'carousel', 'gallery', 'tabs', 'toggle'].includes(block.type);
-    const [activeTab, setActiveTab] = useState<'layout' | 'content' | 'styles'>(isContainer ? 'layout' : 'content');
+    const [activeTab, setActiveTab] = useState<'layout' | 'content' | 'styles' | 'html'>(isContainer ? 'layout' : 'content');
 
     useEffect(() => {
         if (isContainer && activeTab === 'content') setActiveTab('layout');
@@ -77,12 +110,20 @@ function InspectorForm({ block, onSaved }: { block: any; onSaved: () => void }) 
         return <div className="text-red-500 p-4 text-xs">Error: JSON corrupto en la BD.</div>;
     }
 
+    const [htmlData, setHtmlData] = useState<any>(parsedData);
+
+    useEffect(() => {
+        setHtmlData(parsedData);
+    }, [block.id, block.data]);
+
     const handleSaveParsed = async (newData: any) => {
         setIsSaving(true);
         try { await updateBlockData(block.id, JSON.stringify(newData)); onSaved(); }
         catch { setError('Error de red guardando.'); }
         setIsSaving(false);
     };
+
+    const htmlFields = collectStringFields(htmlData).filter(field => field.path.length > 0);
 
     return (
         <div className="flex flex-col gap-3">
@@ -101,6 +142,10 @@ function InspectorForm({ block, onSaved }: { block: any; onSaved: () => void }) 
                 <button onClick={() => setActiveTab('styles')}
                     className={`flex-1 py-1.5 text-[10px] font-bold uppercase tracking-widest rounded-lg transition-all ${activeTab === 'styles' ? 'bg-white shadow-sm text-indigo-700' : 'text-slate-500'}`}>
                     Estilos
+                </button>
+                <button onClick={() => setActiveTab('html')}
+                    className={`flex-1 py-1.5 text-[10px] font-bold uppercase tracking-widest rounded-lg transition-all ${activeTab === 'html' ? 'bg-white shadow-sm text-indigo-700' : 'text-slate-500'}`}>
+                    HTML
                 </button>
             </div>
 
@@ -149,6 +194,48 @@ function InspectorForm({ block, onSaved }: { block: any; onSaved: () => void }) 
             )}
 
             {activeTab === 'styles' && <AdvancedStyleInspector block={block} onSaved={onSaved} />}
+
+            {activeTab === 'html' && (
+                <div className="space-y-3">
+                    <div className="p-3 border border-indigo-100 bg-indigo-50 rounded-lg text-[10px] text-indigo-700">
+                        Editor HTML: puedes usar etiquetas HTML en cualquier campo de texto del bloque.
+                    </div>
+                    {htmlFields.length === 0 && (
+                        <div className="p-3 border border-slate-200 rounded-lg text-xs text-slate-500">
+                            Este bloque no tiene campos de texto editables.
+                        </div>
+                    )}
+                    {htmlFields.length > 0 && (
+                        <div className="space-y-3 max-h-[50vh] overflow-y-auto pr-1">
+                            {htmlFields.map((field) => (
+                                <div key={field.label} className="space-y-1">
+                                    <label className="block text-[9px] font-bold uppercase tracking-widest text-slate-500">
+                                        {field.label}
+                                    </label>
+                                    <textarea
+                                        rows={3}
+                                        value={field.value}
+                                        onChange={(e) => {
+                                            setHtmlData((prev: any) => setStringFieldValue(prev, field.path, e.target.value));
+                                        }}
+                                        className="w-full border border-slate-200 rounded-lg p-2 text-xs font-mono resize-y"
+                                        placeholder="<strong>Texto con HTML</strong>"
+                                    />
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                    {htmlFields.length > 0 && (
+                        <button
+                            onClick={() => handleSaveParsed(htmlData)}
+                            disabled={isSaving}
+                            className="w-full bg-black text-white p-3 rounded-xl font-bold text-[11px] uppercase tracking-widest hover:bg-slate-800 disabled:opacity-50 shadow-md"
+                        >
+                            {isSaving ? 'Guardando...' : 'Guardar HTML'}
+                        </button>
+                    )}
+                </div>
+            )}
         </div>
     );
 }
@@ -175,6 +262,25 @@ export default function BuilderWorkspace({ page: initialPage, settings }: { page
 
     const handleBlockAdded = useCallback(async () => { await reloadBlocks(); }, [reloadBlocks]);
 
+    const moveBlock = useCallback(async (blockId: string, direction: 'up' | 'down') => {
+        const target = blocks.find((b: any) => b.id === blockId);
+        if (!target) return;
+
+        const siblings = blocks
+            .filter((b: any) => (b.parentId ?? null) === (target.parentId ?? null))
+            .sort((a: any, b: any) => a.order - b.order);
+
+        const currentIndex = siblings.findIndex((b: any) => b.id === blockId);
+        const nextIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1;
+        if (currentIndex < 0 || nextIndex < 0 || nextIndex >= siblings.length) return;
+
+        const reordered = [...siblings];
+        [reordered[currentIndex], reordered[nextIndex]] = [reordered[nextIndex], reordered[currentIndex]];
+        await reorderBlocks(page.id, reordered.map((b: any) => b.id));
+        await reloadBlocks();
+        setSelectedBlockId(blockId);
+    }, [blocks, page.id, reloadBlocks]);
+
     // Scroll selected block into view in the canvas
     useEffect(() => {
         if (!selectedBlockId) return;
@@ -191,21 +297,46 @@ export default function BuilderWorkspace({ page: initialPage, settings }: { page
         return blockLayer.map((block: any) => {
             const children = blocks.filter((b: any) => b.parentId === block.id).sort((a: any, b: any) => a.order - b.order);
             const isGrid = block.type === 'grid';
+            const currentIndex = blockLayer.findIndex((b: any) => b.id === block.id);
+            const isFirst = currentIndex === 0;
+            const isLast = currentIndex === blockLayer.length - 1;
             return (
                 <div key={block.id}>
-                    <button
-                        onClick={() => setSelectedBlockId(block.id)}
-                        className={`w-full flex items-center gap-2 p-2 rounded-lg text-left transition-colors ${selectedBlockId === block.id ? 'bg-indigo-100 text-indigo-800' : 'hover:bg-slate-100'}`}
+                    <div
+                        className={`w-full flex items-center gap-1 p-1 rounded-lg transition-colors ${selectedBlockId === block.id ? 'bg-indigo-100 text-indigo-800' : 'hover:bg-slate-100'}`}
                         style={{ paddingLeft: `${8 + depth * 12}px` }}
                     >
-                        {isGrid && <Layers size={14} className="text-indigo-500" />}
-                        <div className="flex-1">
-                            <div className="text-xs font-bold text-slate-800 uppercase tracking-wider">{block.type}</div>
-                            <div className="text-[10px] text-slate-500 truncate max-w-[180px]">
-                                {isGrid ? 'Contenedor de Columnas' : block.data.substring(0, 40) + '...'}
+                        <button
+                            onClick={() => setSelectedBlockId(block.id)}
+                            className="flex-1 min-w-0 flex items-center gap-2 p-1.5 rounded-md text-left"
+                        >
+                            {isGrid && <Layers size={14} className="text-indigo-500 shrink-0" />}
+                            <div className="flex-1 min-w-0">
+                                <div className="text-xs font-bold text-slate-800 uppercase tracking-wider">{block.type}</div>
+                                <div className="text-[10px] text-slate-500 truncate max-w-[160px]">
+                                    {isGrid ? 'Contenedor de Columnas' : block.data.substring(0, 40) + '...'}
+                                </div>
                             </div>
+                        </button>
+                        <div className="flex items-center gap-0.5">
+                            <button
+                                onClick={(e) => { e.stopPropagation(); moveBlock(block.id, 'up'); }}
+                                disabled={isFirst}
+                                title="Subir"
+                                className="p-1 rounded text-slate-400 hover:text-indigo-600 hover:bg-white disabled:opacity-30 disabled:cursor-not-allowed"
+                            >
+                                <ChevronUp size={13} />
+                            </button>
+                            <button
+                                onClick={(e) => { e.stopPropagation(); moveBlock(block.id, 'down'); }}
+                                disabled={isLast}
+                                title="Bajar"
+                                className="p-1 rounded text-slate-400 hover:text-indigo-600 hover:bg-white disabled:opacity-30 disabled:cursor-not-allowed"
+                            >
+                                <ChevronDown size={13} />
+                            </button>
                         </div>
-                    </button>
+                    </div>
                     {children.length > 0 && (
                         <div className="border-l-2 border-indigo-100 ml-4 pl-2">
                             {renderBlockTree(children, depth + 1)}
@@ -319,6 +450,12 @@ export default function BuilderWorkspace({ page: initialPage, settings }: { page
                         {viewMode === 'tree' && !selectedBlock && (
                             <div className="p-4 flex flex-col gap-2">
                                 <h3 className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2 ml-1">Capas y Nodos</h3>
+                                <div className="grid grid-cols-2 gap-2 mb-2">
+                                    <WidgetAddBtn pageId={page.id} parentId={null} type="hero" label="Hero" defaultData={{ greeting: 'Hola, soy', name: 'Nombre Apellido', role: 'Tu rol profesional', links: [] }} onAdded={handleBlockAdded} />
+                                    <WidgetAddBtn pageId={page.id} parentId={null} type="richtext" label="Texto" defaultData={{ title: 'Sección', content: '<p>Nuevo contenido...</p>' }} onAdded={handleBlockAdded} />
+                                    <WidgetAddBtn pageId={page.id} parentId={null} type="timeline" label="Timeline" defaultData={{ title: 'Experiencia', items: [] }} onAdded={handleBlockAdded} />
+                                    <WidgetAddBtn pageId={page.id} parentId={null} type="grid" label="Grid" defaultData={{ columns: 2 }} onAdded={handleBlockAdded} />
+                                </div>
                                 {blocks.length === 0 && <p className="text-xs text-slate-400 italic text-center py-8">La página está vacía.</p>}
                                 <div className="space-y-1">{renderBlockTree(rootBlocks)}</div>
                             </div>

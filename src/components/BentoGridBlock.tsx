@@ -2,6 +2,7 @@
 
 import { motion, Variants } from 'framer-motion';
 import { Briefcase, GraduationCap, Award, Code, BookOpen } from 'lucide-react';
+import { safeHtml } from '@/lib/html';
 
 export default function BentoGridBlock({ data }: { data: any }) {
 
@@ -25,9 +26,7 @@ export default function BentoGridBlock({ data }: { data: any }) {
 
             {data.title && (
                 <div className="mb-16 flex items-center justify-between">
-                    <h3 className="text-4xl md:text-5xl font-bold text-white m-0" style={{ fontFamily: 'var(--font-heading)' }}>
-                        {data.title}
-                    </h3>
+                    <h3 className="text-4xl md:text-5xl font-bold text-white m-0" style={{ fontFamily: 'var(--font-heading)' }} dangerouslySetInnerHTML={safeHtml(data.title)} />
                 </div>
             )}
 
@@ -66,19 +65,15 @@ export default function BentoGridBlock({ data }: { data: any }) {
                                 )}
 
                                 {item.meta && (
-                                    <span className="inline-block px-3 py-1 bg-zinc-900 text-[var(--brand)] text-[10px] font-bold uppercase tracking-widest rounded-full border border-zinc-800 mb-4">{item.meta}</span>
+                                    <span className="inline-block px-3 py-1 bg-zinc-900 text-[var(--brand)] text-[10px] font-bold uppercase tracking-widest rounded-full border border-zinc-800 mb-4" dangerouslySetInnerHTML={safeHtml(item.meta)} />
                                 )}
 
-                                <h4 className={`font-bold text-white mb-3 ${isLarge ? 'text-3xl md:text-4xl' : 'text-2xl'}`} style={{ fontFamily: 'var(--font-heading)' }}>
-                                    {item.title}
-                                </h4>
+                                <h4 className={`font-bold text-white mb-3 ${isLarge ? 'text-3xl md:text-4xl' : 'text-2xl'}`} style={{ fontFamily: 'var(--font-heading)' }} dangerouslySetInnerHTML={safeHtml(item.title, 'Tarjeta')} />
 
-                                {item.subtitle && <p className="text-sm font-bold tracking-widest uppercase text-slate-500 mb-4">{item.subtitle}</p>}
+                                {item.subtitle && <p className="text-sm font-bold tracking-widest uppercase text-slate-500 mb-4" dangerouslySetInnerHTML={safeHtml(item.subtitle)} />}
 
                                 {item.body && (
-                                    <p className={`text-slate-400 font-light leading-relaxed ${isLarge ? 'text-lg max-w-2xl' : 'text-sm'}`}>
-                                        {item.body}
-                                    </p>
+                                    <p className={`text-slate-400 font-light leading-relaxed ${isLarge ? 'text-lg max-w-2xl' : 'text-sm'}`} dangerouslySetInnerHTML={safeHtml(item.body)} />
                                 )}
                             </div>
                         </motion.div>

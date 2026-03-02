@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Menu, X, ChevronDown } from 'lucide-react';
+import { Menu, X } from 'lucide-react';
+import { safeHtml } from '@/lib/html';
 
 export default function NavMenuBlock({ data, isEditor }: { data: any, isEditor?: boolean }) {
     const defaultMenu = [
@@ -27,11 +28,11 @@ export default function NavMenuBlock({ data, isEditor }: { data: any, isEditor?:
                         <li key={idx} className="border-b border-slate-100 dark:border-zinc-800/50 pb-4 last:border-0 last:pb-0">
                             {item.isButton ? (
                                 <a href={item.link} className={`block w-full text-center py-3 px-6 bg-indigo-500 text-white font-bold text-xs uppercase tracking-widest rounded-xl transition-all ${isEditor ? 'pointer-events-none' : ''}`}>
-                                    {item.label}
+                                    <span dangerouslySetInnerHTML={safeHtml(item.label)} />
                                 </a>
                             ) : (
                                 <a href={item.link} className={`block font-bold text-sm uppercase tracking-widest ${color} hover:text-indigo-500 transition-colors ${isEditor ? 'pointer-events-none' : ''}`}>
-                                    {item.label}
+                                    <span dangerouslySetInnerHTML={safeHtml(item.label)} />
                                 </a>
                             )}
                         </li>
@@ -59,7 +60,7 @@ export default function NavMenuBlock({ data, isEditor }: { data: any, isEditor?:
                             {items.map((item: any, idx: number) => (
                                 <li key={idx}>
                                     <a href={item.link} className={`block font-bold text-sm uppercase tracking-widest text-slate-800 dark:text-white hover:text-indigo-500 transition-colors ${isEditor ? 'pointer-events-none' : ''}`}>
-                                        {item.label}
+                                        <span dangerouslySetInnerHTML={safeHtml(item.label)} />
                                     </a>
                                 </li>
                             ))}
@@ -77,11 +78,11 @@ export default function NavMenuBlock({ data, isEditor }: { data: any, isEditor?:
                 <div key={idx}>
                     {item.isButton ? (
                         <a href={item.link} className={`inline-block py-3 px-6 bg-indigo-500 hover:bg-indigo-600 text-white font-bold text-xs uppercase tracking-widest rounded-xl shadow-md transition-all ${isEditor ? 'pointer-events-none' : ''}`}>
-                            {item.label}
+                            <span dangerouslySetInnerHTML={safeHtml(item.label)} />
                         </a>
                     ) : (
                         <a href={item.link} className={`inline-block font-bold text-xs uppercase tracking-widest ${color} hover:text-indigo-500 dark:hover:text-indigo-400 transition-colors ${isEditor ? 'pointer-events-none' : ''}`}>
-                            {item.label}
+                            <span dangerouslySetInnerHTML={safeHtml(item.label)} />
                         </a>
                     )}
                 </div>

@@ -1,5 +1,6 @@
 import React from 'react';
 import { Quote } from 'lucide-react';
+import { safeHtml } from '@/lib/html';
 
 export default function TestimonialBlock({ data }: { data: any }) {
     const quote = data.quote || 'Excelente profesional, una experiencia increíble de trabajo.';
@@ -12,15 +13,15 @@ export default function TestimonialBlock({ data }: { data: any }) {
             <Quote className="absolute top-6 right-6 text-indigo-500/10 dark:text-indigo-500/20 w-16 h-16 pointer-events-none" />
 
             <p className="text-slate-700 dark:text-zinc-300 text-lg md:text-xl font-medium leading-relaxed italic mb-8 relative z-10">
-                "{quote}"
+                {'"'}<span dangerouslySetInnerHTML={safeHtml(quote)} />{'"'}
             </p>
 
             <div className="flex items-center gap-4 relative z-10">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={avatar} alt={author} className="w-12 h-12 rounded-full object-cover border-2 border-indigo-100 dark:border-zinc-800" />
                 <div>
-                    <h4 className="font-bold text-slate-900 dark:text-white text-sm">{author}</h4>
-                    <span className="text-xs uppercase tracking-widest font-semibold text-indigo-500">{role}</span>
+                    <h4 className="font-bold text-slate-900 dark:text-white text-sm" dangerouslySetInnerHTML={safeHtml(author)} />
+                    <span className="text-xs uppercase tracking-widest font-semibold text-indigo-500" dangerouslySetInnerHTML={safeHtml(role)} />
                 </div>
             </div>
         </div>

@@ -2,8 +2,13 @@
 
 import { motion } from 'framer-motion';
 import { Phone, Mail, Link as LinkIcon } from 'lucide-react';
+import { safeHtml } from '@/lib/html';
 
 export default function HeroBlock({ data }: { data: any }) {
+    const fullName = data.name || 'Nombre Apellido';
+    const firstName = fullName.split(' ')[0] || 'Nombre';
+    const lastName = fullName.split(' ').slice(1).join(' ') || 'Apellido';
+
     return (
         <header className="min-h-[90vh] flex flex-col justify-center items-start py-24 relative overflow-hidden bg-zinc-950">
 
@@ -18,14 +23,15 @@ export default function HeroBlock({ data }: { data: any }) {
             >
                 <div className="flex items-center gap-4 mb-8">
                     <span className="w-12 h-[2px] bg-[var(--brand)]"></span>
-                    <span className="text-[var(--brand)] text-sm md:text-base font-bold tracking-[0.2em] uppercase">
-                        {data.greeting || 'Hello, I am'}
-                    </span>
+                    <span
+                        className="text-[var(--brand)] text-sm md:text-base font-bold tracking-[0.2em] uppercase"
+                        dangerouslySetInnerHTML={safeHtml(data.greeting, 'Hello, I am')}
+                    />
                 </div>
 
                 <h1 className="text-6xl md:text-8xl lg:text-[120px] font-bold mb-6 text-white leading-[0.9]" style={{ fontFamily: 'var(--font-heading)', color: 'var(--heading)' }}>
-                    <span className="text-[var(--brand)] block mb-2">{data.name?.split(' ')[0] || 'Nombre'}</span>
-                    {data.name?.split(' ').slice(1).join(' ') || 'Apellido'}
+                    <span className="text-[var(--brand)] block mb-2" dangerouslySetInnerHTML={safeHtml(firstName, 'Nombre')} />
+                    <span dangerouslySetInnerHTML={safeHtml(lastName, 'Apellido')} />
                 </h1>
 
                 <motion.h2
@@ -33,9 +39,8 @@ export default function HeroBlock({ data }: { data: any }) {
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.4, duration: 0.8 }}
                     className="text-2xl md:text-4xl text-slate-300 font-light mb-4 max-w-4xl leading-tight" style={{ fontFamily: 'var(--font-heading)', color: 'var(--text)' }}
-                >
-                    {data.role || 'Describe el Cargo Principal'}
-                </motion.h2>
+                    dangerouslySetInnerHTML={safeHtml(data.role, 'Describe el Cargo Principal')}
+                />
 
                 {data.tagline && (
                     <motion.p
@@ -43,9 +48,8 @@ export default function HeroBlock({ data }: { data: any }) {
                         animate={{ opacity: 1 }}
                         transition={{ delay: 0.5, duration: 0.8 }}
                         className="text-lg text-slate-400 font-light mb-12 max-w-2xl italic"
-                    >
-                        {data.tagline}
-                    </motion.p>
+                        dangerouslySetInnerHTML={safeHtml(data.tagline)}
+                    />
                 )}
 
                 <motion.div
@@ -81,7 +85,8 @@ export default function HeroBlock({ data }: { data: any }) {
                     >
                         {data.links.map((link: any, idx: number) => (
                             <a key={idx} href={link.url} target="_blank" className="px-6 py-3 bg-zinc-900 text-slate-400 rounded-full hover:bg-white hover:text-black transition-all duration-300 font-medium text-xs tracking-widest uppercase flex items-center gap-2">
-                                <LinkIcon size={14} /> {link.label}
+                                <LinkIcon size={14} />
+                                <span dangerouslySetInnerHTML={safeHtml(link.label, 'Link')} />
                             </a>
                         ))}
                     </motion.div>

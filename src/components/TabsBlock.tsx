@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { safeHtml } from '@/lib/html';
 
 export default function TabsBlock({ data }: { data: any }) {
     const items = data.items || [
@@ -32,7 +33,7 @@ export default function TabsBlock({ data }: { data: any }) {
 
                     return (
                         <button key={idx} onClick={() => setActiveIdx(idx)} className={tabClasses}>
-                            {item.label}
+                            <span dangerouslySetInnerHTML={safeHtml(item.label, `Tab ${idx + 1}`)} />
                         </button>
                     );
                 })}
@@ -40,7 +41,7 @@ export default function TabsBlock({ data }: { data: any }) {
 
             {/* Tab Content */}
             <div className={`w-full prose dark:prose-invert max-w-none text-slate-700 dark:text-zinc-300 ${style === 'default' ? 'p-6 bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-b-lg rounded-tr-lg -mt-[1px]' : ''}`}>
-                <div dangerouslySetInnerHTML={{ __html: items[activeIdx]?.content || '' }} />
+                <div dangerouslySetInnerHTML={safeHtml(items[activeIdx]?.content || '')} />
             </div>
         </div>
     );
