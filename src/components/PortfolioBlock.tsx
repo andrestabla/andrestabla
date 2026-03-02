@@ -4,10 +4,10 @@ import React, { useState } from 'react';
 import { safeHtml } from '@/lib/html';
 
 const DEFAULT_ITEMS = [
-    { title: 'Project Alpha', category: 'web', image: 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?q=80&w=600&auto=format&fit=crop', link: '#' },
-    { title: 'Brand Identity', category: 'design', image: 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?q=80&w=600&auto=format&fit=crop', link: '#' },
-    { title: 'Mobile App', category: 'app', image: 'https://images.unsplash.com/photo-1542831371-29b0f74f9713?q=80&w=600&auto=format&fit=crop', link: '#' },
-    { title: 'E-commerce', category: 'web', image: 'https://images.unsplash.com/photo-1432888498266-38ffec3eaf0a?q=80&w=600&auto=format&fit=crop', link: '#' },
+    { title: 'Project Alpha', category: 'web', image: 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?q=80&w=600&auto=format&fit=crop', link: '#', hoverText: 'Landing + sistema de conversión para negocio digital.' },
+    { title: 'Brand Identity', category: 'design', image: 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?q=80&w=600&auto=format&fit=crop', link: '#', hoverText: 'Rediseño de identidad visual y kit de marca.' },
+    { title: 'Mobile App', category: 'app', image: 'https://images.unsplash.com/photo-1542831371-29b0f74f9713?q=80&w=600&auto=format&fit=crop', link: '#', hoverText: 'Aplicación móvil con panel de analítica en tiempo real.' },
+    { title: 'E-commerce', category: 'web', image: 'https://images.unsplash.com/photo-1432888498266-38ffec3eaf0a?q=80&w=600&auto=format&fit=crop', link: '#', hoverText: 'Tienda digital con checkout optimizado.' },
 ];
 
 const toFilterLabel = (value: string) =>
@@ -72,6 +72,12 @@ export default function PortfolioBlock({ data }: { data: any }) {
                             <div className="absolute inset-0 bg-indigo-900/80 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col items-center justify-center p-6 text-center backdrop-blur-sm">
                                 <h4 className="text-xl font-bold text-white mb-2 translate-y-4 group-hover:translate-y-0 transition-transform duration-300" dangerouslySetInnerHTML={safeHtml(item.title || `Proyecto ${idx + 1}`)} />
                                 <span className="text-[10px] font-bold uppercase tracking-widest text-indigo-200 translate-y-4 group-hover:translate-y-0 transition-transform duration-300 delay-75" dangerouslySetInnerHTML={safeHtml(item.category || 'General')} />
+                                {item.hoverText && (
+                                    <p
+                                        className="mt-3 text-xs text-slate-100 leading-relaxed max-w-[240px] translate-y-4 group-hover:translate-y-0 transition-transform duration-300 delay-100"
+                                        dangerouslySetInnerHTML={safeHtml(item.hoverText)}
+                                    />
+                                )}
                             </div>
                         </>
                     );

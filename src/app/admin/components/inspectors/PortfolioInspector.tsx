@@ -8,6 +8,7 @@ type PortfolioItem = {
     category: string;
     image: string;
     link?: string;
+    hoverText?: string;
 };
 
 const DEFAULT_ITEMS: PortfolioItem[] = [
@@ -16,18 +17,21 @@ const DEFAULT_ITEMS: PortfolioItem[] = [
         category: 'web',
         image: 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?q=80&w=600&auto=format&fit=crop',
         link: '#',
+        hoverText: 'Landing + sistema de conversión para negocio digital.',
     },
     {
         title: 'Brand Identity',
         category: 'design',
         image: 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?q=80&w=600&auto=format&fit=crop',
         link: '#',
+        hoverText: 'Rediseño de identidad visual y kit de marca.',
     },
     {
         title: 'Mobile App',
         category: 'app',
         image: 'https://images.unsplash.com/photo-1542831371-29b0f74f9713?q=80&w=600&auto=format&fit=crop',
         link: '#',
+        hoverText: 'Aplicación móvil con panel de analítica en tiempo real.',
     },
 ];
 
@@ -55,7 +59,7 @@ export default function PortfolioInspector({
     const addItem = () => {
         setItems([
             ...items,
-            { title: 'Nuevo Proyecto', category: 'web', image: '', link: '#' },
+            { title: 'Nuevo Proyecto', category: 'web', image: '', link: '#', hoverText: '' },
         ]);
     };
 
@@ -70,6 +74,7 @@ export default function PortfolioInspector({
                 category: (item.category || '').trim() || 'general',
                 image: (item.image || '').trim(),
                 link: (item.link || '').trim(),
+                hoverText: (item.hoverText || '').trim(),
             }))
             .filter((item) => item.title || item.image);
 
@@ -152,6 +157,14 @@ export default function PortfolioInspector({
                                 onChange={e => handleItemChange(idx, 'image', e.target.value)}
                                 className="w-full border border-slate-200 rounded-md p-2 text-xs font-mono"
                                 placeholder="https://..."
+                            />
+
+                            <label className="text-[9px] font-bold uppercase tracking-widest text-slate-400">Texto Hover</label>
+                            <textarea
+                                value={item.hoverText || ''}
+                                onChange={e => handleItemChange(idx, 'hoverText', e.target.value)}
+                                className="w-full border border-slate-200 rounded-md p-2 text-xs min-h-16"
+                                placeholder="Texto descriptivo que aparece al pasar el mouse"
                             />
                         </div>
                     ))}
