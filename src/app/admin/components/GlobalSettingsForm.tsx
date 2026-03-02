@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { updateGlobalSettings } from './actions';
-import { Palette, Baseline, Image as ImageIcon, Loader2 } from 'lucide-react';
+import { Palette, Baseline, Image as ImageIcon, Loader2, Navigation, Plus, Trash2 } from 'lucide-react';
 
 export default function GlobalSettingsForm({ settings, onSaved }: { settings: any, onSaved: () => void }) {
     const [isSaving, setIsSaving] = useState(false);
@@ -9,7 +9,13 @@ export default function GlobalSettingsForm({ settings, onSaved }: { settings: an
         primaryColor: '#4f46e5',
         fontFamily: 'Inter',
         logoUrl: '',
-        loaderEnabled: true
+        loaderEnabled: true,
+        navLinks: [
+            { label: 'Inicio', href: '#' },
+            { label: 'Experiencia', href: '#experiencia' },
+            { label: 'Educación', href: '#educacion' },
+            { label: 'Cursos', href: '#cursos' },
+        ] as { label: string; href: string }[]
     };
 
     if (settings && settings.globalStyles) {
@@ -20,11 +26,12 @@ export default function GlobalSettingsForm({ settings, onSaved }: { settings: an
     const [fontFamily, setFontFamily] = useState(parsedStyles.fontFamily);
     const [logoUrl, setLogoUrl] = useState(parsedStyles.logoUrl);
     const [loaderEnabled, setLoaderEnabled] = useState(parsedStyles.loaderEnabled);
+    const [navLinks, setNavLinks] = useState<{ label: string; href: string }[]>(parsedStyles.navLinks);
 
     const handleSave = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsSaving(true);
-        const payload = JSON.stringify({ primaryColor, fontFamily, logoUrl, loaderEnabled });
+        const payload = JSON.stringify({ primaryColor, fontFamily, logoUrl, loaderEnabled, navLinks });
         await updateGlobalSettings(payload);
         setIsSaving(false);
         onSaved();
@@ -102,6 +109,57 @@ export default function GlobalSettingsForm({ settings, onSaved }: { settings: an
                     onChange={e => setLoaderEnabled(e.target.checked)}
                     className="w-5 h-5 rounded text-indigo-600 focus:ring-indigo-500"
                 />
+            </div>
+
+            {/* Nav Links Editor */}
+            <div className="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                <div className="flex items-center justify-between mb-3">
+                    <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500 flex items-center gap-1">
+                        <Navigation size={12} /> Menú de Navegación
+                    </label>
+                    <button
+                        type="button"
+                        onClick={() => setNavLinks([...navLinks, { label: 'Nuevo Enlace', href: '#' }])}
+                        className="flex items-center gap-1 px-2 py-1 bg-indigo-600 text-white text-[9px] font-bold rounded-lg hover:bg-indigo-700"
+                    >
+                        <Plus size={10} /> Añadir
+                    </button>
+                </div>
+                <div className="flex flex-col gap-2">
+                    {navLinks.map((link, idx) => (
+                        <div key={idx} className="flex gap-2 items-center">
+                            <input
+                                type="text"
+                                value={link.label}
+                                onChange={e => {
+                                    const updated = [...navLinks];
+                                    updated[idx] = { ...updated[idx], label: e.target.value };
+                                    setNavLinks(updated);
+                                }}
+                                placeholder="Etiqueta"
+                                className="flex-1 text-xs p-2 border border-slate-200 rounded-lg focus:ring-1 focus:ring-indigo-500"
+                            />
+                            <input
+                                type="text"
+                                value={link.href}
+                                onChange={e => {
+                                    const updated = [...navLinks];
+                                    updated[idx] = { ...updated[idx], href: e.target.value };
+                                    setNavLinks(updated);
+                                }}
+                                placeholder="URL o #ancla"
+                                className="flex-1 text-xs p-2 border border-slate-200 rounded-lg focus:ring-1 focus:ring-indigo-500"
+                            />
+                            <button
+                                type="button"
+                                onClick={() => setNavLinks(navLinks.filter((_, i) => i !== idx))}
+                                className="text-red-400 hover:text-red-600 p-1"
+                            >
+                                <Trash2 size={14} />
+                            </button>
+                        </div>
+                    ))}
+                </div>
             </div>
 
             <button type="submit" disabled={isSaving} className="w-full bg-indigo-600 text-white p-4 rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-200 mt-4">

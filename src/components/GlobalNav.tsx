@@ -21,6 +21,12 @@ export default function GlobalNav({ siteConfig }: { siteConfig?: any }) {
         try { parsedStyles = JSON.parse(siteConfig.globalStyles); } catch (e) { }
     }
     const logoUrl = parsedStyles?.logoUrl;
+    const navLinks: { label: string; href: string }[] = parsedStyles?.navLinks || [
+        { label: 'Inicio', href: '#' },
+        { label: 'Experiencia', href: '#experiencia' },
+        { label: 'Educación', href: '#educacion' },
+        { label: 'Cursos', href: '#cursos' },
+    ];
 
     return (
         <>
@@ -62,11 +68,11 @@ export default function GlobalNav({ siteConfig }: { siteConfig?: any }) {
                         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-[#f25c54]/5 rounded-full blur-[120px] -z-10"></div>
 
                         <nav className="flex flex-col items-center gap-8 md:gap-12">
-                            {['Inicio', 'Experiencia', 'Educación', 'Cursos'].map((item, idx) => (
+                            {navLinks.map((item: { label: string; href: string }, idx: number) => (
                                 <motion.a
                                     key={idx}
-                                    href="#"
-                                    onClick={(e) => { e.preventDefault(); toggleMenu(); }}
+                                    href={item.href}
+                                    onClick={() => toggleMenu()}
                                     initial={{ opacity: 0, y: 20 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     transition={{ delay: 0.2 + (idx * 0.1), duration: 0.5 }}
@@ -74,9 +80,10 @@ export default function GlobalNav({ siteConfig }: { siteConfig?: any }) {
                                     style={{ fontFamily: 'var(--font-heading)' }}
                                 >
                                     <span className="absolute left-[-2rem] top-1/2 -translate-y-1/2 text-[var(--brand)] text-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300">0{idx + 1}</span>
-                                    {item}
+                                    {item.label}
                                 </motion.a>
                             ))}
+
                             <motion.a
                                 href="/admin"
                                 initial={{ opacity: 0 }}
