@@ -14,7 +14,6 @@ export default function GalleryBlock({ data }: { data: any }) {
         <div className={`w-full grid ${columns} ${gap}`}>
             {images.map((img: any, idx: number) => (
                 <div key={idx} className="relative aspect-square overflow-hidden rounded-xl group cursor-pointer bg-zinc-800">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                         src={img.url}
                         alt={img.alt || `Gallery Image ${idx + 1}`}

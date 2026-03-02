@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Menu, X } from 'lucide-react';
 
 export default function GlobalNav({ siteConfig }: { siteConfig?: any }) {
     const [isOpen, setIsOpen] = useState(false);
@@ -18,7 +17,7 @@ export default function GlobalNav({ siteConfig }: { siteConfig?: any }) {
 
     let parsedStyles: any = null;
     if (siteConfig?.globalStyles) {
-        try { parsedStyles = JSON.parse(siteConfig.globalStyles); } catch (e) { }
+        try { parsedStyles = JSON.parse(siteConfig.globalStyles); } catch (_error) { }
     }
     const logoUrl = parsedStyles?.logoUrl;
     const navLinks: { label: string; href: string }[] = parsedStyles?.navLinks || [

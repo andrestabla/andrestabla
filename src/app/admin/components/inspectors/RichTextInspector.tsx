@@ -5,10 +5,6 @@ import RichTextField from './RichTextField';
 export default function RichTextInspector({ initialData, onSave, isSaving }: any) {
     const [data, setData] = useState(initialData);
 
-    const handleChange = (e: any) => {
-        setData({ ...data, [e.target.name]: e.target.value });
-    };
-
     return (
         <div className="flex flex-col gap-4">
             <div className="flex flex-col gap-1">

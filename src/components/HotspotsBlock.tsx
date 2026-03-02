@@ -17,7 +17,6 @@ export default function HotspotsBlock({ data }: { data: any }) {
 
     return (
         <div className="w-full relative rounded-3xl overflow-hidden shadow-xl aspect-video bg-zinc-900">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={bgImage} alt="Hotspots Background" className="w-full h-full object-cover" />
 
             {spots.map((spot: any) => (

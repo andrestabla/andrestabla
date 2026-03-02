@@ -44,7 +44,6 @@ export default function PortfolioBlock({ data }: { data: any }) {
             <div className={`grid ${columns} ${gap}`}>
                 {filteredItems.map((item: any, idx: number) => (
                     <div key={`${item.title}-${idx}`} className="relative aspect-square overflow-hidden rounded-2xl group cursor-pointer animate-in fade-in zoom-in duration-500">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
                             src={item.image}
                             alt={item.title}

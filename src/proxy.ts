@@ -4,7 +4,7 @@ import * as jose from 'jose';
 
 const SECRET_KEY = new TextEncoder().encode(process.env.JWT_SECRET || 'secret');
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
     const token = request.cookies.get('auth_token')?.value;
 
     if (request.nextUrl.pathname.startsWith('/admin')) {
@@ -15,7 +15,7 @@ export async function middleware(request: NextRequest) {
         try {
             await jose.jwtVerify(token, SECRET_KEY);
             return NextResponse.next();
-        } catch (error) {
+        } catch (_error) {
             return NextResponse.redirect(new URL('/login', request.url));
         }
     }

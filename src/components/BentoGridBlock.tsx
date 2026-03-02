@@ -1,7 +1,7 @@
 'use client';
 
 import { motion, Variants } from 'framer-motion';
-import { Briefcase, GraduationCap, Award, Code, BookOpen } from 'lucide-react';
+import { GraduationCap, Award } from 'lucide-react';
 import { safeHtml } from '@/lib/html';
 
 export default function BentoGridBlock({ data }: { data: any }) {

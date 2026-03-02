@@ -30,7 +30,6 @@ export default function CarouselBlock({ data }: { data: any }) {
                     key={i}
                     className={`absolute inset-0 transition-opacity duration-1000 ${i === currentIndex ? 'opacity-100 z-10' : 'opacity-0 z-0'}`}
                 >
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={img.url} alt={`Slide ${i}`} className="w-full h-full object-cover" />
                     {img.caption && (
                         <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-6 pt-16">

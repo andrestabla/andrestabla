@@ -7,7 +7,7 @@ export default function AdvancedStyleInspector({ block, onSaved }: { block: any,
 
     let parsedStyles: any = {};
     if (block.styles) {
-        try { parsedStyles = JSON.parse(block.styles); } catch (e) { }
+        try { parsedStyles = JSON.parse(block.styles); } catch (_error) { }
     }
 
     const [bgColor, setBgColor] = useState(parsedStyles.backgroundColor || '');

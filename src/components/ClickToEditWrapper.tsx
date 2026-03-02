@@ -12,7 +12,6 @@ export default function ClickToEditWrapper() {
                 e.preventDefault();
                 e.stopPropagation();
                 const blockId = blockEl.getAttribute('data-block-id');
-                const blockType = blockEl.querySelector('[data-block-id]')?.getAttribute('data-block-id') || blockId;
                 window.parent.postMessage({ type: 'BLOCK_SELECTED', blockId }, '*');
             }
         };

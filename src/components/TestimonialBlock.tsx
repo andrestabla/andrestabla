@@ -15,7 +15,6 @@ export default function TestimonialBlock({ data }: { data: any }) {
             <div className="rich-html text-slate-700 dark:text-zinc-300 text-lg md:text-xl font-medium leading-relaxed italic mb-8 relative z-10" dangerouslySetInnerHTML={safeHtml(quote)} />
 
             <div className="flex items-center gap-4 relative z-10">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={avatar} alt={author} className="w-12 h-12 rounded-full object-cover border-2 border-indigo-100 dark:border-zinc-800" />
                 <div>
                     <h4 className="font-bold text-slate-900 dark:text-white text-sm" dangerouslySetInnerHTML={safeHtml(author)} />

@@ -72,7 +72,7 @@ function BlockNode({ block, allBlocks, isEditor }: { block: any, allBlocks: any[
     let parsedData = {};
     try {
         parsedData = JSON.parse(block.data);
-    } catch (e) {
+    } catch (_error) {
         return <div className="p-4 border-l-4 border-red-500 bg-red-950/20 text-red-500 font-mono text-xs">Error: JSON Corrupto en bloque {block.type}</div>;
     }
 
@@ -80,7 +80,7 @@ function BlockNode({ block, allBlocks, isEditor }: { block: any, allBlocks: any[
     if (block.styles) {
         try {
             parsedStyles = JSON.parse(block.styles);
-        } catch (e) {
+        } catch (_error) {
             // Handle error if styles JSON is corrupt
         }
     }

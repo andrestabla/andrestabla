@@ -70,7 +70,7 @@ function InspectorForm({ block, onSaved }: { block: any; onSaved: () => void }) 
     useEffect(() => {
         if (isContainer && activeTab === 'content') setActiveTab('layout');
         if (!isContainer && activeTab === 'layout') setActiveTab('content');
-    }, [block.id, isContainer]);
+    }, [activeTab, block.id, isContainer]);
 
     let parsedData: any = {};
     try { parsedData = JSON.parse(block.data); } catch {

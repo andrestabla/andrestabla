@@ -10,7 +10,6 @@ export default function ImageBlock({ data }: { data: any }) {
 
     return (
         <div className={`w-full ${height} overflow-hidden shadow-xl ${radius} relative group`}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
                 src={imageUrl}
                 alt={altText}

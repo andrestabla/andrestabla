@@ -10,8 +10,6 @@ export default function GridBlock({ data, childrenNodes, isEditor }: { data: any
     if (columns === 3) gridClass = "grid-cols-1 md:grid-cols-3";
     if (columns === 4) gridClass = "grid-cols-1 md:grid-cols-2 xl:grid-cols-4";
 
-    const hasChildren = React.Children.count(childrenNodes) > 0;
-
     return (
         <div className={`w-full py-12 grid ${gridClass} gap-6 md:gap-12 relative ${isEditor ? 'border border-dashed border-indigo-200 hover:border-indigo-400 p-4 rounded-xl transition-colors' : ''}`}>
             {/* Render children passed down from BlockRenderer */}

@@ -5,10 +5,6 @@ import RichTextField from './RichTextField';
 export default function TimelineInspector({ initialData, onSave, isSaving }: any) {
     const [data, setData] = useState(initialData);
 
-    const handleTitleChange = (e: any) => {
-        setData({ ...data, title: e.target.value });
-    };
-
     const handleItemChange = (index: number, e: any) => {
         const newItems = [...(data.items || [])];
         newItems[index] = { ...newItems[index], [e.target.name]: e.target.value };

@@ -40,6 +40,12 @@ export default function GlobalSettingsForm({ settings, onSaved }: { settings: an
         fontFamily: 'Inter',
         logoUrl: '',
         loaderEnabled: true,
+        footerStyle: 'minimal',
+        footerText: 'Powered by NodeBuilder™',
+        footerBg: '#09090b',
+        footerBorder: '#18181b',
+        footerTextColor: '#71717a',
+        footerAccentColor: '#f25c54',
         navLinks: [
             { label: 'Inicio', href: '#' },
             { label: 'Experiencia', href: '#experiencia' },
@@ -52,7 +58,7 @@ export default function GlobalSettingsForm({ settings, onSaved }: { settings: an
         try {
             const parsed = JSON.parse(settings.globalStyles);
             parsedStyles = { ...parsedStyles, ...parsed };
-        } catch (e) { }
+        } catch (_error) { }
     }
 
     const [primaryColor, setPrimaryColor] = useState(parsedStyles.primaryColor);
@@ -65,6 +71,12 @@ export default function GlobalSettingsForm({ settings, onSaved }: { settings: an
     const [fontFamily, setFontFamily] = useState(parsedStyles.fontFamily);
     const [logoUrl, setLogoUrl] = useState(parsedStyles.logoUrl);
     const [loaderEnabled, setLoaderEnabled] = useState(parsedStyles.loaderEnabled);
+    const [footerStyle, setFooterStyle] = useState(parsedStyles.footerStyle);
+    const [footerText, setFooterText] = useState(parsedStyles.footerText);
+    const [footerBg, setFooterBg] = useState(parsedStyles.footerBg);
+    const [footerBorder, setFooterBorder] = useState(parsedStyles.footerBorder);
+    const [footerTextColorValue, setFooterTextColorValue] = useState(parsedStyles.footerTextColor);
+    const [footerAccentColor, setFooterAccentColor] = useState(parsedStyles.footerAccentColor);
     const [navLinks, setNavLinks] = useState<{ label: string; href: string }[]>(parsedStyles.navLinks);
 
     const handleSave = async (e: React.FormEvent) => {
@@ -73,7 +85,9 @@ export default function GlobalSettingsForm({ settings, onSaved }: { settings: an
         const payload = JSON.stringify({
             primaryColor, secondaryColor, accentColor,
             buttonBg, buttonHover, textColor, headingColor,
-            fontFamily, logoUrl, loaderEnabled, navLinks
+            fontFamily, logoUrl, loaderEnabled,
+            footerStyle, footerText, footerBg, footerBorder, footerTextColor: footerTextColorValue, footerAccentColor,
+            navLinks
         });
         await updateGlobalSettings(payload);
         setIsSaving(false);
@@ -183,6 +197,53 @@ export default function GlobalSettingsForm({ settings, onSaved }: { settings: an
                     onChange={e => setLoaderEnabled(e.target.checked)}
                     className="w-5 h-5 rounded text-indigo-600"
                 />
+            </div>
+
+            {/* ── FOOTER ───────────────────────────────────────────── */}
+            <div className="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-3 block">
+                    Pie de Página
+                </label>
+
+                <div className="space-y-3">
+                    <div>
+                        <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1">Estilo</p>
+                        <select
+                            value={footerStyle}
+                            onChange={e => setFooterStyle(e.target.value)}
+                            className="w-full text-xs p-2.5 border border-slate-200 rounded-lg bg-white"
+                        >
+                            <option value="minimal">Minimal</option>
+                            <option value="centered">Centered</option>
+                            <option value="split">Split</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1">Texto Secundario</p>
+                        <input
+                            type="text"
+                            value={footerText}
+                            onChange={e => setFooterText(e.target.value)}
+                            placeholder="Powered by NodeBuilder™"
+                            className="w-full text-xs p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-indigo-500"
+                        />
+                    </div>
+
+                    <div className="divide-y divide-slate-100">
+                        <ColorField label="Fondo" value={footerBg} onChange={setFooterBg} />
+                        <ColorField label="Borde Superior" value={footerBorder} onChange={setFooterBorder} />
+                        <ColorField label="Texto" value={footerTextColorValue} onChange={setFooterTextColorValue} />
+                        <ColorField label="Acento" value={footerAccentColor} onChange={setFooterAccentColor} />
+                    </div>
+
+                    <div
+                        className="border rounded-lg p-3 text-center text-[10px] uppercase tracking-widest font-bold"
+                        style={{ backgroundColor: footerBg, borderColor: footerBorder, color: footerTextColorValue }}
+                    >
+                        Vista previa: {footerStyle} <span style={{ color: footerAccentColor }}>•</span> {footerText || 'Texto secundario'}
+                    </div>
+                </div>
             </div>
 
             {/* ── MENÚ NAV ─────────────────────────────────────────── */}

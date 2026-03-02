@@ -23,7 +23,7 @@ export default async function RootLayout({
   let settings = null;
   try {
     settings = await prisma.siteSettings.findUnique({ where: { id: 'global' } });
-  } catch (e) {
+  } catch (_error) {
     // Ignore DB error during initial build
   }
 
@@ -42,7 +42,7 @@ export default async function RootLayout({
     try {
       const parsed = JSON.parse(settings.globalStyles);
       parsedStyles = { ...parsedStyles, ...parsed };
-    } catch (e) { }
+    } catch (_error) { }
   }
 
   let fontClass = inter.variable;
