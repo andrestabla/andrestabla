@@ -19,7 +19,10 @@ export default function GlobalSettingsForm({ settings, onSaved }: { settings: an
     };
 
     if (settings && settings.globalStyles) {
-        try { parsedStyles = JSON.parse(settings.globalStyles); } catch (e) { }
+        try {
+            const parsed = JSON.parse(settings.globalStyles);
+            parsedStyles = { ...parsedStyles, ...parsed };
+        } catch (e) { }
     }
 
     const [primaryColor, setPrimaryColor] = useState(parsedStyles.primaryColor);
