@@ -16,7 +16,14 @@ export default function BentoGridInspector({ initialData, onSave, isSaving }: an
     };
 
     const addItem = () => {
-        const newItems = [...(data.items || []), { id: Date.now().toString(), title: "Nueva Tarjeta", meta: "Etiqueta", body: "Detalle" }];
+        let newItem = { id: Date.now().toString(), title: "Nueva Tarjeta", meta: "Etiqueta", body: "Detalle" };
+        if (data.bentoType === 'education') {
+            newItem = { id: Date.now().toString(), title: "Nuevo Título", subtitle: "Nueva Institución", meta: "Año", body: "Detalle" } as any;
+        }
+        if (data.bentoType === 'courses') {
+            newItem = { id: Date.now().toString(), title: "Nuevo Curso", meta: "Curso", body: "Detalle" } as any;
+        }
+        const newItems = [...(data.items || []), newItem];
         setData({ ...data, items: newItems });
     };
 
@@ -86,6 +93,12 @@ export default function BentoGridInspector({ initialData, onSave, isSaving }: an
                                     minHeightClass="min-h-[40px]"
                                     singleLine
                                     className="mb-2"
+                                />
+                                <RichTextField
+                                    value={item.body}
+                                    onChange={(value) => handleItemChange(idx, { target: { name: 'body', value } })}
+                                    placeholder="Detalle (opcional)"
+                                    minHeightClass="min-h-[64px]"
                                 />
                             </>
                         )}
