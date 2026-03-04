@@ -26,7 +26,15 @@ function ColorField({ label, value, onChange, hint }: { label: string; value: st
     );
 }
 
-export default function GlobalSettingsForm({ settings, onSaved }: { settings: any, onSaved: () => void }) {
+export default function GlobalSettingsForm({
+    settings,
+    onSaved,
+    anchorOptions = [],
+}: {
+    settings: any;
+    onSaved: () => void;
+    anchorOptions?: { label: string; href: string }[];
+}) {
     const [isSaving, setIsSaving] = useState(false);
 
     let parsedStyles: any = {
@@ -78,6 +86,7 @@ export default function GlobalSettingsForm({ settings, onSaved }: { settings: an
     const [footerTextColorValue, setFooterTextColorValue] = useState(parsedStyles.footerTextColor);
     const [footerAccentColor, setFooterAccentColor] = useState(parsedStyles.footerAccentColor);
     const [navLinks, setNavLinks] = useState<{ label: string; href: string }[]>(parsedStyles.navLinks);
+    const anchorHrefSet = new Set(anchorOptions.map((item) => item.href));
 
     const handleSave = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -253,7 +262,7 @@ export default function GlobalSettingsForm({ settings, onSaved }: { settings: an
                         <Navigation size={11} /> Menú de Navegación
                     </label>
                     <button type="button"
-                        onClick={() => setNavLinks([...navLinks, { label: 'Nuevo', href: '#' }])}
+                        onClick={() => setNavLinks([...navLinks, { label: 'Nuevo', href: anchorOptions[0]?.href || '#' }])}
                         className="flex items-center gap-1 px-2 py-1 bg-indigo-600 text-white text-[9px] font-bold rounded-lg hover:bg-indigo-700"
                     >
                         <Plus size={10} /> Añadir
@@ -267,11 +276,37 @@ export default function GlobalSettingsForm({ settings, onSaved }: { settings: an
                                 placeholder="Nombre"
                                 className="flex-1 text-xs p-2 border border-slate-200 rounded-lg focus:ring-1 focus:ring-indigo-500"
                             />
-                            <input type="text" value={link.href}
-                                onChange={e => { const u = [...navLinks]; u[idx] = { ...u[idx], href: e.target.value }; setNavLinks(u); }}
-                                placeholder="#ancla o URL"
-                                className="flex-1 text-xs p-2 border border-slate-200 rounded-lg focus:ring-1 focus:ring-indigo-500"
-                            />
+                            <div className="flex-1 flex flex-col gap-1">
+                                <select
+                                    value={anchorHrefSet.has(link.href) ? link.href : '__custom__'}
+                                    onChange={e => {
+                                        const selected = e.target.value;
+                                        const u = [...navLinks];
+                                        if (selected === '__custom__') {
+                                            if (anchorHrefSet.has(u[idx].href)) u[idx] = { ...u[idx], href: '' };
+                                        } else {
+                                            u[idx] = { ...u[idx], href: selected };
+                                        }
+                                        setNavLinks(u);
+                                    }}
+                                    className="w-full text-xs p-2 border border-slate-200 rounded-lg bg-white focus:ring-1 focus:ring-indigo-500"
+                                >
+                                    {anchorOptions.map((anchor) => (
+                                        <option key={anchor.href} value={anchor.href}>{anchor.label}</option>
+                                    ))}
+                                    <option value="__custom__">URL personalizada...</option>
+                                </select>
+
+                                {!anchorHrefSet.has(link.href) && (
+                                    <input
+                                        type="text"
+                                        value={link.href}
+                                        onChange={e => { const u = [...navLinks]; u[idx] = { ...u[idx], href: e.target.value }; setNavLinks(u); }}
+                                        placeholder="#ancla o URL"
+                                        className="w-full text-xs p-2 border border-slate-200 rounded-lg focus:ring-1 focus:ring-indigo-500"
+                                    />
+                                )}
+                            </div>
                             <button type="button"
                                 onClick={() => setNavLinks(navLinks.filter((_, i) => i !== idx))}
                                 className="text-red-400 hover:text-red-600 p-1">

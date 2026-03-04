@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { updateBlockData, deleteBlock, addBlock, reorderBlocks } from './actions';
 import {
     Trash2, Plus, Layers, Box, Settings2,
@@ -207,6 +207,62 @@ export default function BuilderWorkspace({ page: initialPage, settings }: { page
     const rootBlocks = blocks.filter((b: any) => !b.parentId).sort((a: any, b: any) => a.order - b.order);
     const selectedBlock = blocks.find((b: any) => b.id === selectedBlockId) ?? null;
 
+    const anchorOptions = useMemo(() => {
+        const childrenByParent = new Map<string | null, any[]>();
+
+        for (const block of blocks) {
+            const key = (block.parentId ?? null) as string | null;
+            if (!childrenByParent.has(key)) childrenByParent.set(key, []);
+            childrenByParent.get(key)!.push(block);
+        }
+
+        for (const entry of childrenByParent.values()) {
+            entry.sort((a: any, b: any) => a.order - b.order);
+        }
+
+        const cleanText = (value: string) =>
+            value
+                .replace(/<[^>]*>/g, '')
+                .replace(/\s+/g, ' ')
+                .trim();
+
+        const buildLabel = (block: any, depth: number) => {
+            let snippet = '';
+            try {
+                const data = JSON.parse(block.data || '{}');
+                if (typeof data.title === 'string' && data.title.trim()) snippet = data.title;
+                else if (typeof data.text === 'string' && data.text.trim()) snippet = data.text;
+                else if (typeof data.name === 'string' && data.name.trim()) snippet = data.name;
+                else if (typeof data.role === 'string' && data.role.trim()) snippet = data.role;
+            } catch (_error) {
+                // no-op
+            }
+
+            const cleanSnippet = cleanText(snippet);
+            const shortSnippet = cleanSnippet.length > 30 ? `${cleanSnippet.slice(0, 30)}...` : cleanSnippet;
+            const prefix = depth > 0 ? `${'-- '.repeat(depth)}` : '';
+            const typeLabel = String(block.type || 'block').toUpperCase();
+
+            return shortSnippet ? `${prefix}${typeLabel} - ${shortSnippet}` : `${prefix}${typeLabel}`;
+        };
+
+        const out: { label: string; href: string }[] = [{ label: 'INICIO (TOP)', href: '#' }];
+
+        const walk = (parentId: string | null, depth: number) => {
+            const nodes = childrenByParent.get(parentId) || [];
+            for (const block of nodes) {
+                out.push({
+                    label: buildLabel(block, depth),
+                    href: `#block-${block.id}`,
+                });
+                walk(block.id, depth + 1);
+            }
+        };
+
+        walk(null, 0);
+        return out;
+    }, [blocks]);
+
     // Layer Tree renderer
     const renderBlockTree = (blockLayer: any[], depth = 0): React.ReactNode => {
         return blockLayer.map((block: any) => {
@@ -311,7 +367,7 @@ export default function BuilderWorkspace({ page: initialPage, settings }: { page
                     <div className="flex-1 overflow-y-auto custom-scrollbar">
 
                         {viewMode === 'settings' && !selectedBlock && (
-                            <GlobalSettingsForm settings={settings} onSaved={forceFullReload} />
+                            <GlobalSettingsForm settings={settings} onSaved={forceFullReload} anchorOptions={anchorOptions} />
                         )}
 
                         {viewMode === 'palette' && !selectedBlock && (
