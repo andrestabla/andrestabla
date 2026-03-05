@@ -66,6 +66,7 @@ export function buildBlockInlineStyles(parsedStyles: RawBlockStyles, imageUrl: s
         styleObject.backgroundImage = `url('${escapeForCssUrl(imageUrl)}')`;
         styleObject.backgroundSize = 'cover';
         styleObject.backgroundPosition = 'center';
+        styleObject.backgroundRepeat = 'no-repeat';
     }
 
     const paddingTop = normalizeRem(parsedStyles.paddingTop);

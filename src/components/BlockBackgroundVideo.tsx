@@ -6,13 +6,13 @@ export default function BlockBackgroundVideo({ url }: { url?: string }) {
 
     return (
         <div
-            className="absolute inset-0 z-0 overflow-hidden pointer-events-none"
+            className="block-bg-video absolute inset-0 z-0 overflow-hidden pointer-events-none"
             aria-hidden="true"
             data-no-auto-translate="true"
         >
             {media.kind === 'file' ? (
                 <video
-                    className="absolute inset-0 h-full w-full object-cover"
+                    className="block-bg-video-file absolute inset-0 h-full w-full object-cover"
                     src={media.src}
                     autoPlay
                     muted
@@ -26,7 +26,7 @@ export default function BlockBackgroundVideo({ url }: { url?: string }) {
                     title="Background video"
                     tabIndex={-1}
                     aria-hidden="true"
-                    className="pointer-events-none absolute left-1/2 top-1/2 border-0"
+                    className="block-bg-video-iframe pointer-events-none absolute left-1/2 top-1/2 border-0"
                     style={{
                         width: 'max(100%, 177.7778vh)',
                         height: 'max(100%, 56.25vw)',

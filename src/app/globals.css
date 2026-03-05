@@ -199,6 +199,43 @@
   background-color: transparent !important;
 }
 
+.block-has-background-media {
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: center;
+}
+
+/* Mobile: force media backgrounds to fill the entire block area */
+@media (max-width: 768px) {
+  .block-has-background-media {
+    background-repeat: no-repeat !important;
+    background-size: cover !important;
+    background-position: center center !important;
+  }
+
+  .block-has-background-media .block-bg-video {
+    inset: 0 !important;
+  }
+
+  .block-has-background-media .block-bg-video-file {
+    width: 100% !important;
+    height: 100% !important;
+    min-width: 100% !important;
+    min-height: 100% !important;
+    object-fit: cover !important;
+  }
+
+  .block-has-background-media .block-bg-video-iframe {
+    min-width: 100% !important;
+    min-height: 100% !important;
+    width: max(100%, 177.7778vh) !important;
+    height: max(100%, 56.25vw) !important;
+    left: 50% !important;
+    top: 50% !important;
+    transform: translate(-50%, -50%) !important;
+  }
+}
+
 .scrollbar-invisible {
   -ms-overflow-style: none;
   scrollbar-width: none;

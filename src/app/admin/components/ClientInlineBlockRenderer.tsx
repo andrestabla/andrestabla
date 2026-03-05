@@ -122,7 +122,7 @@ function BlockNode({ block, allBlocks, selectedBlockId, onSelect }: BlockNodePro
 
     return (
         <div
-            className={`block-style-scope relative w-full transition-all duration-150 cursor-pointer ${hasCustomBackground ? 'overflow-hidden' : ''} ${hoverClass}`}
+            className={`block-style-scope relative w-full transition-all duration-150 cursor-pointer ${hasCustomBackground ? 'overflow-hidden block-has-background-media' : ''} ${hoverClass}`}
             style={{ ...styleObj, outline: outlineStyle }}
             data-block-id={block.id}
             onClick={(e) => {

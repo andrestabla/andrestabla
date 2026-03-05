@@ -119,7 +119,7 @@ function BlockNode({ block, allBlocks, isEditor }: { block: any, allBlocks: any[
 
     return (
         <div
-            className={`group/block block-style-scope relative w-full transition-all duration-300 ${hasCustomBackground ? 'overflow-hidden' : ''} ${editorOutlineClass} ${isEditor ? 'admin-editor-node' : ''}`}
+            className={`group/block block-style-scope relative w-full transition-all duration-300 ${hasCustomBackground ? 'overflow-hidden block-has-background-media' : ''} ${editorOutlineClass} ${isEditor ? 'admin-editor-node' : ''}`}
             style={styleString}
             data-block-id={block.id}
             id={`block-${block.id}`}
