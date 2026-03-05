@@ -2,8 +2,9 @@ import { NextResponse } from 'next/server';
 import { resolveLocale, type Locale } from '@/lib/i18n';
 
 const OPENAI_API_URL = 'https://api.openai.com/v1/responses';
-const OPENAI_MODEL = 'gpt-4.1-nano';
-const MAX_TEXTS = 120;
+const OPENAI_MODEL = 'gpt-4.1-mini';
+const MAX_TEXTS = 180;
+const MAX_BATCH_SIZE = 40;
 const MAX_TEXT_LENGTH = 1200;
 
 type TranslationPayload = {
@@ -77,13 +78,54 @@ function safeJsonParse<T>(value: string): T | null {
     }
 }
 
+function chunkArray<T>(values: T[], size: number): T[][] {
+    const chunks: T[][] = [];
+    for (let idx = 0; idx < values.length; idx += size) {
+        chunks.push(values.slice(idx, idx + size));
+    }
+    return chunks;
+}
+
+function parseTranslations(text: string): string[] | null {
+    const parseObject = (candidate: string): string[] | null => {
+        const parsed = safeJsonParse<{ translations?: unknown }>(candidate);
+        if (!parsed || !Array.isArray(parsed.translations)) return null;
+        const values = parsed.translations.map((item) => (typeof item === 'string' ? item : ''));
+        return values;
+    };
+
+    const direct = parseObject(text);
+    if (direct) return direct;
+
+    const objStart = text.indexOf('{');
+    const objEnd = text.lastIndexOf('}');
+    if (objStart >= 0 && objEnd > objStart) {
+        const objectCandidate = text.slice(objStart, objEnd + 1);
+        const objectResult = parseObject(objectCandidate);
+        if (objectResult) return objectResult;
+    }
+
+    const arrStart = text.indexOf('[');
+    const arrEnd = text.lastIndexOf(']');
+    if (arrStart >= 0 && arrEnd > arrStart) {
+        const arrayCandidate = text.slice(arrStart, arrEnd + 1);
+        const wrapped = `{"translations":${arrayCandidate}}`;
+        const arrayResult = parseObject(wrapped);
+        if (arrayResult) return arrayResult;
+    }
+
+    return null;
+}
+
 async function translateBatch(apiKey: string, payload: TranslationPayload): Promise<string[] | null> {
     const systemPrompt = [
         'You are a translation engine.',
         payload.target === 'en'
-            ? 'Translate every input text into natural English.'
-            : 'Traduis chaque texte en français naturel.',
-        'Keep meaning, punctuation, and numbers.',
+            ? 'Translate every input text into fluent, natural English.'
+            : 'Traduis chaque texte en français fluide et naturel.',
+        'Avoid literal, robotic wording.',
+        'Keep meaning, punctuation, dates and numbers.',
+        'Keep markdown, HTML tags, and line breaks structure.',
         'Do not add commentary.',
         'Return strict JSON only with this exact schema: {"translations": ["..."]}.',
         'The number of translations must match the number of input texts and preserve order.',
@@ -104,8 +146,8 @@ async function translateBatch(apiKey: string, payload: TranslationPayload): Prom
                     content: JSON.stringify({ texts: payload.texts }),
                 },
             ],
-            temperature: 0,
-            max_output_tokens: 4000,
+            temperature: 0.1,
+            max_output_tokens: 2800,
         }),
     });
 
@@ -115,13 +157,8 @@ async function translateBatch(apiKey: string, payload: TranslationPayload): Prom
     const text = extractResponseText(raw);
     if (!text) return null;
 
-    const parsed = safeJsonParse<{ translations?: unknown }>(text);
-    if (!parsed || !Array.isArray(parsed.translations)) return null;
-
-    const values = parsed.translations.map((item) =>
-        typeof item === 'string' ? item : ''
-    );
-
+    const values = parseTranslations(text);
+    if (!values) return null;
     if (values.length !== payload.texts.length) return null;
 
     return values;
@@ -174,20 +211,28 @@ export async function POST(req: Request) {
         }
 
         if (unknownTexts.length > 0) {
-            const translated = await translateBatch(apiKey, {
-                target,
-                texts: unknownTexts,
-            });
+            const batches = chunkArray(unknownTexts, MAX_BATCH_SIZE);
+            const batchResults = await Promise.all(
+                batches.map(async (texts) => ({
+                    texts,
+                    translated: await translateBatch(apiKey, { target, texts }),
+                }))
+            );
 
-            if (translated) {
-                unknownTexts.forEach((original, idx) => {
-                    const value = translated[idx] || original;
+            batchResults.forEach(({ texts, translated }) => {
+                if (!translated) {
+                    texts.forEach((original) => translations.set(original, original));
+                    return;
+                }
+
+                texts.forEach((original, idx) => {
+                    const value = (translated[idx] || original).trim() || original;
                     translations.set(original, value);
-                    setCached(locale, original, value);
+                    if (value !== original) {
+                        setCached(locale, original, value);
+                    }
                 });
-            } else {
-                unknownTexts.forEach((original) => translations.set(original, original));
-            }
+            });
         }
 
         return NextResponse.json({

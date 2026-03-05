@@ -4,7 +4,8 @@ import { useCallback, useEffect, useRef } from 'react';
 import { useI18n } from '@/components/I18nProvider';
 import type { Locale } from '@/lib/i18n';
 
-const TRANSLATION_STORAGE_KEY = 'atr-translation-cache-v1';
+const TRANSLATION_STORAGE_KEY = 'atr-translation-cache-v2';
+const TRANSLATE_ROOT_SELECTOR = '[data-auto-translate-root="true"]';
 const TRANSLATABLE_ATTRIBUTES = ['placeholder', 'title', 'aria-label', 'alt'] as const;
 
 type TranslationResponseItem = {
@@ -99,7 +100,7 @@ export default function AutoTranslatePage() {
     }, []);
 
     const collectTargets = useCallback((): Target[] => {
-        const root = document.body;
+        const root = document.querySelector<HTMLElement>(TRANSLATE_ROOT_SELECTOR) || document.body;
         if (!root) return [];
 
         const targets: Target[] = [];
@@ -165,45 +166,54 @@ export default function AutoTranslatePage() {
 
             if (missing.length === 0) return output;
 
-            const chunks = chunkArray(missing, 80);
-            for (const chunk of chunks) {
-                const response = await fetch('/api/translate', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ locale: targetLocale, texts: chunk }),
-                });
+            const chunks = chunkArray(missing, 40);
+            const responses = await Promise.all(
+                chunks.map(async (chunk) => {
+                    const response = await fetch('/api/translate', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ locale: targetLocale, texts: chunk }),
+                    });
 
-                if (!response.ok) {
-                    chunk.forEach((source) => output.set(source, source));
-                    continue;
+                    if (!response.ok) {
+                        return { chunk, list: [] as TranslationResponseItem[] };
+                    }
+
+                    const payload = await response.json().catch(() => ({}));
+                    const list: TranslationResponseItem[] = Array.isArray(payload?.translations)
+                        ? payload.translations
+                        : [];
+
+                    return { chunk, list };
+                })
+            );
+
+            let cacheChanged = false;
+            responses.forEach(({ chunk, list }) => {
+                if (list.length > 0) {
+                    list.forEach((item) => {
+                        if (!item || typeof item.source !== 'string') return;
+                        const source = item.source;
+                        const rawTarget = typeof item.target === 'string' ? item.target : source;
+                        const target = rawTarget.trim() || source;
+                        output.set(source, target);
+                        if (target !== source) {
+                            cacheRef.current[buildKey(targetLocale, source)] = target;
+                            cacheChanged = true;
+                        }
+                    });
                 }
-
-                const payload = await response.json().catch(() => ({}));
-                const list: TranslationResponseItem[] = Array.isArray(payload?.translations)
-                    ? payload.translations
-                    : [];
-
-                if (list.length === 0) {
-                    chunk.forEach((source) => output.set(source, source));
-                    continue;
-                }
-
-                list.forEach((item) => {
-                    if (!item || typeof item.source !== 'string') return;
-                    const source = item.source;
-                    const target = typeof item.target === 'string' ? item.target : source;
-                    output.set(source, target);
-                    cacheRef.current[buildKey(targetLocale, source)] = target;
-                });
 
                 chunk.forEach((source) => {
                     if (!output.has(source)) {
                         output.set(source, source);
                     }
                 });
-            }
+            });
 
-            persistCache();
+            if (cacheChanged) {
+                persistCache();
+            }
             return output;
         },
         [ensureCacheLoaded, persistCache]
@@ -255,6 +265,7 @@ export default function AutoTranslatePage() {
             return;
         }
 
+        const observeRoot = document.querySelector<HTMLElement>(TRANSLATE_ROOT_SELECTOR) || document.body;
         const observer = new MutationObserver(() => {
             if (isApplyingRef.current) return;
             if (debounceRef.current !== null) {
@@ -265,7 +276,7 @@ export default function AutoTranslatePage() {
             }, 120);
         });
 
-        observer.observe(document.body, {
+        observer.observe(observeRoot, {
             childList: true,
             subtree: true,
             characterData: true,

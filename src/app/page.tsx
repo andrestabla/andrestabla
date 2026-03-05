@@ -153,7 +153,9 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ [
 
       {/* Dynamic Content Engine */}
       {/* @ts-ignore */}
-      <BlockRenderer isEditor={isEditor} />
+      <div data-auto-translate-root="true">
+        <BlockRenderer isEditor={isEditor} />
+      </div>
 
       {/* Footer Element */}
       <footer className="w-full border-t mt-24" style={footerBaseStyle}>

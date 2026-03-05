@@ -234,7 +234,9 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
 
             <GlobalNav siteConfig={siteConfig} />
 
-            <BlockRenderer pageSlug={buildArticlePageSlug(resolved.resolvedSlug)} />
+            <div data-auto-translate-root="true">
+                <BlockRenderer pageSlug={buildArticlePageSlug(resolved.resolvedSlug)} />
+            </div>
 
             <footer className="w-full border-t mt-24" style={footerBaseStyle}>
                 {footerStyle === 'split' ? (
