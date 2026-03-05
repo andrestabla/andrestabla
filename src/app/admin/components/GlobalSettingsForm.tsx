@@ -47,6 +47,7 @@ export default function GlobalSettingsForm({
         headingColor: '#ffffff',
         fontFamily: 'Inter',
         logoUrl: '',
+        faviconUrl: '',
         loaderEnabled: true,
         footerStyle: 'minimal',
         footerText: 'Powered by NodeBuilder™',
@@ -78,6 +79,7 @@ export default function GlobalSettingsForm({
     const [headingColor, setHeadingColor] = useState(parsedStyles.headingColor);
     const [fontFamily, setFontFamily] = useState(parsedStyles.fontFamily);
     const [logoUrl, setLogoUrl] = useState(parsedStyles.logoUrl);
+    const [faviconUrl, setFaviconUrl] = useState(parsedStyles.faviconUrl);
     const [loaderEnabled, setLoaderEnabled] = useState(parsedStyles.loaderEnabled);
     const [footerStyle, setFooterStyle] = useState(parsedStyles.footerStyle);
     const [footerText, setFooterText] = useState(parsedStyles.footerText);
@@ -88,17 +90,35 @@ export default function GlobalSettingsForm({
     const [navLinks, setNavLinks] = useState<{ label: string; href: string }[]>(parsedStyles.navLinks);
     const anchorHrefSet = new Set(anchorOptions.map((item) => item.href));
 
+    const applyRuntimeFavicon = (rawHref: string) => {
+        if (typeof document === 'undefined') return;
+
+        const href = (rawHref || '').trim() || '/favicon.ico';
+        const relSelectors = ['icon', 'shortcut icon', 'apple-touch-icon'];
+
+        relSelectors.forEach((relValue) => {
+            let link = document.querySelector(`link[rel="${relValue}"]`) as HTMLLinkElement | null;
+            if (!link) {
+                link = document.createElement('link');
+                link.rel = relValue;
+                document.head.appendChild(link);
+            }
+            link.href = href;
+        });
+    };
+
     const handleSave = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsSaving(true);
         const payload = JSON.stringify({
             primaryColor, secondaryColor, accentColor,
             buttonBg, buttonHover, textColor, headingColor,
-            fontFamily, logoUrl, loaderEnabled,
+            fontFamily, logoUrl, faviconUrl, loaderEnabled,
             footerStyle, footerText, footerBg, footerBorder, footerTextColor: footerTextColorValue, footerAccentColor,
             navLinks
         });
         await updateGlobalSettings(payload);
+        applyRuntimeFavicon(faviconUrl);
         setIsSaving(false);
         onSaved();
     };
@@ -188,6 +208,27 @@ export default function GlobalSettingsForm({
                 {logoUrl && (
                     <div className="p-3 bg-slate-900 rounded-lg flex items-center justify-center">
                         <img src={logoUrl} alt="Logo Preview" className="max-h-10 object-contain" />
+                    </div>
+                )}
+            </div>
+
+            {/* ── FAVICON ──────────────────────────────────────────── */}
+            <div className="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-3 flex items-center gap-1">
+                    <ImageIcon size={11} /> Favicon del Sitio
+                </label>
+                <input
+                    type="text"
+                    value={faviconUrl}
+                    onChange={e => setFaviconUrl(e.target.value)}
+                    placeholder="URL del favicon (https://...)"
+                    className="w-full text-xs p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-indigo-500 mb-2"
+                />
+                <p className="text-[9px] text-slate-400 mb-2">Se aplica al guardar y se refleja al instante.</p>
+                {(faviconUrl || '').trim() && (
+                    <div className="p-3 bg-slate-900 rounded-lg flex items-center gap-3">
+                        <img src={faviconUrl} alt="Favicon Preview" className="w-6 h-6 rounded-sm object-cover" />
+                        <span className="text-[10px] text-slate-300 uppercase tracking-widest font-bold">Vista previa</span>
                     </div>
                 )}
             </div>

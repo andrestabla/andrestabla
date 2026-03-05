@@ -36,6 +36,7 @@ export default async function RootLayout({
     textColor: '#cbd5e1',
     headingColor: '#ffffff',
     fontFamily: 'Inter',
+    faviconUrl: '',
     loaderEnabled: true,
   };
   if (settings && settings.globalStyles) {
@@ -52,10 +53,14 @@ export default async function RootLayout({
   if (parsedStyles.fontFamily === 'Playfair Display') { fontClass = playfair.variable; fontVar = 'var(--font-playfair)'; }
   if (parsedStyles.fontFamily === 'Outfit') { fontClass = outfit.variable; fontVar = 'var(--font-outfit)'; }
   if (parsedStyles.fontFamily === 'DM Sans') { fontClass = dmSans.variable; fontVar = 'var(--font-dmsans)'; }
+  const faviconHref = (parsedStyles.faviconUrl || '').trim() || '/favicon.ico';
 
   return (
     <html lang="es" className={`${fontClass} scroll-smooth`}>
       <head>
+        <link rel="icon" href={faviconHref} />
+        <link rel="shortcut icon" href={faviconHref} />
+        <link rel="apple-touch-icon" href={faviconHref} />
         <style>{`
           :root {
             --brand:       ${parsedStyles.primaryColor};
