@@ -150,7 +150,7 @@ function InspectorForm({ block, onSaved }: { block: any; onSaved: () => void }) 
                 </>
             )}
 
-            {activeTab === 'styles' && <AdvancedStyleInspector block={block} onSaved={onSaved} />}
+            {activeTab === 'styles' && <AdvancedStyleInspector key={block.id} block={block} onSaved={onSaved} />}
         </div>
     );
 }

@@ -33,6 +33,7 @@ import LoopGridBlock from '@/components/LoopGridBlock';
 import ClickToEditWrapper from '@/components/ClickToEditWrapper';
 import BlockBackgroundVideo from '@/components/BlockBackgroundVideo';
 import { resolveBackgroundMediaUrls } from '@/lib/backgroundVideo';
+import { buildBlockInlineStyles } from '@/lib/blockStyles';
 
 const BlockComponents: Record<string, any> = {
     hero: HeroBlock,
@@ -89,44 +90,8 @@ function BlockNode({ block, allBlocks, isEditor }: { block: any, allBlocks: any[
         }
     }
 
-    // Apply parsed styles dynamically
-    const styleString: any = {};
-    if (parsedStyles.backgroundColor) styleString.backgroundColor = parsedStyles.backgroundColor;
     const { imageUrl, videoUrl } = resolveBackgroundMediaUrls(parsedStyles);
-    if (imageUrl) {
-        styleString.backgroundImage = `url('${imageUrl}')`;
-        styleString.backgroundSize = 'cover';
-        styleString.backgroundPosition = 'center';
-    }
-    if (parsedStyles.paddingTop) styleString.paddingTop = `${parsedStyles.paddingTop}rem`;
-    if (parsedStyles.paddingBottom) styleString.paddingBottom = `${parsedStyles.paddingBottom}rem`;
-    if (parsedStyles.padding) styleString.padding = parsedStyles.padding;
-    if (parsedStyles.margin) styleString.margin = parsedStyles.margin;
-
-    // New Styles
-    if (parsedStyles.textColor) {
-        styleString.color = parsedStyles.textColor;
-        styleString['--text'] = parsedStyles.textColor;
-    }
-    if (parsedStyles.fontSize) styleString.fontSize = `${parsedStyles.fontSize}rem`;
-
-    if (parsedStyles.fontFamily) {
-        const fontMap: Record<string, string> = {
-            'Inter': 'var(--font-inter)',
-            'Roboto': 'var(--font-roboto)',
-            'Playfair Display': 'var(--font-playfair)',
-            'Outfit': 'var(--font-outfit)',
-            'DM Sans': 'var(--font-dmsans)'
-        };
-        styleString.fontFamily = fontMap[parsedStyles.fontFamily] || parsedStyles.fontFamily;
-    }
-
-    if (parsedStyles.titleColor) {
-        styleString['--heading'] = parsedStyles.titleColor;
-        styleString['--block-heading'] = parsedStyles.titleColor;
-        // If they set a title color, we often want the brand accents in that block to match
-        // but let's keep it strictly to --heading for now as requested.
-    }
+    const styleString: any = buildBlockInlineStyles(parsedStyles, imageUrl);
 
     // Find children attached to this node
     const childrenBlocks = allBlocks
@@ -147,7 +112,7 @@ function BlockNode({ block, allBlocks, isEditor }: { block: any, allBlocks: any[
 
     return (
         <div
-            className={`group/block relative w-full transition-all duration-300 ${editorOutlineClass} ${isEditor ? 'admin-editor-node' : ''}`}
+            className={`group/block block-style-scope relative w-full transition-all duration-300 ${editorOutlineClass} ${isEditor ? 'admin-editor-node' : ''}`}
             style={styleString}
             data-block-id={block.id}
             id={`block-${block.id}`}

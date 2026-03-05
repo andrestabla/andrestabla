@@ -34,6 +34,7 @@ import HotspotsBlock from '@/components/HotspotsBlock';
 import LoopGridBlock from '@/components/LoopGridBlock';
 import BlockBackgroundVideo from '@/components/BlockBackgroundVideo';
 import { resolveBackgroundMediaUrls } from '@/lib/backgroundVideo';
+import { buildBlockInlineStyles } from '@/lib/blockStyles';
 
 const BlockComponents: Record<string, any> = {
     hero: HeroBlock,
@@ -88,44 +89,8 @@ function BlockNode({ block, allBlocks, selectedBlockId, onSelect }: BlockNodePro
     let parsedStyles: any = {};
     try { if (block.styles) parsedStyles = JSON.parse(block.styles); } catch { /* noop */ }
 
-    const styleObj: React.CSSProperties = {};
-    if (parsedStyles.backgroundColor) styleObj.backgroundColor = parsedStyles.backgroundColor;
     const { imageUrl, videoUrl } = resolveBackgroundMediaUrls(parsedStyles);
-    if (imageUrl) {
-        styleObj.backgroundImage = `url('${imageUrl}')`;
-        styleObj.backgroundSize = 'cover';
-        styleObj.backgroundPosition = 'center';
-    }
-    if (parsedStyles.paddingTop) styleObj.paddingTop = `${parsedStyles.paddingTop}rem`;
-    if (parsedStyles.paddingBottom) styleObj.paddingBottom = `${parsedStyles.paddingBottom}rem`;
-    if (parsedStyles.padding) styleObj.padding = parsedStyles.padding;
-    if (parsedStyles.margin) styleObj.margin = parsedStyles.margin;
-
-    // New Styles
-    if (parsedStyles.textColor) styleObj.color = parsedStyles.textColor;
-    if (parsedStyles.fontSize) styleObj.fontSize = `${parsedStyles.fontSize}rem`;
-
-    // Mapping font families to their CSS variables if needed, or just applying the string
-    if (parsedStyles.fontFamily) {
-        const fontMap: Record<string, string> = {
-            'Inter': 'var(--font-inter)',
-            'Roboto': 'var(--font-roboto)',
-            'Playfair Display': 'var(--font-playfair)',
-            'Outfit': 'var(--font-outfit)',
-            'DM Sans': 'var(--font-dmsans)'
-        };
-        styleObj.fontFamily = fontMap[parsedStyles.fontFamily] || parsedStyles.fontFamily;
-    }
-
-    // Custom variable for headings within this block
-    if (parsedStyles.titleColor) {
-        (styleObj as any)['--heading'] = parsedStyles.titleColor;
-        (styleObj as any)['--block-heading'] = parsedStyles.titleColor;
-        (styleObj as any)['--brand'] = parsedStyles.titleColor; // Optional: make brand color match title color in this block?
-    }
-    if (parsedStyles.textColor) {
-        (styleObj as any)['--text'] = parsedStyles.textColor;
-    }
+    const styleObj = buildBlockInlineStyles(parsedStyles, imageUrl) as React.CSSProperties;
 
     const childrenBlocks = allBlocks
         .filter((b: any) => b.parentId === block.id)
@@ -150,7 +115,7 @@ function BlockNode({ block, allBlocks, selectedBlockId, onSelect }: BlockNodePro
 
     return (
         <div
-            className={`relative w-full transition-all duration-150 cursor-pointer ${hoverClass}`}
+            className={`block-style-scope relative w-full transition-all duration-150 cursor-pointer ${hoverClass}`}
             style={{ ...styleObj, outline: outlineStyle }}
             data-block-id={block.id}
             onClick={(e) => {

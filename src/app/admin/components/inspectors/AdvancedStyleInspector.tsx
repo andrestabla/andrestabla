@@ -1,30 +1,67 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { updateBlockStyles } from '../actions';
 import { Palette, Baseline, Type } from 'lucide-react';
 import { inferBackgroundMediaType, normalizeBackgroundMediaType } from '@/lib/backgroundVideo';
 
+function getParsedStyles(styles: unknown) {
+    if (!styles) return {};
+    try {
+        return JSON.parse(String(styles));
+    } catch (_error) {
+        return {};
+    }
+}
+
+function getHydratedStyleState(sourceBlock: any) {
+    const parsedStyles = getParsedStyles(sourceBlock?.styles);
+    const normalizedMediaType = normalizeBackgroundMediaType(parsedStyles.backgroundMediaType);
+    const backgroundMediaType = normalizedMediaType === 'auto'
+        ? inferBackgroundMediaType(parsedStyles)
+        : normalizedMediaType;
+
+    return {
+        bgColor: parsedStyles.backgroundColor || '',
+        bgImage: parsedStyles.backgroundImage || '',
+        bgVideo: parsedStyles.backgroundVideo || '',
+        bgMediaType: backgroundMediaType,
+        paddingTop: parsedStyles.paddingTop || '0',
+        paddingBottom: parsedStyles.paddingBottom || '0',
+        textColor: parsedStyles.textColor || '',
+        titleColor: parsedStyles.titleColor || '',
+        fontSize: parsedStyles.fontSize || '1',
+        fontFamily: parsedStyles.fontFamily || '',
+    };
+}
+
 export default function AdvancedStyleInspector({ block, onSaved }: { block: any, onSaved: () => void }) {
     const [isSaving, setIsSaving] = useState(false);
 
-    let parsedStyles: any = {};
-    if (block.styles) {
-        try { parsedStyles = JSON.parse(block.styles); } catch (_error) { }
-    }
+    const initialState = getHydratedStyleState(block);
 
-    const [bgColor, setBgColor] = useState(parsedStyles.backgroundColor || '');
-    const [bgImage, setBgImage] = useState(parsedStyles.backgroundImage || '');
-    const [bgVideo, setBgVideo] = useState(parsedStyles.backgroundVideo || '');
-    const [bgMediaType, setBgMediaType] = useState(
-        normalizeBackgroundMediaType(parsedStyles.backgroundMediaType) === 'auto'
-            ? inferBackgroundMediaType(parsedStyles)
-            : normalizeBackgroundMediaType(parsedStyles.backgroundMediaType)
-    );
-    const [paddingTop, setPaddingTop] = useState(parsedStyles.paddingTop || '0');
-    const [paddingBottom, setPaddingBottom] = useState(parsedStyles.paddingBottom || '0');
-    const [textColor, setTextColor] = useState(parsedStyles.textColor || '');
-    const [titleColor, setTitleColor] = useState(parsedStyles.titleColor || '');
-    const [fontSize, setFontSize] = useState(parsedStyles.fontSize || '1');
-    const [fontFamily, setFontFamily] = useState(parsedStyles.fontFamily || '');
+    const [bgColor, setBgColor] = useState(initialState.bgColor);
+    const [bgImage, setBgImage] = useState(initialState.bgImage);
+    const [bgVideo, setBgVideo] = useState(initialState.bgVideo);
+    const [bgMediaType, setBgMediaType] = useState(initialState.bgMediaType);
+    const [paddingTop, setPaddingTop] = useState(initialState.paddingTop);
+    const [paddingBottom, setPaddingBottom] = useState(initialState.paddingBottom);
+    const [textColor, setTextColor] = useState(initialState.textColor);
+    const [titleColor, setTitleColor] = useState(initialState.titleColor);
+    const [fontSize, setFontSize] = useState(initialState.fontSize);
+    const [fontFamily, setFontFamily] = useState(initialState.fontFamily);
+
+    useEffect(() => {
+        const nextState = getHydratedStyleState(block);
+        setBgColor(nextState.bgColor);
+        setBgImage(nextState.bgImage);
+        setBgVideo(nextState.bgVideo);
+        setBgMediaType(nextState.bgMediaType);
+        setPaddingTop(nextState.paddingTop);
+        setPaddingBottom(nextState.paddingBottom);
+        setTextColor(nextState.textColor);
+        setTitleColor(nextState.titleColor);
+        setFontSize(nextState.fontSize);
+        setFontFamily(nextState.fontFamily);
+    }, [block]);
 
     const handleSave = async (e: React.FormEvent) => {
         e.preventDefault();

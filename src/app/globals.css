@@ -177,6 +177,23 @@
   text-underline-offset: 2px;
 }
 
+/* Block-level style variables applied from the CMS inspector */
+.block-style-scope :is(h1, h2, h3, h4, h5, h6) {
+  color: var(--block-heading, var(--heading, currentColor));
+}
+
+.block-style-scope .rich-html {
+  color: var(--block-text, var(--text, inherit));
+}
+
+.block-style-scope .rich-html :is(p, li, strong, em, u, span, blockquote) {
+  color: inherit;
+}
+
+.block-style-scope :where(p, li, label, time, small) {
+  color: var(--block-text, var(--text, inherit));
+}
+
 .scrollbar-invisible {
   -ms-overflow-style: none;
   scrollbar-width: none;

@@ -12,14 +12,41 @@ import {
     normalizeSlugPart,
 } from '@/lib/articlePages';
 
+async function revalidateRoutesForBlock(blockId: string) {
+    const blockRecord = await prisma.block.findUnique({
+        where: { id: blockId },
+        select: {
+            page: {
+                select: { slug: true },
+            },
+        },
+    });
+
+    revalidatePath('/');
+    revalidatePath('/articulos');
+    revalidatePath('/admin');
+
+    const pageSlug = blockRecord?.page?.slug;
+    if (!pageSlug) return;
+
+    if (pageSlug === 'home') {
+        revalidatePath('/');
+        return;
+    }
+
+    if (isArticlePageSlug(pageSlug)) {
+        const articleSlug = extractArticleSlugPart(pageSlug);
+        revalidatePath(buildArticlePublicPath(articleSlug));
+    }
+}
+
 // Update a single block's JSON data
 export async function updateBlockData(id: string, newData: string) {
     await prisma.block.update({
         where: { id },
         data: { data: newData }
     });
-    revalidatePath('/');
-    revalidatePath('/admin');
+    await revalidateRoutesForBlock(id);
 }
 
 // Update a single block's styling overrides (backgrounds, paddings)
@@ -28,8 +55,7 @@ export async function updateBlockStyles(id: string, newStyles: string) {
         where: { id },
         data: { styles: newStyles }
     });
-    revalidatePath('/');
-    revalidatePath('/admin');
+    await revalidateRoutesForBlock(id);
 }
 
 // Add a new block to the end of the page (or inside a parent)
