@@ -192,7 +192,11 @@ export default function BuilderWorkspace({
         setPublishError('');
         setIsPublishing(true);
         try {
-            await publishPageAndSyncArticles(page.id);
+            const result = await publishPageAndSyncArticles(page.id);
+            if (result?.adminPath) {
+                window.location.href = result.adminPath;
+                return;
+            }
             window.location.reload();
         } catch (_error) {
             setPublishError('No se pudo publicar en este momento. Intenta de nuevo.');

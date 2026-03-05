@@ -290,10 +290,35 @@ function formatBlogDate(date: Date): string {
     }).format(date);
 }
 
+async function resolveUniqueArticleSlug(baseSlug: string, pageId: string): Promise<string> {
+    const cleanBase = normalizeSlugPart(baseSlug, 'articulo');
+    let attempt = 0;
+
+    while (attempt < 50) {
+        const candidate = attempt === 0 ? cleanBase : normalizeSlugPart(`${cleanBase}-${attempt + 1}`, 'articulo');
+        const candidatePageSlug = buildArticlePageSlug(candidate);
+        const existing = await prisma.page.findUnique({
+            where: { slug: candidatePageSlug },
+            select: { id: true },
+        });
+
+        if (!existing || existing.id === pageId) {
+            return candidate;
+        }
+
+        attempt += 1;
+    }
+
+    return normalizeSlugPart(`${cleanBase}-${Date.now()}`, 'articulo');
+}
+
 type PublishSyncResult = {
     ok: boolean;
     syncedLoopgrids: number;
     articleSlug: string | null;
+    pageSlug: string | null;
+    publicPath: string | null;
+    adminPath: string | null;
     reason?: string;
 };
 
@@ -310,6 +335,9 @@ export async function publishPageAndSyncArticles(pageId: string): Promise<Publis
             ok: false,
             syncedLoopgrids: 0,
             articleSlug: null,
+            pageSlug: null,
+            publicPath: null,
+            adminPath: null,
             reason: 'page_not_found',
         };
     }
@@ -321,13 +349,21 @@ export async function publishPageAndSyncArticles(pageId: string): Promise<Publis
             ok: true,
             syncedLoopgrids: 0,
             articleSlug: null,
+            pageSlug: page.slug,
+            publicPath: null,
+            adminPath: buildAdminEditPath(page.slug),
             reason: 'not_article_page',
         };
     }
 
-    const articleSlug = extractArticleSlugPart(page.slug);
-    const publicPath = buildArticlePublicPath(articleSlug);
+    const currentArticleSlug = extractArticleSlugPart(page.slug);
     const articleMeta = extractArticleMeta(page);
+    const preferredArticleSlug = normalizeSlugPart(articleMeta.title || currentArticleSlug, currentArticleSlug);
+    const articleSlug = await resolveUniqueArticleSlug(preferredArticleSlug, page.id);
+    const nextPageSlug = buildArticlePageSlug(articleSlug);
+    const publicPath = buildArticlePublicPath(articleSlug);
+    const oldPublicPath = buildArticlePublicPath(currentArticleSlug);
+    const adminPath = buildAdminEditPath(nextPageSlug);
     const defaultDate = formatBlogDate(new Date());
 
     const loopgridBlocks = await prisma.block.findMany({
@@ -354,7 +390,7 @@ export async function publishPageAndSyncArticles(pageId: string): Promise<Publis
             const itemSlug = normalizeSlugPart(
                 String(item.articleSlug || '').trim() || extractSlugFromHref(item.href || '')
             );
-            if (itemSlug === articleSlug) {
+            if (itemSlug === currentArticleSlug || itemSlug === articleSlug) {
                 foundIndex = i;
                 break;
             }
@@ -394,12 +430,14 @@ export async function publishPageAndSyncArticles(pageId: string): Promise<Publis
         syncedLoopgrids += 1;
     }
 
+    const pageSlugNeedsUpdate = page.slug !== nextPageSlug;
     const pageTitleNeedsUpdate = page.title !== articleMeta.title;
     const pageDescriptionNeedsUpdate = (page.description || '') !== (articleMeta.excerpt || '');
-    if (pageTitleNeedsUpdate || pageDescriptionNeedsUpdate) {
+    if (pageSlugNeedsUpdate || pageTitleNeedsUpdate || pageDescriptionNeedsUpdate) {
         await prisma.page.update({
             where: { id: page.id },
             data: {
+                slug: nextPageSlug,
                 title: articleMeta.title,
                 description: articleMeta.excerpt || null,
             },
@@ -412,11 +450,15 @@ export async function publishPageAndSyncArticles(pageId: string): Promise<Publis
 
     revalidatePath('/');
     revalidatePath('/admin');
+    revalidatePath(oldPublicPath);
     revalidatePath(publicPath);
 
     return {
         ok: true,
         syncedLoopgrids,
         articleSlug,
+        pageSlug: nextPageSlug,
+        publicPath,
+        adminPath,
     };
 }
