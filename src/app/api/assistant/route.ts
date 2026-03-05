@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { ANDRES_ASSISTANT_KNOWLEDGE, LINKEDIN_URL } from '@/lib/assistantKnowledge';
 
 const OPENAI_API_URL = 'https://api.openai.com/v1/responses';
 const OPENAI_MODEL = process.env.OPENAI_MODEL || 'gpt-4.1-mini';
@@ -127,6 +128,11 @@ export async function POST(req: Request) {
             'Tu objetivo es ayudar a visitantes a conocer su perfil, experiencia, formación, cursos y servicios.',
             'Usa únicamente la información de contexto entregada; no inventes datos.',
             'Si te preguntan algo no disponible en el contexto, dilo explícitamente y sugiere contactar a Andrés.',
+            'Cuando te pidan LinkedIn, comparte exactamente esta URL:',
+            LINKEDIN_URL,
+            '',
+            'Contexto base de conocimiento (hoja de vida y trayectoria):',
+            ANDRES_ASSISTANT_KNOWLEDGE,
             '',
             `Contexto del sitio: ${siteTitle}.`,
             siteDescription ? `Descripción: ${siteDescription}` : '',
