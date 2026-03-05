@@ -5,6 +5,7 @@ import BentoGridBlock from '@/components/BentoGridBlock';
 import RichTextBlock from '@/components/RichTextBlock';
 import GridBlock from '@/components/GridBlock';
 import VideoBlock from '@/components/VideoBlock';
+import EmbedBlock from '@/components/EmbedBlock';
 import ImageBlock from '@/components/ImageBlock';
 import AccordionBlock from '@/components/AccordionBlock';
 import CarouselBlock from '@/components/CarouselBlock';
@@ -38,6 +39,7 @@ const BlockComponents: Record<string, any> = {
     bento: BentoGridBlock,
     grid: GridBlock,
     video: VideoBlock,
+    embed: EmbedBlock,
     image: ImageBlock,
     accordion: AccordionBlock,
     carousel: CarouselBlock,
@@ -118,6 +120,7 @@ function BlockNode({ block, allBlocks, isEditor }: { block: any, allBlocks: any[
 
     if (parsedStyles.titleColor) {
         styleString['--heading'] = parsedStyles.titleColor;
+        styleString['--block-heading'] = parsedStyles.titleColor;
         // If they set a title color, we often want the brand accents in that block to match
         // but let's keep it strictly to --heading for now as requested.
     }

@@ -17,6 +17,7 @@ import BentoGridInspector from './inspectors/BentoGridInspector';
 import GridInspector from './inspectors/GridInspector';
 import AdvancedStyleInspector from './inspectors/AdvancedStyleInspector';
 import VideoInspector from './inspectors/VideoInspector';
+import EmbedInspector from './inspectors/EmbedInspector';
 import ImageInspector from './inspectors/ImageInspector';
 import AccordionInspector from './inspectors/AccordionInspector';
 import CarouselInspector from './inspectors/CarouselInspector';
@@ -121,6 +122,7 @@ function InspectorForm({ block, onSaved }: { block: any; onSaved: () => void }) 
                     {block.type === 'bento' && <BentoGridInspector initialData={parsedData} onSave={handleSaveParsed} isSaving={isSaving} />}
                     {block.type === 'grid' && <GridInspector initialData={parsedData} onSave={handleSaveParsed} isSaving={isSaving} />}
                     {block.type === 'video' && <VideoInspector initialData={parsedData} onSave={handleSaveParsed} isSaving={isSaving} />}
+                    {block.type === 'embed' && <EmbedInspector initialData={parsedData} onSave={handleSaveParsed} isSaving={isSaving} />}
                     {block.type === 'image' && <ImageInspector initialData={parsedData} onSave={handleSaveParsed} isSaving={isSaving} />}
                     {block.type === 'accordion' && <AccordionInspector initialData={parsedData} onSave={handleSaveParsed} isSaving={isSaving} />}
                     {block.type === 'carousel' && <CarouselInspector initialData={parsedData} onSave={handleSaveParsed} isSaving={isSaving} />}
@@ -400,6 +402,7 @@ export default function BuilderWorkspace({
                                         <WidgetAddBtn pageId={page.id} parentId={null} type="button" label="Botón" defaultData={{ text: 'Haz clic', link: '#', style: 'primary' }} onAdded={handleBlockAdded} />
                                         <WidgetAddBtn pageId={page.id} parentId={null} type="image" label="Imagen" defaultData={{ url: '', alt: '' }} onAdded={handleBlockAdded} />
                                         <WidgetAddBtn pageId={page.id} parentId={null} type="video" label="Video" defaultData={{ url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ' }} onAdded={handleBlockAdded} />
+                                        <WidgetAddBtn pageId={page.id} parentId={null} type="embed" label="Embed URL" defaultData={{ url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', aspectRatio: 'aspect-video', borderRadius: 'rounded-xl' }} onAdded={handleBlockAdded} />
                                         <WidgetAddBtn pageId={page.id} parentId={null} type="divider" label="Divider" defaultData={{ style: 'solid' }} onAdded={handleBlockAdded} />
                                         <WidgetAddBtn pageId={page.id} parentId={null} type="spacer" label="Espaciador" defaultData={{ height: 'h-12' }} onAdded={handleBlockAdded} />
                                     </div>
@@ -483,6 +486,7 @@ export default function BuilderWorkspace({
                                             <WidgetAddBtn pageId={page.id} parentId={selectedBlock.id} type="richtext" label="Texto" defaultData={{ title: 'Sección', content: '<p>...</p>' }} onAdded={handleBlockAdded} />
                                             <WidgetAddBtn pageId={page.id} parentId={selectedBlock.id} type="button" label="Botón" defaultData={{ text: 'Ir', style: 'primary' }} onAdded={handleBlockAdded} />
                                             <WidgetAddBtn pageId={page.id} parentId={selectedBlock.id} type="image" label="Imagen" defaultData={{ url: '', alt: '' }} onAdded={handleBlockAdded} />
+                                            <WidgetAddBtn pageId={page.id} parentId={selectedBlock.id} type="embed" label="Embed" defaultData={{ url: '', aspectRatio: 'aspect-video', borderRadius: 'rounded-xl' }} onAdded={handleBlockAdded} />
                                             <WidgetAddBtn pageId={page.id} parentId={selectedBlock.id} type="gallery" label="Galería" defaultData={{ images: [] }} onAdded={handleBlockAdded} />
                                             <WidgetAddBtn pageId={page.id} parentId={selectedBlock.id} type="counter" label="Contador" defaultData={{ items: [] }} onAdded={handleBlockAdded} />
                                             <WidgetAddBtn pageId={page.id} parentId={selectedBlock.id} type="pricing" label="Precios" defaultData={{ title: 'Pro', price: '$99' }} onAdded={handleBlockAdded} />

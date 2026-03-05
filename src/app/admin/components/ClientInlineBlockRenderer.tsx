@@ -8,6 +8,7 @@ import TimelineBlock from '@/components/TimelineBlock';
 import BentoGridBlock from '@/components/BentoGridBlock';
 import GridBlock from '@/components/GridBlock';
 import VideoBlock from '@/components/VideoBlock';
+import EmbedBlock from '@/components/EmbedBlock';
 import ImageBlock from '@/components/ImageBlock';
 import AccordionBlock from '@/components/AccordionBlock';
 import CarouselBlock from '@/components/CarouselBlock';
@@ -39,6 +40,7 @@ const BlockComponents: Record<string, any> = {
     bento: BentoGridBlock,
     grid: GridBlock,
     video: VideoBlock,
+    embed: EmbedBlock,
     image: ImageBlock,
     accordion: AccordionBlock,
     carousel: CarouselBlock,
@@ -115,6 +117,7 @@ function BlockNode({ block, allBlocks, selectedBlockId, onSelect }: BlockNodePro
     // Custom variable for headings within this block
     if (parsedStyles.titleColor) {
         (styleObj as any)['--heading'] = parsedStyles.titleColor;
+        (styleObj as any)['--block-heading'] = parsedStyles.titleColor;
         (styleObj as any)['--brand'] = parsedStyles.titleColor; // Optional: make brand color match title color in this block?
     }
     if (parsedStyles.textColor) {
