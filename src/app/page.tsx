@@ -1,9 +1,54 @@
+import type { Metadata } from 'next';
 import { prisma } from '@/lib/prisma';
 import GlobalNav from '@/components/GlobalNav';
 import BlockRenderer from './components/BlockRenderer';
 import AndresAssistant from '@/components/AndresAssistant';
+import { absoluteUrl, DEFAULT_SEO_DESCRIPTION, SITE_NAME, SITE_URL } from '@/lib/seo';
 
 export const dynamic = 'force-dynamic';
+
+export async function generateMetadata(): Promise<Metadata> {
+  const settings = await prisma.siteSettings.findFirst({
+    select: { title: true, description: true, globalStyles: true },
+  });
+
+  const baseTitle = (settings?.title || '').trim() || SITE_NAME;
+  const title = `${baseTitle} | Educación, Innovación Digital e IA`;
+  const description = (settings?.description || '').trim() || DEFAULT_SEO_DESCRIPTION;
+  let image = '/favicon.ico';
+  if (settings?.globalStyles) {
+    try {
+      const parsed = JSON.parse(settings.globalStyles);
+      image = (parsed?.logoUrl || parsed?.faviconUrl || image) as string;
+    } catch (_error) {
+      // Ignore invalid style JSON
+    }
+  }
+  const imageUrl = absoluteUrl(image);
+
+  return {
+    title,
+    description,
+    alternates: {
+      canonical: '/',
+    },
+    openGraph: {
+      type: 'website',
+      siteName: SITE_NAME,
+      url: SITE_URL,
+      title,
+      description,
+      locale: 'es_CO',
+      images: [{ url: imageUrl }],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+      images: [imageUrl],
+    },
+  };
+}
 
 export default async function Home({ searchParams }: { searchParams: Promise<{ [key: string]: string | string[] | undefined }> }) {
 
@@ -36,9 +81,66 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ [
     borderColor: parsedStyles.footerBorder,
     color: parsedStyles.footerTextColor,
   };
+  const siteTitle = siteConfig?.title || SITE_NAME;
+  const siteDescription = siteConfig?.description || DEFAULT_SEO_DESCRIPTION;
+  const profileUrl = absoluteUrl('/');
+  const personSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'Person',
+    name: 'Andrés Tabla Rico',
+    url: profileUrl,
+    image: absoluteUrl(parsedStyles.logoUrl || '/favicon.ico'),
+    jobTitle: 'Educador y gerente de proyectos de transformación digital educativa',
+    worksFor: {
+      '@type': 'Organization',
+      name: 'Algoritmo T',
+      url: 'https://algoritmot.com/',
+    },
+    sameAs: [
+      'https://www.linkedin.com/in/andr%C3%A9s-tabla-rico/',
+      'https://www.andrestabla.com/',
+    ],
+  };
+  const websiteSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    name: siteTitle,
+    url: profileUrl,
+    description: siteDescription,
+    inLanguage: 'es-CO',
+    publisher: {
+      '@type': 'Person',
+      name: 'Andrés Tabla Rico',
+    },
+  };
+  const organizationSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'Organization',
+    name: 'Algoritmo T',
+    url: 'https://algoritmot.com/',
+    contactPoint: {
+      '@type': 'ContactPoint',
+      contactType: 'customer support',
+      email: 'andrestabla@algoritmot.com',
+      areaServed: 'LATAM',
+      availableLanguage: ['es', 'en'],
+    },
+  };
 
   return (
     <div className="min-h-screen bg-zinc-950 text-slate-300 antialiased selection:bg-[#f25c54] selection:text-white pb-24 relative overflow-x-hidden">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(personSchema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
+      />
 
       {/* Global Navigation (Hamburger Menu) */}
       <GlobalNav siteConfig={siteConfig} />

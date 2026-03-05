@@ -1,15 +1,89 @@
+import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { prisma } from '@/lib/prisma';
 import GlobalNav from '@/components/GlobalNav';
 import BlockRenderer from '@/app/components/BlockRenderer';
 import AndresAssistant from '@/components/AndresAssistant';
-import { buildArticlePageSlug, normalizeSlugPart } from '@/lib/articlePages';
+import { buildArticlePageSlug, buildArticlePublicPath, normalizeSlugPart } from '@/lib/articlePages';
+import {
+    absoluteUrl,
+    DEFAULT_SEO_DESCRIPTION,
+    extractFirstImageFromBlocks,
+    extractFirstRichTextExcerptFromBlocks,
+    SITE_NAME,
+} from '@/lib/seo';
 
 export const dynamic = 'force-dynamic';
 
 type ArticlePageProps = {
     params: Promise<{ slug: string }>;
 };
+
+async function getArticleRecord(pageSlug: string) {
+    return prisma.page.findUnique({
+        where: { slug: pageSlug },
+        select: {
+            id: true,
+            title: true,
+            description: true,
+            createdAt: true,
+            updatedAt: true,
+            blocks: {
+                orderBy: { order: 'asc' },
+                select: { type: true, data: true },
+            },
+        },
+    });
+}
+
+export async function generateMetadata({ params }: ArticlePageProps): Promise<Metadata> {
+    const resolvedParams = await params;
+    const articleSlugPart = normalizeSlugPart(resolvedParams?.slug || 'articulo');
+    const pageSlug = buildArticlePageSlug(articleSlugPart);
+    const articleRecord = await getArticleRecord(pageSlug);
+
+    if (!articleRecord) {
+        return {
+            title: `Artículo no encontrado | ${SITE_NAME}`,
+            robots: { index: false, follow: false },
+        };
+    }
+
+    const canonicalPath = buildArticlePublicPath(articleSlugPart);
+    const canonicalUrl = absoluteUrl(canonicalPath);
+    const title = (articleRecord.title || '').trim() || 'Artículo';
+    const description =
+        (articleRecord.description || '').trim() ||
+        extractFirstRichTextExcerptFromBlocks(articleRecord.blocks, 180) ||
+        DEFAULT_SEO_DESCRIPTION;
+    const rawImage = extractFirstImageFromBlocks(articleRecord.blocks);
+    const imageUrl = rawImage ? absoluteUrl(rawImage) : undefined;
+
+    return {
+        title,
+        description,
+        alternates: {
+            canonical: canonicalPath,
+        },
+        openGraph: {
+            type: 'article',
+            title,
+            description,
+            url: canonicalUrl,
+            siteName: SITE_NAME,
+            locale: 'es_CO',
+            publishedTime: articleRecord.createdAt.toISOString(),
+            modifiedTime: articleRecord.updatedAt.toISOString(),
+            images: imageUrl ? [{ url: imageUrl }] : undefined,
+        },
+        twitter: {
+            card: imageUrl ? 'summary_large_image' : 'summary',
+            title,
+            description,
+            images: imageUrl ? [imageUrl] : undefined,
+        },
+    };
+}
 
 export default async function ArticlePage({ params }: ArticlePageProps) {
     const resolvedParams = await params;
@@ -18,10 +92,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
 
     const [siteConfig, articlePage] = await Promise.all([
         prisma.siteSettings.findFirst(),
-        prisma.page.findUnique({
-            where: { slug: pageSlug },
-            select: { id: true },
-        }),
+        getArticleRecord(pageSlug),
     ]);
 
     if (!articlePage) {
@@ -51,9 +122,71 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
         borderColor: parsedStyles.footerBorder,
         color: parsedStyles.footerTextColor,
     };
+    const articlePath = buildArticlePublicPath(articleSlugPart);
+    const articleUrl = absoluteUrl(articlePath);
+    const articleDescription =
+        (articlePage.description || '').trim() ||
+        extractFirstRichTextExcerptFromBlocks(articlePage.blocks, 180) ||
+        DEFAULT_SEO_DESCRIPTION;
+    const rawImage = extractFirstImageFromBlocks(articlePage.blocks);
+    const articleImage = rawImage ? absoluteUrl(rawImage) : absoluteUrl('/favicon.ico');
+    const articleSchema = {
+        '@context': 'https://schema.org',
+        '@type': 'Article',
+        headline: articlePage.title || 'Artículo',
+        description: articleDescription,
+        image: [articleImage],
+        inLanguage: 'es-CO',
+        author: {
+            '@type': 'Person',
+            name: 'Andrés Tabla Rico',
+            url: absoluteUrl('/'),
+        },
+        publisher: {
+            '@type': 'Person',
+            name: 'Andrés Tabla Rico',
+            url: absoluteUrl('/'),
+        },
+        datePublished: articlePage.createdAt.toISOString(),
+        dateModified: articlePage.updatedAt.toISOString(),
+        mainEntityOfPage: articleUrl,
+    };
+    const breadcrumbSchema = {
+        '@context': 'https://schema.org',
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+            {
+                '@type': 'ListItem',
+                position: 1,
+                name: 'Inicio',
+                item: absoluteUrl('/'),
+            },
+            {
+                '@type': 'ListItem',
+                position: 2,
+                name: 'Artículos',
+                item: absoluteUrl('/#articulos'),
+            },
+            {
+                '@type': 'ListItem',
+                position: 3,
+                name: articlePage.title || 'Artículo',
+                item: articleUrl,
+            },
+        ],
+    };
 
     return (
         <div className="min-h-screen bg-zinc-950 text-slate-300 antialiased selection:bg-[#f25c54] selection:text-white pb-24 relative overflow-x-hidden">
+            <script
+                type="application/ld+json"
+                dangerouslySetInnerHTML={{ __html: JSON.stringify(articleSchema) }}
+            />
+            <script
+                type="application/ld+json"
+                dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
+            />
+
             <GlobalNav siteConfig={siteConfig} />
 
             <BlockRenderer pageSlug={pageSlug} />

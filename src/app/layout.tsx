@@ -3,6 +3,7 @@ import { Inter, Playfair_Display, Roboto, Outfit, DM_Sans } from 'next/font/goog
 import './globals.css';
 import { prisma } from '@/lib/prisma';
 import SiteLoader from '@/components/SiteLoader';
+import { DEFAULT_SEO_DESCRIPTION, DEFAULT_SEO_TITLE, SITE_NAME, SITE_URL } from '@/lib/seo';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter', display: 'swap' });
 const playfair = Playfair_Display({ subsets: ['latin'], variable: '--font-playfair', display: 'swap' });
@@ -11,8 +12,56 @@ const outfit = Outfit({ subsets: ['latin'], variable: '--font-outfit', display: 
 const dmSans = DM_Sans({ weight: ['400', '500', '700'], subsets: ['latin'], variable: '--font-dmsans', display: 'swap' });
 
 export const metadata: Metadata = {
-  title: 'Andrés Tabla Rico',
-  description: 'Portafolio Ejecutivo y Hoja de Vida',
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: DEFAULT_SEO_TITLE,
+    template: '%s | Andrés Tabla Rico',
+  },
+  description: DEFAULT_SEO_DESCRIPTION,
+  applicationName: SITE_NAME,
+  manifest: '/manifest.webmanifest',
+  keywords: [
+    'Andrés Tabla Rico',
+    'educación digital',
+    'transformación digital educativa',
+    'chatbots educativos',
+    'IA en educación',
+    'virtualización de programas',
+    'consultoría TIC',
+  ],
+  authors: [{ name: 'Andrés Tabla Rico' }],
+  creator: 'Andrés Tabla Rico',
+  publisher: 'Andrés Tabla Rico',
+  alternates: {
+    canonical: '/',
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+      'max-video-preview': -1,
+    },
+  },
+  openGraph: {
+    type: 'website',
+    siteName: SITE_NAME,
+    url: SITE_URL,
+    title: DEFAULT_SEO_TITLE,
+    description: DEFAULT_SEO_DESCRIPTION,
+    locale: 'es_CO',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: DEFAULT_SEO_TITLE,
+    description: DEFAULT_SEO_DESCRIPTION,
+  },
+  verification: {
+    google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION || undefined,
+  },
 };
 
 export default async function RootLayout({
