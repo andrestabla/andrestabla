@@ -26,6 +26,20 @@ function getHydratedStyleState(sourceBlock: any) {
         bgMediaType: backgroundMediaType,
         overlayColor: parsedStyles.backgroundOverlayColor || '#000000',
         overlayOpacity: String(parsedStyles.backgroundOverlayOpacity ?? '0'),
+        linkButtonBg: parsedStyles.linkButtonBg || '',
+        linkButtonText: parsedStyles.linkButtonText || '',
+        linkButtonBorder: parsedStyles.linkButtonBorder || '',
+        linkButtonHoverBg: parsedStyles.linkButtonHoverBg || '',
+        linkButtonHoverText: parsedStyles.linkButtonHoverText || '',
+        linkButtonHoverBorder: parsedStyles.linkButtonHoverBorder || '',
+        contactButtonBg: parsedStyles.contactButtonBg || '',
+        contactButtonBorder: parsedStyles.contactButtonBorder || '',
+        contactButtonIcon: parsedStyles.contactButtonIcon || '',
+        contactButtonText: parsedStyles.contactButtonText || '',
+        contactButtonHoverBg: parsedStyles.contactButtonHoverBg || '',
+        contactButtonHoverBorder: parsedStyles.contactButtonHoverBorder || '',
+        contactButtonHoverIcon: parsedStyles.contactButtonHoverIcon || '',
+        contactButtonHoverText: parsedStyles.contactButtonHoverText || '',
         paddingTop: parsedStyles.paddingTop || '0',
         paddingBottom: parsedStyles.paddingBottom || '0',
         textColor: parsedStyles.textColor || '',
@@ -46,6 +60,20 @@ export default function AdvancedStyleInspector({ block, onSaved }: { block: any,
     const [bgMediaType, setBgMediaType] = useState(initialState.bgMediaType);
     const [overlayColor, setOverlayColor] = useState(initialState.overlayColor);
     const [overlayOpacity, setOverlayOpacity] = useState(initialState.overlayOpacity);
+    const [linkButtonBg, setLinkButtonBg] = useState(initialState.linkButtonBg);
+    const [linkButtonText, setLinkButtonText] = useState(initialState.linkButtonText);
+    const [linkButtonBorder, setLinkButtonBorder] = useState(initialState.linkButtonBorder);
+    const [linkButtonHoverBg, setLinkButtonHoverBg] = useState(initialState.linkButtonHoverBg);
+    const [linkButtonHoverText, setLinkButtonHoverText] = useState(initialState.linkButtonHoverText);
+    const [linkButtonHoverBorder, setLinkButtonHoverBorder] = useState(initialState.linkButtonHoverBorder);
+    const [contactButtonBg, setContactButtonBg] = useState(initialState.contactButtonBg);
+    const [contactButtonBorder, setContactButtonBorder] = useState(initialState.contactButtonBorder);
+    const [contactButtonIcon, setContactButtonIcon] = useState(initialState.contactButtonIcon);
+    const [contactButtonText, setContactButtonText] = useState(initialState.contactButtonText);
+    const [contactButtonHoverBg, setContactButtonHoverBg] = useState(initialState.contactButtonHoverBg);
+    const [contactButtonHoverBorder, setContactButtonHoverBorder] = useState(initialState.contactButtonHoverBorder);
+    const [contactButtonHoverIcon, setContactButtonHoverIcon] = useState(initialState.contactButtonHoverIcon);
+    const [contactButtonHoverText, setContactButtonHoverText] = useState(initialState.contactButtonHoverText);
     const [paddingTop, setPaddingTop] = useState(initialState.paddingTop);
     const [paddingBottom, setPaddingBottom] = useState(initialState.paddingBottom);
     const [textColor, setTextColor] = useState(initialState.textColor);
@@ -65,6 +93,20 @@ export default function AdvancedStyleInspector({ block, onSaved }: { block: any,
         setBgMediaType(nextState.bgMediaType);
         setOverlayColor(nextState.overlayColor);
         setOverlayOpacity(nextState.overlayOpacity);
+        setLinkButtonBg(nextState.linkButtonBg);
+        setLinkButtonText(nextState.linkButtonText);
+        setLinkButtonBorder(nextState.linkButtonBorder);
+        setLinkButtonHoverBg(nextState.linkButtonHoverBg);
+        setLinkButtonHoverText(nextState.linkButtonHoverText);
+        setLinkButtonHoverBorder(nextState.linkButtonHoverBorder);
+        setContactButtonBg(nextState.contactButtonBg);
+        setContactButtonBorder(nextState.contactButtonBorder);
+        setContactButtonIcon(nextState.contactButtonIcon);
+        setContactButtonText(nextState.contactButtonText);
+        setContactButtonHoverBg(nextState.contactButtonHoverBg);
+        setContactButtonHoverBorder(nextState.contactButtonHoverBorder);
+        setContactButtonHoverIcon(nextState.contactButtonHoverIcon);
+        setContactButtonHoverText(nextState.contactButtonHoverText);
         setPaddingTop(nextState.paddingTop);
         setPaddingBottom(nextState.paddingBottom);
         setTextColor(nextState.textColor);
@@ -83,6 +125,20 @@ export default function AdvancedStyleInspector({ block, onSaved }: { block: any,
             backgroundVideo: bgVideo,
             backgroundOverlayColor: overlayColor,
             backgroundOverlayOpacity: String(safeOverlayOpacity),
+            linkButtonBg,
+            linkButtonText,
+            linkButtonBorder,
+            linkButtonHoverBg,
+            linkButtonHoverText,
+            linkButtonHoverBorder,
+            contactButtonBg,
+            contactButtonBorder,
+            contactButtonIcon,
+            contactButtonText,
+            contactButtonHoverBg,
+            contactButtonHoverBorder,
+            contactButtonHoverIcon,
+            contactButtonHoverText,
             paddingTop,
             paddingBottom,
             textColor,
@@ -176,6 +232,38 @@ export default function AdvancedStyleInspector({ block, onSaved }: { block: any,
                             className="w-full text-xs p-2 border border-slate-200 rounded-lg focus:ring-1 focus:ring-indigo-500"
                         />
                     </div>
+                </div>
+            </div>
+
+            <div className="bg-cyan-50 p-4 border border-cyan-100 rounded-xl space-y-4">
+                <div className="flex items-center gap-2 mb-2">
+                    <div className="w-4 h-4 rounded bg-cyan-500 flex items-center justify-center text-white text-[10px]">◎</div>
+                    <label className="text-[10px] font-bold uppercase tracking-widest text-cyan-800">Botones de Enlace</label>
+                </div>
+                <div className="grid grid-cols-3 gap-2">
+                    <input type="text" placeholder="Fondo" value={linkButtonBg} onChange={e => setLinkButtonBg(e.target.value)} className="w-full text-xs p-2 border border-slate-200 rounded-lg" />
+                    <input type="text" placeholder="Texto" value={linkButtonText} onChange={e => setLinkButtonText(e.target.value)} className="w-full text-xs p-2 border border-slate-200 rounded-lg" />
+                    <input type="text" placeholder="Borde" value={linkButtonBorder} onChange={e => setLinkButtonBorder(e.target.value)} className="w-full text-xs p-2 border border-slate-200 rounded-lg" />
+                    <input type="text" placeholder="Hover fondo" value={linkButtonHoverBg} onChange={e => setLinkButtonHoverBg(e.target.value)} className="w-full text-xs p-2 border border-slate-200 rounded-lg" />
+                    <input type="text" placeholder="Hover texto" value={linkButtonHoverText} onChange={e => setLinkButtonHoverText(e.target.value)} className="w-full text-xs p-2 border border-slate-200 rounded-lg" />
+                    <input type="text" placeholder="Hover borde" value={linkButtonHoverBorder} onChange={e => setLinkButtonHoverBorder(e.target.value)} className="w-full text-xs p-2 border border-slate-200 rounded-lg" />
+                </div>
+            </div>
+
+            <div className="bg-rose-50 p-4 border border-rose-100 rounded-xl space-y-4">
+                <div className="flex items-center gap-2 mb-2">
+                    <div className="w-4 h-4 rounded bg-rose-500 flex items-center justify-center text-white text-[10px]">☎</div>
+                    <label className="text-[10px] font-bold uppercase tracking-widest text-rose-800">Botones Teléfono y Email</label>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                    <input type="text" placeholder="Fondo normal" value={contactButtonBg} onChange={e => setContactButtonBg(e.target.value)} className="w-full text-xs p-2 border border-slate-200 rounded-lg" />
+                    <input type="text" placeholder="Borde normal" value={contactButtonBorder} onChange={e => setContactButtonBorder(e.target.value)} className="w-full text-xs p-2 border border-slate-200 rounded-lg" />
+                    <input type="text" placeholder="Ícono normal" value={contactButtonIcon} onChange={e => setContactButtonIcon(e.target.value)} className="w-full text-xs p-2 border border-slate-200 rounded-lg" />
+                    <input type="text" placeholder="Texto normal" value={contactButtonText} onChange={e => setContactButtonText(e.target.value)} className="w-full text-xs p-2 border border-slate-200 rounded-lg" />
+                    <input type="text" placeholder="Fondo hover" value={contactButtonHoverBg} onChange={e => setContactButtonHoverBg(e.target.value)} className="w-full text-xs p-2 border border-slate-200 rounded-lg" />
+                    <input type="text" placeholder="Borde hover" value={contactButtonHoverBorder} onChange={e => setContactButtonHoverBorder(e.target.value)} className="w-full text-xs p-2 border border-slate-200 rounded-lg" />
+                    <input type="text" placeholder="Ícono hover" value={contactButtonHoverIcon} onChange={e => setContactButtonHoverIcon(e.target.value)} className="w-full text-xs p-2 border border-slate-200 rounded-lg" />
+                    <input type="text" placeholder="Texto hover" value={contactButtonHoverText} onChange={e => setContactButtonHoverText(e.target.value)} className="w-full text-xs p-2 border border-slate-200 rounded-lg" />
                 </div>
             </div>
 

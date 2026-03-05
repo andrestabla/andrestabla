@@ -100,5 +100,27 @@ export function buildBlockInlineStyles(parsedStyles: RawBlockStyles, imageUrl: s
     const fontFamily = normalizeFontFamily(parsedStyles.fontFamily);
     if (fontFamily) styleObject.fontFamily = fontFamily;
 
+    const variableMap: Array<[string, string]> = [
+        ['linkButtonBg', '--block-link-btn-bg'],
+        ['linkButtonText', '--block-link-btn-text'],
+        ['linkButtonBorder', '--block-link-btn-border'],
+        ['linkButtonHoverBg', '--block-link-btn-hover-bg'],
+        ['linkButtonHoverText', '--block-link-btn-hover-text'],
+        ['linkButtonHoverBorder', '--block-link-btn-hover-border'],
+        ['contactButtonBg', '--block-contact-bg'],
+        ['contactButtonBorder', '--block-contact-border'],
+        ['contactButtonIcon', '--block-contact-icon'],
+        ['contactButtonText', '--block-contact-text'],
+        ['contactButtonHoverBg', '--block-contact-hover-bg'],
+        ['contactButtonHoverBorder', '--block-contact-hover-border'],
+        ['contactButtonHoverIcon', '--block-contact-hover-icon'],
+        ['contactButtonHoverText', '--block-contact-hover-text'],
+    ];
+
+    for (const [key, cssVar] of variableMap) {
+        const value = normalizeCssValue(parsedStyles[key]);
+        if (value) styleObject[cssVar] = value;
+    }
+
     return styleObject;
 }

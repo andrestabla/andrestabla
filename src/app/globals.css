@@ -194,6 +194,46 @@
   color: var(--block-text, var(--text, inherit));
 }
 
+/* Link buttons (e.g., external links on hero) */
+.block-style-scope .block-link-btn {
+  background-color: var(--block-link-btn-bg, #18181b);
+  color: var(--block-link-btn-text, #94a3b8);
+  border-color: var(--block-link-btn-border, transparent);
+}
+
+.block-style-scope .block-link-btn:hover {
+  background-color: var(--block-link-btn-hover-bg, #ffffff);
+  color: var(--block-link-btn-hover-text, #000000);
+  border-color: var(--block-link-btn-hover-border, transparent);
+}
+
+/* Contact actions (phone/email) */
+.block-style-scope .block-contact-icon-wrap {
+  background-color: var(--block-contact-bg, transparent);
+  border-color: var(--block-contact-border, #27272a);
+}
+
+.block-style-scope .block-contact-icon {
+  color: var(--block-contact-icon, #94a3b8);
+}
+
+.block-style-scope .block-contact-text {
+  color: var(--block-contact-text, #cbd5e1);
+}
+
+.block-style-scope .block-contact-btn:hover .block-contact-icon-wrap {
+  background-color: var(--block-contact-hover-bg, var(--brand));
+  border-color: var(--block-contact-hover-border, var(--brand));
+}
+
+.block-style-scope .block-contact-btn:hover .block-contact-icon {
+  color: var(--block-contact-hover-icon, #ffffff);
+}
+
+.block-style-scope .block-contact-btn:hover .block-contact-text {
+  color: var(--block-contact-hover-text, #ffffff);
+}
+
 /* When a block has custom background from inspector, let wrapper background show */
 .block-force-transparent-root > * {
   background-color: transparent !important;

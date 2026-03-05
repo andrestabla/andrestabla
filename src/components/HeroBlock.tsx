@@ -59,19 +59,19 @@ export default function HeroBlock({ data }: { data: any }) {
                     className="flex flex-col md:flex-row items-start md:items-center gap-8 mt-16"
                 >
                     {data.phone && (
-                        <a href={`tel:${data.phone}`} className="flex items-center gap-4 group">
-                            <div className="w-12 h-12 flex items-center justify-center rounded-full border border-zinc-800 group-hover:border-[var(--brand)] group-hover:bg-[var(--brand)] transition-all duration-300">
-                                <Phone size={18} className="text-slate-400 group-hover:text-white transition-colors" />
+                        <a href={`tel:${data.phone}`} className="block-contact-btn flex items-center gap-4 group">
+                            <div className="block-contact-icon-wrap w-12 h-12 flex items-center justify-center rounded-full border transition-all duration-300">
+                                <Phone size={18} className="block-contact-icon transition-colors" />
                             </div>
-                            <span className="text-slate-300 group-hover:text-white font-medium text-sm tracking-wide">{data.phone}</span>
+                            <span className="block-contact-text font-medium text-sm tracking-wide">{data.phone}</span>
                         </a>
                     )}
                     {data.email && (
-                        <a href={`mailto:${data.email}`} className="flex items-center gap-4 group">
-                            <div className="w-12 h-12 flex items-center justify-center rounded-full border border-zinc-800 group-hover:border-[var(--brand)] group-hover:bg-[var(--brand)] transition-all duration-300">
-                                <Mail size={18} className="text-slate-400 group-hover:text-white transition-colors" />
+                        <a href={`mailto:${data.email}`} className="block-contact-btn flex items-center gap-4 group">
+                            <div className="block-contact-icon-wrap w-12 h-12 flex items-center justify-center rounded-full border transition-all duration-300">
+                                <Mail size={18} className="block-contact-icon transition-colors" />
                             </div>
-                            <span className="text-slate-300 group-hover:text-white font-medium text-sm tracking-wide">{data.email}</span>
+                            <span className="block-contact-text font-medium text-sm tracking-wide">{data.email}</span>
                         </a>
                     )}
                 </motion.div>
@@ -84,7 +84,7 @@ export default function HeroBlock({ data }: { data: any }) {
                         className="flex flex-wrap gap-4 mt-12 pt-12 border-t border-zinc-900"
                     >
                         {data.links.map((link: any, idx: number) => (
-                            <a key={idx} href={link.url} target="_blank" className="px-6 py-3 bg-zinc-900 text-slate-400 rounded-full hover:bg-white hover:text-black transition-all duration-300 font-medium text-xs tracking-widest uppercase flex items-center gap-2">
+                            <a key={idx} href={link.url} target="_blank" className="block-link-btn px-6 py-3 rounded-full border transition-all duration-300 font-medium text-xs tracking-widest uppercase flex items-center gap-2">
                                 <LinkIcon size={14} />
                                 <span dangerouslySetInnerHTML={safeHtml(link.label, 'Link')} />
                             </a>
