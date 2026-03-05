@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/prisma';
 import GlobalNav from '@/components/GlobalNav';
 import BlockRenderer from './components/BlockRenderer';
+import AndresAssistant from '@/components/AndresAssistant';
 
 export const dynamic = 'force-dynamic';
 
@@ -70,6 +71,8 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ [
           </div>
         )}
       </footer>
+
+      {!isEditor && <AndresAssistant />}
     </div>
   );
 }
