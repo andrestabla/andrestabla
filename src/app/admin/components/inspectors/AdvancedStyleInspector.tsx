@@ -12,6 +12,7 @@ export default function AdvancedStyleInspector({ block, onSaved }: { block: any,
 
     const [bgColor, setBgColor] = useState(parsedStyles.backgroundColor || '');
     const [bgImage, setBgImage] = useState(parsedStyles.backgroundImage || '');
+    const [bgVideo, setBgVideo] = useState(parsedStyles.backgroundVideo || '');
     const [paddingTop, setPaddingTop] = useState(parsedStyles.paddingTop || '0');
     const [paddingBottom, setPaddingBottom] = useState(parsedStyles.paddingBottom || '0');
     const [textColor, setTextColor] = useState(parsedStyles.textColor || '');
@@ -25,6 +26,7 @@ export default function AdvancedStyleInspector({ block, onSaved }: { block: any,
         const newStyles = {
             backgroundColor: bgColor,
             backgroundImage: bgImage,
+            backgroundVideo: bgVideo,
             paddingTop,
             paddingBottom,
             textColor,
@@ -54,6 +56,10 @@ export default function AdvancedStyleInspector({ block, onSaved }: { block: any,
                 <div>
                     <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1 block">URL Imagen de Fondo</label>
                     <input type="text" placeholder="https://ejemplo.com/imagen.jpg" value={bgImage} onChange={e => setBgImage(e.target.value)} className="w-full text-xs p-3 border border-slate-200 rounded-lg focus:ring-1 focus:ring-indigo-500" />
+                </div>
+                <div>
+                    <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1 block">URL Video de Fondo</label>
+                    <input type="text" placeholder="https://...mp4 o YouTube/Vimeo URL" value={bgVideo} onChange={e => setBgVideo(e.target.value)} className="w-full text-xs p-3 border border-slate-200 rounded-lg focus:ring-1 focus:ring-indigo-500" />
                 </div>
             </div>
 

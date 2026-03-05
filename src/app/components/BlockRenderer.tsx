@@ -31,6 +31,8 @@ import PortfolioBlock from '@/components/PortfolioBlock';
 import HotspotsBlock from '@/components/HotspotsBlock';
 import LoopGridBlock from '@/components/LoopGridBlock';
 import ClickToEditWrapper from '@/components/ClickToEditWrapper';
+import BlockBackgroundVideo from '@/components/BlockBackgroundVideo';
+import { resolveBackgroundVideo } from '@/lib/backgroundVideo';
 
 const BlockComponents: Record<string, any> = {
     hero: HeroBlock,
@@ -90,7 +92,10 @@ function BlockNode({ block, allBlocks, isEditor }: { block: any, allBlocks: any[
     // Apply parsed styles dynamically
     const styleString: any = {};
     if (parsedStyles.backgroundColor) styleString.backgroundColor = parsedStyles.backgroundColor;
-    if (parsedStyles.backgroundImage) {
+    const hasVideoBackground = !!resolveBackgroundVideo(
+        String(parsedStyles.backgroundVideo || parsedStyles.backgroundImage || '')
+    );
+    if (parsedStyles.backgroundImage && !hasVideoBackground) {
         styleString.backgroundImage = `url('${parsedStyles.backgroundImage}')`;
         styleString.backgroundSize = 'cover';
         styleString.backgroundPosition = 'center';
@@ -149,12 +154,15 @@ function BlockNode({ block, allBlocks, isEditor }: { block: any, allBlocks: any[
             data-block-id={block.id}
             id={`block-${block.id}`}
         >
+            <BlockBackgroundVideo url={parsedStyles.backgroundVideo || parsedStyles.backgroundImage} />
             {isEditor && (
                 <div className="absolute top-0 right-0 bg-indigo-500 text-white text-[9px] font-bold px-2 py-1 rounded-bl-md rounded-tr-sm opacity-0 group-hover/block:opacity-100 transition-opacity z-50 pointer-events-none uppercase tracking-widest">
                     {block.type}
                 </div>
             )}
-            <Component data={parsedData} childrenNodes={childrenNodes} isEditor={isEditor} />
+            <div className="relative z-[1]">
+                <Component data={parsedData} childrenNodes={childrenNodes} isEditor={isEditor} />
+            </div>
         </div>
     );
 }

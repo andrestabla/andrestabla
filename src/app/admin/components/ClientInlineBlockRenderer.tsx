@@ -32,6 +32,8 @@ import NavMenuBlock from '@/components/NavMenuBlock';
 import PortfolioBlock from '@/components/PortfolioBlock';
 import HotspotsBlock from '@/components/HotspotsBlock';
 import LoopGridBlock from '@/components/LoopGridBlock';
+import BlockBackgroundVideo from '@/components/BlockBackgroundVideo';
+import { resolveBackgroundVideo } from '@/lib/backgroundVideo';
 
 const BlockComponents: Record<string, any> = {
     hero: HeroBlock,
@@ -88,7 +90,10 @@ function BlockNode({ block, allBlocks, selectedBlockId, onSelect }: BlockNodePro
 
     const styleObj: React.CSSProperties = {};
     if (parsedStyles.backgroundColor) styleObj.backgroundColor = parsedStyles.backgroundColor;
-    if (parsedStyles.backgroundImage) {
+    const hasVideoBackground = !!resolveBackgroundVideo(
+        String(parsedStyles.backgroundVideo || parsedStyles.backgroundImage || '')
+    );
+    if (parsedStyles.backgroundImage && !hasVideoBackground) {
         styleObj.backgroundImage = `url('${parsedStyles.backgroundImage}')`;
         styleObj.backgroundSize = 'cover';
         styleObj.backgroundPosition = 'center';
@@ -155,6 +160,7 @@ function BlockNode({ block, allBlocks, selectedBlockId, onSelect }: BlockNodePro
                 onSelect(block.id);
             }}
         >
+            <BlockBackgroundVideo url={parsedStyles.backgroundVideo || parsedStyles.backgroundImage} />
             {/* Floating label on hover */}
             <div className={`absolute top-0 left-0 z-30 px-2 py-0.5 text-[9px] font-bold uppercase tracking-widest pointer-events-none transition-opacity duration-150
                 ${isSelected
@@ -165,7 +171,9 @@ function BlockNode({ block, allBlocks, selectedBlockId, onSelect }: BlockNodePro
                 {isContainer ? '📦' : '🔷'} {block.type}
             </div>
 
-            <Component data={parsedData} childrenNodes={childrenNodes} isEditor={true} />
+            <div className="relative z-[1]">
+                <Component data={parsedData} childrenNodes={childrenNodes} isEditor={true} />
+            </div>
         </div>
     );
 }
