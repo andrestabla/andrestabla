@@ -1,11 +1,15 @@
 export const LINKEDIN_URL = 'https://www.linkedin.com/in/andr%C3%A9s-tabla-rico/';
+export const CONTACT_EMAIL = 'andrestabla@algoritmot.com';
+export const CONTACT_BOOKING_URL = 'https://outlook.office.com/bookwithme/user/9cf8e211b713432295f17969db08b402@algoritmot.com/meetingtype/QqGiY9QzFkWJ6jHF7ep8zA2?bookingcode=24afd783-dc24-4202-8715-50e0cb02248f&anonymous&ismsaljsauthenabled&ep=mLinkFromTile';
+export const CONTACT_WHATSAPP_URL = 'https://wa.me/573213435456';
 
 export const ANDRES_ASSISTANT_KNOWLEDGE = `
 DATOS DE CONTACTO
 - Nombre: Andrés Tabla Rico
-- Teléfono: 3213435456
-- Email: andrestabla@algoritmot.com
+- Email: ${CONTACT_EMAIL}
 - LinkedIn: ${LINKEDIN_URL}
+- Agendar reunión: ${CONTACT_BOOKING_URL}
+- WhatsApp: ${CONTACT_WHATSAPP_URL}
 
 PERFIL PROFESIONAL
 - Educador y gerente de proyectos de implementación de tecnologías de la información y la comunicación en el sector educativo a nivel LATAM.

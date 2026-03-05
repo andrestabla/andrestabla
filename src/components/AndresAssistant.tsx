@@ -6,6 +6,12 @@ import { Bot, MessageCircle, Send, X } from 'lucide-react';
 type ChatMessage = {
     role: 'assistant' | 'user';
     content: string;
+    actions?: ChatAction[];
+};
+
+type ChatAction = {
+    label: string;
+    url: string;
 };
 
 const INITIAL_MESSAGE: ChatMessage = {
@@ -51,7 +57,18 @@ export default function AndresAssistant() {
                 throw new Error(payload?.error || 'No fue posible responder ahora.');
             }
 
-            setMessages((prev) => [...prev, { role: 'assistant', content: payload.message }]);
+            const actions = Array.isArray(payload?.actions)
+                ? payload.actions
+                    .filter(
+                        (action: any) =>
+                            action &&
+                            typeof action.label === 'string' &&
+                            typeof action.url === 'string'
+                    )
+                    .slice(0, 3)
+                : undefined;
+
+            setMessages((prev) => [...prev, { role: 'assistant', content: payload.message, actions }]);
         } catch (err) {
             const message = err instanceof Error ? err.message : 'Error de conexión.';
             setError(message);
@@ -103,7 +120,22 @@ export default function AndresAssistant() {
                                     : 'mr-auto bg-zinc-900 text-zinc-200 border border-zinc-800'
                                     }`}
                             >
-                                {message.content}
+                                <p className="whitespace-pre-line">{message.content}</p>
+                                {message.role === 'assistant' && message.actions && message.actions.length > 0 && (
+                                    <div className="mt-2 flex flex-wrap gap-2">
+                                        {message.actions.map((action, actionIdx) => (
+                                            <a
+                                                key={`${action.label}-${actionIdx}`}
+                                                href={action.url}
+                                                target={action.url.startsWith('mailto:') ? undefined : '_blank'}
+                                                rel={action.url.startsWith('mailto:') ? undefined : 'noreferrer noopener'}
+                                                className="inline-flex items-center rounded-full border border-[var(--brand)]/60 px-3 py-1.5 text-xs font-semibold text-[var(--brand)] hover:bg-[var(--brand)] hover:text-white transition-colors"
+                                            >
+                                                {action.label}
+                                            </a>
+                                        ))}
+                                    </div>
+                                )}
                             </div>
                         ))}
 
