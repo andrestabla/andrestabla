@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { safeHtml } from '@/lib/html';
 
 const DEFAULT_ITEMS = [
@@ -40,6 +40,25 @@ export default function PortfolioBlock({ data }: { data: any }) {
     const gap = data.gap || 'gap-4';
 
     const [activeFilter, setActiveFilter] = useState('all');
+    const [activeCard, setActiveCard] = useState<string | null>(null);
+    const [isTouchDevice, setIsTouchDevice] = useState(false);
+
+    useEffect(() => {
+        if (typeof window === 'undefined' || !window.matchMedia) return;
+
+        const mediaQuery = window.matchMedia('(hover: none), (pointer: coarse)');
+        const update = () => setIsTouchDevice(mediaQuery.matches);
+
+        update();
+
+        if (typeof mediaQuery.addEventListener === 'function') {
+            mediaQuery.addEventListener('change', update);
+            return () => mediaQuery.removeEventListener('change', update);
+        }
+
+        mediaQuery.addListener(update);
+        return () => mediaQuery.removeListener(update);
+    }, []);
 
     const filteredItems = items.filter((item: any) => {
         if (activeFilter === 'all') return true;
@@ -52,7 +71,10 @@ export default function PortfolioBlock({ data }: { data: any }) {
                 {filters.map((f: any, idx: number) => (
                     <button
                         key={idx}
-                        onClick={() => setActiveFilter(f.value)}
+                        onClick={() => {
+                            setActiveFilter(f.value);
+                            setActiveCard(null);
+                        }}
                         className={`px-4 py-2 rounded-full text-xs font-bold uppercase tracking-widest transition-all ${activeFilter === f.value ? 'bg-indigo-500 text-white shadow-md' : 'bg-slate-100 dark:bg-zinc-800 text-slate-500 hover:bg-slate-200 dark:hover:bg-zinc-700'}`}
                     >
                         <span dangerouslySetInnerHTML={safeHtml(f.label)} />
@@ -62,19 +84,48 @@ export default function PortfolioBlock({ data }: { data: any }) {
 
             <div className={`grid ${columns} ${gap}`}>
                 {filteredItems.map((item: any, idx: number) => {
+                    const cardKey = `${item.title || 'proyecto'}-${idx}`;
+                    const isActive = activeCard === cardKey;
+                    const hasHoverText = Boolean(item.hoverText);
+
                     const content = (
                         <>
                             <img
                                 src={item.image}
                                 alt={item.title || `Proyecto ${idx + 1}`}
-                                className="w-full h-full object-cover transition-transform duration-700 ease-in-out group-hover:scale-110"
+                                className={`w-full h-full object-cover transition-transform duration-700 ease-in-out ${isTouchDevice
+                                    ? isActive
+                                        ? 'scale-110'
+                                        : 'scale-100'
+                                    : 'group-hover:scale-110'
+                                    }`}
                             />
-                            <div className="absolute inset-0 bg-indigo-900/80 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-300 flex flex-col items-center justify-center p-6 text-center backdrop-blur-sm">
-                                <h4 className="text-xl font-bold text-white mb-2 translate-y-0 md:translate-y-4 md:group-hover:translate-y-0 transition-transform duration-300" dangerouslySetInnerHTML={safeHtml(item.title || `Proyecto ${idx + 1}`)} />
-                                <span className="text-[10px] font-bold uppercase tracking-widest text-indigo-200 translate-y-0 md:translate-y-4 md:group-hover:translate-y-0 transition-transform duration-300 delay-75" dangerouslySetInnerHTML={safeHtml(item.category || 'General')} />
+                            <div className={`absolute inset-0 bg-indigo-900/80 transition-opacity duration-300 flex flex-col items-center justify-center p-6 text-center backdrop-blur-sm ${isTouchDevice
+                                ? isActive
+                                    ? 'opacity-100'
+                                    : 'opacity-0'
+                                : 'opacity-0 group-hover:opacity-100'
+                                }`}>
+                                <h4 className={`text-xl font-bold text-white mb-2 transition-transform duration-300 ${isTouchDevice
+                                    ? isActive
+                                        ? 'translate-y-0'
+                                        : 'translate-y-4'
+                                    : 'translate-y-4 group-hover:translate-y-0'
+                                    }`} dangerouslySetInnerHTML={safeHtml(item.title || `Proyecto ${idx + 1}`)} />
+                                <span className={`text-[10px] font-bold uppercase tracking-widest text-indigo-200 transition-transform duration-300 delay-75 ${isTouchDevice
+                                    ? isActive
+                                        ? 'translate-y-0'
+                                        : 'translate-y-4'
+                                    : 'translate-y-4 group-hover:translate-y-0'
+                                    }`} dangerouslySetInnerHTML={safeHtml(item.category || 'General')} />
                                 {item.hoverText && (
                                     <p
-                                        className="mt-3 text-xs text-slate-100 leading-relaxed max-w-[240px] translate-y-0 md:translate-y-4 md:group-hover:translate-y-0 transition-transform duration-300 delay-100"
+                                        className={`mt-3 text-xs text-slate-100 leading-relaxed max-w-[240px] transition-transform duration-300 delay-100 ${isTouchDevice
+                                            ? isActive
+                                                ? 'translate-y-0'
+                                                : 'translate-y-4'
+                                            : 'translate-y-4 group-hover:translate-y-0'
+                                            }`}
                                         dangerouslySetInnerHTML={safeHtml(item.hoverText)}
                                     />
                                 )}
@@ -85,10 +136,17 @@ export default function PortfolioBlock({ data }: { data: any }) {
                     if (item.link) {
                         return (
                             <a
-                                key={`${item.title}-${idx}`}
+                                key={cardKey}
                                 href={item.link}
                                 target={item.openInNewTab ? '_blank' : undefined}
                                 rel={item.openInNewTab ? 'noopener noreferrer' : undefined}
+                                onClick={(event) => {
+                                    if (!isTouchDevice || !hasHoverText) return;
+                                    if (!isActive) {
+                                        event.preventDefault();
+                                        setActiveCard(cardKey);
+                                    }
+                                }}
                                 className="relative aspect-square overflow-hidden rounded-2xl group cursor-pointer animate-in fade-in zoom-in duration-500"
                             >
                                 {content}
@@ -97,7 +155,23 @@ export default function PortfolioBlock({ data }: { data: any }) {
                     }
 
                     return (
-                        <div key={`${item.title}-${idx}`} className="relative aspect-square overflow-hidden rounded-2xl group cursor-pointer animate-in fade-in zoom-in duration-500">
+                        <div
+                            key={cardKey}
+                            role={hasHoverText ? 'button' : undefined}
+                            tabIndex={hasHoverText ? 0 : undefined}
+                            onClick={() => {
+                                if (!isTouchDevice || !hasHoverText) return;
+                                setActiveCard((current) => (current === cardKey ? null : cardKey));
+                            }}
+                            onKeyDown={(event) => {
+                                if (!isTouchDevice || !hasHoverText) return;
+                                if (event.key === 'Enter' || event.key === ' ') {
+                                    event.preventDefault();
+                                    setActiveCard((current) => (current === cardKey ? null : cardKey));
+                                }
+                            }}
+                            className="relative aspect-square overflow-hidden rounded-2xl group cursor-pointer animate-in fade-in zoom-in duration-500"
+                        >
                             {content}
                         </div>
                     );
