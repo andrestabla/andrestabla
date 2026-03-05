@@ -3,10 +3,12 @@
 import { prisma } from '@/lib/prisma';
 import { revalidatePath } from 'next/cache';
 import {
+    extractArticleSlugPart,
     buildAdminEditPath,
     buildArticlePageSlug,
     buildArticlePublicPath,
     humanizeSlug,
+    isArticlePageSlug,
     normalizeSlugPart,
 } from '@/lib/articlePages';
 
@@ -182,4 +184,239 @@ export async function ensureArticlePage(input: EnsureArticlePageInput) {
     revalidatePath('/admin');
 
     return { articleSlug, pageSlug, publicPath, adminPath };
+}
+
+type ArticleMeta = {
+    title: string;
+    excerpt: string;
+    image: string;
+};
+
+const MAX_EXCERPT_LENGTH = 180;
+
+function parseJsonObject(raw: string): Record<string, any> {
+    try {
+        const parsed = JSON.parse(raw);
+        if (parsed && typeof parsed === 'object') return parsed as Record<string, any>;
+        return {};
+    } catch {
+        return {};
+    }
+}
+
+function stripHtmlToText(value: string): string {
+    return String(value || '')
+        .replace(/<style[\s\S]*?<\/style>/gi, ' ')
+        .replace(/<script[\s\S]*?<\/script>/gi, ' ')
+        .replace(/<[^>]+>/g, ' ')
+        .replace(/&nbsp;/gi, ' ')
+        .replace(/&amp;/gi, '&')
+        .replace(/&quot;/gi, '"')
+        .replace(/&#39;/gi, "'")
+        .replace(/&lt;/gi, '<')
+        .replace(/&gt;/gi, '>')
+        .replace(/\s+/g, ' ')
+        .trim();
+}
+
+function truncateText(value: string, maxLength = MAX_EXCERPT_LENGTH): string {
+    const text = String(value || '').trim();
+    if (text.length <= maxLength) return text;
+    return `${text.slice(0, Math.max(0, maxLength - 1)).trim()}...`;
+}
+
+function extractArticleMeta(page: {
+    title: string;
+    description: string | null;
+    blocks: Array<{ type: string; data: string }>;
+}): ArticleMeta {
+    let title = '';
+    let excerpt = '';
+    let image = '';
+
+    const sortedBlocks = [...page.blocks];
+
+    for (const block of sortedBlocks) {
+        const data = parseJsonObject(block.data);
+
+        if (!title && block.type === 'heading' && typeof data.text === 'string') {
+            const normalizedTitle = stripHtmlToText(data.text);
+            if (normalizedTitle) title = normalizedTitle;
+        }
+
+        if (!image && block.type === 'image' && typeof data.url === 'string') {
+            const normalizedImage = String(data.url || '').trim();
+            if (normalizedImage) image = normalizedImage;
+        }
+
+        if (!excerpt && block.type === 'richtext') {
+            const candidate =
+                typeof data.content === 'string'
+                    ? data.content
+                    : typeof data.text === 'string'
+                        ? data.text
+                        : '';
+            const normalizedExcerpt = truncateText(stripHtmlToText(candidate));
+            if (normalizedExcerpt) excerpt = normalizedExcerpt;
+        }
+    }
+
+    const fallbackTitle = stripHtmlToText(page.title || '');
+    const fallbackExcerpt = truncateText(stripHtmlToText(page.description || ''));
+
+    return {
+        title: title || fallbackTitle || 'Artículo',
+        excerpt: excerpt || fallbackExcerpt,
+        image,
+    };
+}
+
+function extractSlugFromHref(href: string): string {
+    const value = String(href || '').trim();
+    if (!value) return '';
+
+    const directMatch = value.match(/\/articulos\/([^/?#]+)/i);
+    if (directMatch?.[1]) return normalizeSlugPart(directMatch[1]);
+
+    return '';
+}
+
+function formatBlogDate(date: Date): string {
+    return new Intl.DateTimeFormat('en-US', {
+        month: 'short',
+        day: '2-digit',
+        year: 'numeric',
+        timeZone: 'America/Bogota',
+    }).format(date);
+}
+
+type PublishSyncResult = {
+    ok: boolean;
+    syncedLoopgrids: number;
+    articleSlug: string | null;
+    reason?: string;
+};
+
+export async function publishPageAndSyncArticles(pageId: string): Promise<PublishSyncResult> {
+    const page = await prisma.page.findUnique({
+        where: { id: pageId },
+        include: {
+            blocks: { orderBy: { order: 'asc' } },
+        },
+    });
+
+    if (!page) {
+        return {
+            ok: false,
+            syncedLoopgrids: 0,
+            articleSlug: null,
+            reason: 'page_not_found',
+        };
+    }
+
+    if (!isArticlePageSlug(page.slug)) {
+        revalidatePath('/');
+        revalidatePath('/admin');
+        return {
+            ok: true,
+            syncedLoopgrids: 0,
+            articleSlug: null,
+            reason: 'not_article_page',
+        };
+    }
+
+    const articleSlug = extractArticleSlugPart(page.slug);
+    const publicPath = buildArticlePublicPath(articleSlug);
+    const articleMeta = extractArticleMeta(page);
+    const defaultDate = formatBlogDate(new Date());
+
+    const loopgridBlocks = await prisma.block.findMany({
+        where: { type: 'loopgrid' },
+        select: { id: true, data: true },
+    });
+
+    let syncedLoopgrids = 0;
+    const updateOps: ReturnType<typeof prisma.block.update>[] = [];
+
+    for (const loopgrid of loopgridBlocks) {
+        const loopData = parseJsonObject(loopgrid.data);
+        const postType = String(loopData.postType || 'blog');
+        if (postType !== 'blog') continue;
+
+        const sourceItems = Array.isArray(loopData.items) ? loopData.items : [];
+        const items = sourceItems.map((item: any) =>
+            item && typeof item === 'object' ? { ...item } : {}
+        );
+
+        let foundIndex = -1;
+        for (let i = 0; i < items.length; i += 1) {
+            const item = items[i];
+            const itemSlug = normalizeSlugPart(
+                String(item.articleSlug || '').trim() || extractSlugFromHref(item.href || '')
+            );
+            if (itemSlug === articleSlug) {
+                foundIndex = i;
+                break;
+            }
+        }
+
+        if (foundIndex >= 0) {
+            const current = items[foundIndex];
+            items[foundIndex] = {
+                ...current,
+                title: articleMeta.title || current.title || 'Artículo',
+                excerpt: articleMeta.excerpt || current.excerpt || '',
+                image: articleMeta.image || current.image || '',
+                href: publicPath,
+                articleSlug,
+                date: String(current.date || '').trim() || defaultDate,
+            };
+        } else {
+            const fallbackCategory = String(items[0]?.category || '').trim() || 'General';
+            items.unshift({
+                title: articleMeta.title || 'Artículo',
+                category: fallbackCategory,
+                date: defaultDate,
+                excerpt: articleMeta.excerpt || '',
+                image: articleMeta.image || '',
+                href: publicPath,
+                articleSlug,
+            });
+        }
+
+        loopData.items = items;
+        updateOps.push(
+            prisma.block.update({
+                where: { id: loopgrid.id },
+                data: { data: JSON.stringify(loopData) },
+            })
+        );
+        syncedLoopgrids += 1;
+    }
+
+    const pageTitleNeedsUpdate = page.title !== articleMeta.title;
+    const pageDescriptionNeedsUpdate = (page.description || '') !== (articleMeta.excerpt || '');
+    if (pageTitleNeedsUpdate || pageDescriptionNeedsUpdate) {
+        await prisma.page.update({
+            where: { id: page.id },
+            data: {
+                title: articleMeta.title,
+                description: articleMeta.excerpt || null,
+            },
+        });
+    }
+
+    if (updateOps.length > 0) {
+        await prisma.$transaction(updateOps);
+    }
+
+    revalidatePath('/');
+    revalidatePath('/admin');
+    revalidatePath(publicPath);
+
+    return {
+        ok: true,
+        syncedLoopgrids,
+        articleSlug,
+    };
 }

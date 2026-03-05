@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { updateBlockData, deleteBlock, addBlock, reorderBlocks } from './actions';
+import { updateBlockData, deleteBlock, addBlock, reorderBlocks, publishPageAndSyncArticles } from './actions';
 import {
     Trash2, Plus, Layers, Box, Settings2,
     Save, X, ChevronLeft, PanelLeft, Eye, ChevronUp, ChevronDown, Maximize2, Minimize2
@@ -172,6 +172,8 @@ export default function BuilderWorkspace({
     const [sidebarOpen, setSidebarOpen] = useState(true);
     const [sidebarExpanded, setSidebarExpanded] = useState(false);
     const [previewOpen, setPreviewOpen] = useState(false);
+    const [isPublishing, setIsPublishing] = useState(false);
+    const [publishError, setPublishError] = useState('');
     const sidebarWidth = sidebarExpanded ? 'min(50vw, 760px)' : '340px';
 
     // Reload blocks from a real API route so canvas updates without full page refresh
@@ -184,6 +186,19 @@ export default function BuilderWorkspace({
     }, [page.id]);
 
     const forceFullReload = useCallback(() => { window.location.reload(); }, []);
+
+    const handlePublish = useCallback(async () => {
+        if (isPublishing) return;
+        setPublishError('');
+        setIsPublishing(true);
+        try {
+            await publishPageAndSyncArticles(page.id);
+            window.location.reload();
+        } catch (_error) {
+            setPublishError('No se pudo publicar en este momento. Intenta de nuevo.');
+            setIsPublishing(false);
+        }
+    }, [isPublishing, page.id]);
 
     const handleBlockAdded = useCallback(async () => { await reloadBlocks(); }, [reloadBlocks]);
 
@@ -500,13 +515,18 @@ export default function BuilderWorkspace({
 
                     {/* Footer */}
                     <div className="shrink-0 p-3 border-t border-slate-100 bg-slate-50 flex flex-col gap-2">
+                        {publishError && (
+                            <p className="text-[10px] text-red-600 font-semibold bg-red-50 border border-red-100 rounded-md px-2 py-1.5">
+                                {publishError}
+                            </p>
+                        )}
                         <button onClick={() => setPreviewOpen(true)}
                             className="w-full flex items-center justify-center gap-2 py-2 border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 rounded-lg text-[11px] font-bold uppercase tracking-widest transition-colors">
                             <Eye size={14} /> Vista Previa
                         </button>
-                        <button onClick={forceFullReload}
-                            className="w-full flex items-center justify-center gap-2 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-[11px] font-bold uppercase tracking-widest transition-colors shadow-md">
-                            <Save size={14} /> Actualizar y Publicar
+                        <button onClick={handlePublish} disabled={isPublishing}
+                            className="w-full flex items-center justify-center gap-2 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-[11px] font-bold uppercase tracking-widest transition-colors shadow-md disabled:opacity-60 disabled:cursor-not-allowed">
+                            <Save size={14} /> {isPublishing ? 'Publicando...' : 'Actualizar y Publicar'}
                         </button>
                     </div>
                 </div>
