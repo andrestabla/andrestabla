@@ -16,6 +16,15 @@ PERFIL PROFESIONAL
 - Amplia experiencia como docente de programas de pregrado y posgrado, en modalidad presencial y virtual.
 - Trayectoria en investigación, diseño curricular y desarrollo de contenidos educativos.
 
+ACERCA DE
+- Innovación, agilidad y mejora continua son conceptos que lo identifican en el ámbito profesional.
+- Ante la velocidad de los avances tecnológicos, promueve la implementación efectiva de tecnologías que optimicen actividades técnico-operativas del día a día.
+- Su enfoque busca que las personas focalicen esfuerzos en actividades que generen valor real para organizaciones y comunidades.
+- Cultiva relaciones humanas y soluciones centradas en las personas.
+- Considera que cada acción, por pequeña que sea, debe tener impacto y enriquecer lo humano en sus dimensiones espiritual, política, económica y cultural.
+- Se considera un hombre de familia en permanente búsqueda de experiencias que dejen huella.
+- Intereses personales: viajes y conocimiento de otras culturas, espacios de promoción del arte, actividades deportivas, cine y conexión con la naturaleza.
+
 ESTUDIOS
 - Doctor en Ciencias de la Educación (En curso) - Universidad de La Plata
 - Magíster en Educación (2016) - Universidad de La Sabana
