@@ -1,11 +1,13 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function GlobalNav({ siteConfig }: { siteConfig?: any }) {
     const [isOpen, setIsOpen] = useState(false);
     const [scrolled, setScrolled] = useState(false);
+    const pathname = usePathname();
 
     useEffect(() => {
         const handleScroll = () => setScrolled(window.scrollY > 50);
@@ -26,6 +28,13 @@ export default function GlobalNav({ siteConfig }: { siteConfig?: any }) {
         { label: 'Educación', href: '#educacion' },
         { label: 'Cursos', href: '#cursos' },
     ];
+
+    const resolveNavHref = (rawHref: string) => {
+        const href = String(rawHref || '').trim() || '#';
+        if (!href.startsWith('#')) return href;
+        if (pathname === '/') return href;
+        return href === '#' ? '/' : `/${href}`;
+    };
 
     return (
         <>
@@ -70,7 +79,7 @@ export default function GlobalNav({ siteConfig }: { siteConfig?: any }) {
                             {navLinks.map((item: { label: string; href: string }, idx: number) => (
                                 <motion.a
                                     key={idx}
-                                    href={item.href}
+                                    href={resolveNavHref(item.href)}
                                     onClick={() => toggleMenu()}
                                     initial={{ opacity: 0, y: 20 }}
                                     animate={{ opacity: 1, y: 0 }}

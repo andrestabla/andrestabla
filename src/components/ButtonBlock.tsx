@@ -4,6 +4,7 @@ import { safeHtml } from '@/lib/html';
 export default function ButtonBlock({ data }: { data: any }) {
     const text = data.text || 'Haz clic aquí';
     const link = data.link || '#';
+    const openInNewTab = Boolean(data.openInNewTab);
     const style = data.style || 'primary'; // primary, secondary, outline, ghost
     const size = data.size || 'md'; // sm, md, lg
     const align = data.align || 'text-left'; // text-left, text-center, text-right
@@ -26,7 +27,12 @@ export default function ButtonBlock({ data }: { data: any }) {
 
     return (
         <div className={`w-full ${align}`}>
-            <a href={link} className={`${baseClasses} ${styleClasses} ${sizeClasses}`}>
+            <a
+                href={link}
+                target={openInNewTab ? '_blank' : undefined}
+                rel={openInNewTab ? 'noopener noreferrer' : undefined}
+                className={`${baseClasses} ${styleClasses} ${sizeClasses}`}
+            >
                 <span dangerouslySetInnerHTML={safeHtml(text, 'Haz clic aquí')} />
             </a>
         </div>

@@ -414,7 +414,7 @@ export default function BuilderWorkspace({
                                     <div className="grid grid-cols-2 gap-2">
                                         <WidgetAddBtn pageId={page.id} parentId={null} type="heading" label="Encabezado" defaultData={{ text: 'Nuevo Encabezado', tag: 'h2' }} onAdded={handleBlockAdded} />
                                         <WidgetAddBtn pageId={page.id} parentId={null} type="richtext" label="Texto" defaultData={{ title: 'Sección', content: '<p>Escribe algo...</p>' }} onAdded={handleBlockAdded} />
-                                        <WidgetAddBtn pageId={page.id} parentId={null} type="button" label="Botón" defaultData={{ text: 'Haz clic', link: '#', style: 'primary' }} onAdded={handleBlockAdded} />
+                                        <WidgetAddBtn pageId={page.id} parentId={null} type="button" label="Botón" defaultData={{ text: 'Haz clic', link: '#', openInNewTab: false, style: 'primary' }} onAdded={handleBlockAdded} />
                                         <WidgetAddBtn pageId={page.id} parentId={null} type="image" label="Imagen" defaultData={{ url: '', alt: '' }} onAdded={handleBlockAdded} />
                                         <WidgetAddBtn pageId={page.id} parentId={null} type="video" label="Video" defaultData={{ url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ' }} onAdded={handleBlockAdded} />
                                         <WidgetAddBtn pageId={page.id} parentId={null} type="embed" label="Embed URL" defaultData={{ url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', aspectRatio: 'aspect-video', borderRadius: 'rounded-xl' }} onAdded={handleBlockAdded} />
@@ -499,7 +499,7 @@ export default function BuilderWorkspace({
                                         <div className="grid grid-cols-2 gap-2">
                                             <WidgetAddBtn pageId={page.id} parentId={selectedBlock.id} type="heading" label="Encabezado" defaultData={{ text: 'Título', tag: 'h3' }} onAdded={handleBlockAdded} />
                                             <WidgetAddBtn pageId={page.id} parentId={selectedBlock.id} type="richtext" label="Texto" defaultData={{ title: 'Sección', content: '<p>...</p>' }} onAdded={handleBlockAdded} />
-                                            <WidgetAddBtn pageId={page.id} parentId={selectedBlock.id} type="button" label="Botón" defaultData={{ text: 'Ir', style: 'primary' }} onAdded={handleBlockAdded} />
+                                            <WidgetAddBtn pageId={page.id} parentId={selectedBlock.id} type="button" label="Botón" defaultData={{ text: 'Ir', link: '#', openInNewTab: false, style: 'primary' }} onAdded={handleBlockAdded} />
                                             <WidgetAddBtn pageId={page.id} parentId={selectedBlock.id} type="image" label="Imagen" defaultData={{ url: '', alt: '' }} onAdded={handleBlockAdded} />
                                             <WidgetAddBtn pageId={page.id} parentId={selectedBlock.id} type="embed" label="Embed" defaultData={{ url: '', aspectRatio: 'aspect-video', borderRadius: 'rounded-xl' }} onAdded={handleBlockAdded} />
                                             <WidgetAddBtn pageId={page.id} parentId={selectedBlock.id} type="gallery" label="Galería" defaultData={{ images: [] }} onAdded={handleBlockAdded} />

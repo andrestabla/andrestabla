@@ -8,15 +8,19 @@ export default function RichTextBlock({ data }: { data: any }) {
             <div className="max-w-4xl mx-auto flex flex-col md:flex-row gap-12 md:gap-24 items-start">
 
                 {data.title && (
-                    <div className="md:w-1/3 shrink-0 relative">
-                        <h3 className="text-4xl md:text-5xl font-bold text-white leading-tight sticky top-24" style={{ fontFamily: 'var(--font-heading)' }} dangerouslySetInnerHTML={safeHtml(data.title)} />
+                    <div className="md:w-1/3 shrink-0 min-w-0 relative">
+                        <h3
+                            className="text-4xl md:text-5xl font-bold text-white leading-tight sticky top-24 break-words hyphens-auto [overflow-wrap:anywhere]"
+                            style={{ fontFamily: 'var(--font-heading)' }}
+                            dangerouslySetInnerHTML={safeHtml(data.title)}
+                        />
                         <div className="w-12 h-[2px] bg-[var(--brand)] mt-6"></div>
                     </div>
                 )}
 
-                <div className="md:w-2/3">
+                <div className="md:w-2/3 min-w-0">
                     <div
-                        className="rich-html text-lg md:text-xl text-slate-400 leading-relaxed font-light prose prose-invert prose-p:mb-6 prose-a:text-[var(--brand)] hover:prose-a:text-white transition-colors"
+                        className="rich-html text-lg md:text-xl text-slate-400 leading-relaxed font-light prose prose-invert prose-p:mb-6 prose-a:text-[var(--brand)] hover:prose-a:text-white transition-colors break-words hyphens-auto [overflow-wrap:anywhere]"
                         dangerouslySetInnerHTML={safeHtml(data.content, 'Escribe tu contenido aquí...')}
                     />
                 </div>

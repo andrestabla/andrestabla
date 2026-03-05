@@ -108,6 +108,8 @@
 /* Shared styles for rich text HTML rendered from the admin editor */
 .rich-html p {
   margin: 0;
+  hyphens: auto;
+  overflow-wrap: anywhere;
 }
 
 .rich-html p + p {
@@ -138,6 +140,18 @@
 
 .rich-html li {
   display: list-item;
+  hyphens: auto;
+  overflow-wrap: anywhere;
+}
+
+.rich-html h1,
+.rich-html h2,
+.rich-html h3,
+.rich-html h4,
+.rich-html h5,
+.rich-html h6 {
+  hyphens: auto;
+  overflow-wrap: anywhere;
 }
 
 .rich-html li + li {
