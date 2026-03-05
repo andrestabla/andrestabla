@@ -43,6 +43,16 @@ model Page {
   blocks      Block[]
 }
 
+model ArticleSlugRedirect {
+  id        String   @id @default(cuid())
+  fromSlug  String   @unique
+  toSlug    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([toSlug])
+}
+
 model Block {
   id        String   @id @default(uuid())
   pageId    String

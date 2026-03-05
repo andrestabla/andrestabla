@@ -372,7 +372,7 @@ export async function publishPageAndSyncArticles(pageId: string): Promise<Publis
     });
 
     let syncedLoopgrids = 0;
-    const updateOps: ReturnType<typeof prisma.block.update>[] = [];
+    const transactionOps: any[] = [];
 
     for (const loopgrid of loopgridBlocks) {
         const loopData = parseJsonObject(loopgrid.data);
@@ -421,7 +421,7 @@ export async function publishPageAndSyncArticles(pageId: string): Promise<Publis
         }
 
         loopData.items = items;
-        updateOps.push(
+        transactionOps.push(
             prisma.block.update({
                 where: { id: loopgrid.id },
                 data: { data: JSON.stringify(loopData) },
@@ -434,18 +434,46 @@ export async function publishPageAndSyncArticles(pageId: string): Promise<Publis
     const pageTitleNeedsUpdate = page.title !== articleMeta.title;
     const pageDescriptionNeedsUpdate = (page.description || '') !== (articleMeta.excerpt || '');
     if (pageSlugNeedsUpdate || pageTitleNeedsUpdate || pageDescriptionNeedsUpdate) {
-        await prisma.page.update({
+        transactionOps.push(prisma.page.update({
             where: { id: page.id },
             data: {
                 slug: nextPageSlug,
                 title: articleMeta.title,
                 description: articleMeta.excerpt || null,
             },
-        });
+        }));
     }
 
-    if (updateOps.length > 0) {
-        await prisma.$transaction(updateOps);
+    if (pageSlugNeedsUpdate) {
+        transactionOps.push(
+            prisma.articleSlugRedirect.upsert({
+                where: { fromSlug: currentArticleSlug },
+                update: { toSlug: articleSlug },
+                create: {
+                    fromSlug: currentArticleSlug,
+                    toSlug: articleSlug,
+                },
+            })
+        );
+        transactionOps.push(
+            prisma.articleSlugRedirect.updateMany({
+                where: {
+                    toSlug: currentArticleSlug,
+                    NOT: { fromSlug: currentArticleSlug },
+                },
+                data: { toSlug: articleSlug },
+            })
+        );
+        // Prevent accidental self/loop redirects if slugs were reused.
+        transactionOps.push(
+            prisma.articleSlugRedirect.deleteMany({
+                where: { fromSlug: articleSlug, toSlug: currentArticleSlug },
+            })
+        );
+    }
+
+    if (transactionOps.length > 0) {
+        await prisma.$transaction(transactionOps);
     }
 
     revalidatePath('/');

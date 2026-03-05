@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { notFound } from 'next/navigation';
+import { notFound, permanentRedirect } from 'next/navigation';
 import { prisma } from '@/lib/prisma';
 import GlobalNav from '@/components/GlobalNav';
 import BlockRenderer from '@/app/components/BlockRenderer';
@@ -21,6 +21,8 @@ type ArticlePageProps = {
     params: Promise<{ slug: string }>;
 };
 
+const MAX_SLUG_REDIRECT_HOPS = 8;
+
 async function getArticleRecord(pageSlug: string) {
     return prisma.page.findUnique({
         where: { slug: pageSlug },
@@ -38,11 +40,45 @@ async function getArticleRecord(pageSlug: string) {
     });
 }
 
+async function resolveArticleBySlug(requestedSlug: string) {
+    let currentSlug = normalizeSlugPart(requestedSlug || 'articulo');
+    const visited = new Set<string>();
+
+    for (let hop = 0; hop < MAX_SLUG_REDIRECT_HOPS; hop += 1) {
+        if (visited.has(currentSlug)) break;
+        visited.add(currentSlug);
+
+        const pageSlug = buildArticlePageSlug(currentSlug);
+        const articleRecord = await getArticleRecord(pageSlug);
+        if (articleRecord) {
+            return {
+                resolvedSlug: currentSlug,
+                articleRecord,
+            };
+        }
+
+        const redirect = await prisma.articleSlugRedirect.findUnique({
+            where: { fromSlug: currentSlug },
+            select: { toSlug: true },
+        });
+        if (!redirect?.toSlug) break;
+
+        const nextSlug = normalizeSlugPart(redirect.toSlug, currentSlug);
+        if (!nextSlug || nextSlug === currentSlug) break;
+        currentSlug = nextSlug;
+    }
+
+    return {
+        resolvedSlug: normalizeSlugPart(requestedSlug || 'articulo'),
+        articleRecord: null,
+    };
+}
+
 export async function generateMetadata({ params }: ArticlePageProps): Promise<Metadata> {
     const resolvedParams = await params;
     const articleSlugPart = normalizeSlugPart(resolvedParams?.slug || 'articulo');
-    const pageSlug = buildArticlePageSlug(articleSlugPart);
-    const articleRecord = await getArticleRecord(pageSlug);
+    const resolved = await resolveArticleBySlug(articleSlugPart);
+    const articleRecord = resolved.articleRecord;
 
     if (!articleRecord) {
         return {
@@ -51,7 +87,7 @@ export async function generateMetadata({ params }: ArticlePageProps): Promise<Me
         };
     }
 
-    const canonicalPath = buildArticlePublicPath(articleSlugPart);
+    const canonicalPath = buildArticlePublicPath(resolved.resolvedSlug);
     const canonicalUrl = absoluteUrl(canonicalPath);
     const title = (articleRecord.title || '').trim() || 'Artículo';
     const description =
@@ -90,15 +126,18 @@ export async function generateMetadata({ params }: ArticlePageProps): Promise<Me
 export default async function ArticlePage({ params }: ArticlePageProps) {
     const resolvedParams = await params;
     const articleSlugPart = normalizeSlugPart(resolvedParams?.slug || 'articulo');
-    const pageSlug = buildArticlePageSlug(articleSlugPart);
 
-    const [siteConfig, articlePage] = await Promise.all([
+    const [siteConfig, resolved] = await Promise.all([
         prisma.siteSettings.findFirst(),
-        getArticleRecord(pageSlug),
+        resolveArticleBySlug(articleSlugPart),
     ]);
+    const articlePage = resolved.articleRecord;
 
     if (!articlePage) {
         notFound();
+    }
+    if (resolved.resolvedSlug !== articleSlugPart) {
+        permanentRedirect(buildArticlePublicPath(resolved.resolvedSlug));
     }
 
     let parsedStyles: any = {
@@ -124,7 +163,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
         borderColor: parsedStyles.footerBorder,
         color: parsedStyles.footerTextColor,
     };
-    const articlePath = buildArticlePublicPath(articleSlugPart);
+    const articlePath = buildArticlePublicPath(resolved.resolvedSlug);
     const articleUrl = absoluteUrl(articlePath);
     const articleDescription =
         (articlePage.description || '').trim() ||
@@ -193,7 +232,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
 
             <GlobalNav siteConfig={siteConfig} />
 
-            <BlockRenderer pageSlug={pageSlug} />
+            <BlockRenderer pageSlug={buildArticlePageSlug(resolved.resolvedSlug)} />
 
             <footer className="w-full border-t mt-24" style={footerBaseStyle}>
                 {footerStyle === 'split' ? (
