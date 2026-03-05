@@ -3,6 +3,90 @@ import { updateBlockStyles } from '../actions';
 import { Palette, Baseline, Type } from 'lucide-react';
 import { inferBackgroundMediaType, normalizeBackgroundMediaType } from '@/lib/backgroundVideo';
 
+const QUICK_COLOR_PRESETS = [
+    '#FFFFFF',
+    '#F8FAFC',
+    '#E2E8F0',
+    '#94A3B8',
+    '#64748B',
+    '#334155',
+    '#0F172A',
+    '#000000',
+    '#54B6F2',
+    '#4F46E5',
+    '#22C55E',
+    '#F59E0B',
+    '#EF4444',
+    '#EC4899',
+];
+
+function normalizeColorToken(value: string): string {
+    return String(value || '').trim().toLowerCase();
+}
+
+function isTransparent(value: string): boolean {
+    return normalizeColorToken(value) === 'transparent';
+}
+
+function getSwatchStyle(color: string) {
+    if (isTransparent(color)) {
+        return {
+            backgroundImage:
+                'linear-gradient(45deg, #e2e8f0 25%, transparent 25%), linear-gradient(-45deg, #e2e8f0 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #e2e8f0 75%), linear-gradient(-45deg, transparent 75%, #e2e8f0 75%)',
+            backgroundSize: '10px 10px',
+            backgroundPosition: '0 0, 0 5px, 5px -5px, -5px 0',
+            backgroundColor: '#ffffff',
+        };
+    }
+    return { backgroundColor: color };
+}
+
+function ColorQuickField({
+    label,
+    value,
+    onChange,
+    placeholder,
+    includeTransparent = false,
+}: {
+    label: string;
+    value: string;
+    onChange: (next: string) => void;
+    placeholder?: string;
+    includeTransparent?: boolean;
+}) {
+    const options = includeTransparent ? ['transparent', ...QUICK_COLOR_PRESETS] : QUICK_COLOR_PRESETS;
+    const selected = normalizeColorToken(value);
+
+    return (
+        <div className="space-y-2">
+            <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500 block">{label}</label>
+            <input
+                type="text"
+                placeholder={placeholder || '#ffffff'}
+                value={value}
+                onChange={e => onChange(e.target.value)}
+                className="w-full text-xs p-2.5 border border-slate-200 rounded-lg focus:ring-1 focus:ring-indigo-500"
+            />
+            <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-invisible">
+                {options.map((color) => {
+                    const active = normalizeColorToken(color) === selected;
+                    return (
+                        <button
+                            key={`${label}-${color}`}
+                            type="button"
+                            title={color}
+                            aria-label={`${label}: ${color}`}
+                            onClick={() => onChange(color)}
+                            className={`shrink-0 w-6 h-6 rounded-md border transition-all ${active ? 'border-indigo-600 ring-1 ring-indigo-500' : 'border-slate-300 hover:border-slate-400'}`}
+                            style={getSwatchStyle(color)}
+                        />
+                    );
+                })}
+            </div>
+        </div>
+    );
+}
+
 function getParsedStyles(styles: unknown) {
     if (!styles) return {};
     try {
@@ -161,10 +245,13 @@ export default function AdvancedStyleInspector({ block, onSaved }: { block: any,
                     <label className="text-[10px] font-bold uppercase tracking-widest text-indigo-800">Fondo y Color (Background)</label>
                 </div>
 
-                <div>
-                    <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1 block">Color Hexadecimal</label>
-                    <input type="text" placeholder="#f25c54 o transparent" value={bgColor} onChange={e => setBgColor(e.target.value)} className="w-full text-xs p-3 border border-slate-200 rounded-lg focus:ring-1 focus:ring-indigo-500" />
-                </div>
+                <ColorQuickField
+                    label="Color Hexadecimal"
+                    value={bgColor}
+                    onChange={setBgColor}
+                    placeholder="#f25c54 o transparent"
+                    includeTransparent
+                />
                 <div>
                     <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1 block">Tipo de Fondo</label>
                     <select
@@ -198,16 +285,13 @@ export default function AdvancedStyleInspector({ block, onSaved }: { block: any,
                         className="w-full text-xs p-3 border border-slate-200 rounded-lg focus:ring-1 focus:ring-indigo-500 disabled:bg-slate-100 disabled:text-slate-400"
                     />
                 </div>
-                <div>
-                    <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1 block">Color de Capa</label>
-                    <input
-                        type="text"
-                        placeholder="#000000"
-                        value={overlayColor}
-                        onChange={e => setOverlayColor(e.target.value)}
-                        className="w-full text-xs p-3 border border-slate-200 rounded-lg focus:ring-1 focus:ring-indigo-500"
-                    />
-                </div>
+                <ColorQuickField
+                    label="Color de Capa"
+                    value={overlayColor}
+                    onChange={setOverlayColor}
+                    placeholder="#000000"
+                    includeTransparent
+                />
                 <div>
                     <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-2 block">
                         Transparencia de Capa (%)
@@ -240,13 +324,13 @@ export default function AdvancedStyleInspector({ block, onSaved }: { block: any,
                     <div className="w-4 h-4 rounded bg-cyan-500 flex items-center justify-center text-white text-[10px]">◎</div>
                     <label className="text-[10px] font-bold uppercase tracking-widest text-cyan-800">Botones de Enlace</label>
                 </div>
-                <div className="grid grid-cols-3 gap-2">
-                    <input type="text" placeholder="Fondo" value={linkButtonBg} onChange={e => setLinkButtonBg(e.target.value)} className="w-full text-xs p-2 border border-slate-200 rounded-lg" />
-                    <input type="text" placeholder="Texto" value={linkButtonText} onChange={e => setLinkButtonText(e.target.value)} className="w-full text-xs p-2 border border-slate-200 rounded-lg" />
-                    <input type="text" placeholder="Borde" value={linkButtonBorder} onChange={e => setLinkButtonBorder(e.target.value)} className="w-full text-xs p-2 border border-slate-200 rounded-lg" />
-                    <input type="text" placeholder="Hover fondo" value={linkButtonHoverBg} onChange={e => setLinkButtonHoverBg(e.target.value)} className="w-full text-xs p-2 border border-slate-200 rounded-lg" />
-                    <input type="text" placeholder="Hover texto" value={linkButtonHoverText} onChange={e => setLinkButtonHoverText(e.target.value)} className="w-full text-xs p-2 border border-slate-200 rounded-lg" />
-                    <input type="text" placeholder="Hover borde" value={linkButtonHoverBorder} onChange={e => setLinkButtonHoverBorder(e.target.value)} className="w-full text-xs p-2 border border-slate-200 rounded-lg" />
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <ColorQuickField label="Fondo" value={linkButtonBg} onChange={setLinkButtonBg} placeholder="#18181b" includeTransparent />
+                    <ColorQuickField label="Texto" value={linkButtonText} onChange={setLinkButtonText} placeholder="#94a3b8" />
+                    <ColorQuickField label="Borde" value={linkButtonBorder} onChange={setLinkButtonBorder} placeholder="transparent" includeTransparent />
+                    <ColorQuickField label="Hover fondo" value={linkButtonHoverBg} onChange={setLinkButtonHoverBg} placeholder="#ffffff" includeTransparent />
+                    <ColorQuickField label="Hover texto" value={linkButtonHoverText} onChange={setLinkButtonHoverText} placeholder="#000000" />
+                    <ColorQuickField label="Hover borde" value={linkButtonHoverBorder} onChange={setLinkButtonHoverBorder} placeholder="transparent" includeTransparent />
                 </div>
             </div>
 
@@ -255,15 +339,15 @@ export default function AdvancedStyleInspector({ block, onSaved }: { block: any,
                     <div className="w-4 h-4 rounded bg-rose-500 flex items-center justify-center text-white text-[10px]">☎</div>
                     <label className="text-[10px] font-bold uppercase tracking-widest text-rose-800">Botones Teléfono y Email</label>
                 </div>
-                <div className="grid grid-cols-2 gap-2">
-                    <input type="text" placeholder="Fondo normal" value={contactButtonBg} onChange={e => setContactButtonBg(e.target.value)} className="w-full text-xs p-2 border border-slate-200 rounded-lg" />
-                    <input type="text" placeholder="Borde normal" value={contactButtonBorder} onChange={e => setContactButtonBorder(e.target.value)} className="w-full text-xs p-2 border border-slate-200 rounded-lg" />
-                    <input type="text" placeholder="Ícono normal" value={contactButtonIcon} onChange={e => setContactButtonIcon(e.target.value)} className="w-full text-xs p-2 border border-slate-200 rounded-lg" />
-                    <input type="text" placeholder="Texto normal" value={contactButtonText} onChange={e => setContactButtonText(e.target.value)} className="w-full text-xs p-2 border border-slate-200 rounded-lg" />
-                    <input type="text" placeholder="Fondo hover" value={contactButtonHoverBg} onChange={e => setContactButtonHoverBg(e.target.value)} className="w-full text-xs p-2 border border-slate-200 rounded-lg" />
-                    <input type="text" placeholder="Borde hover" value={contactButtonHoverBorder} onChange={e => setContactButtonHoverBorder(e.target.value)} className="w-full text-xs p-2 border border-slate-200 rounded-lg" />
-                    <input type="text" placeholder="Ícono hover" value={contactButtonHoverIcon} onChange={e => setContactButtonHoverIcon(e.target.value)} className="w-full text-xs p-2 border border-slate-200 rounded-lg" />
-                    <input type="text" placeholder="Texto hover" value={contactButtonHoverText} onChange={e => setContactButtonHoverText(e.target.value)} className="w-full text-xs p-2 border border-slate-200 rounded-lg" />
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <ColorQuickField label="Fondo normal" value={contactButtonBg} onChange={setContactButtonBg} placeholder="transparent" includeTransparent />
+                    <ColorQuickField label="Borde normal" value={contactButtonBorder} onChange={setContactButtonBorder} placeholder="#27272a" />
+                    <ColorQuickField label="Ícono normal" value={contactButtonIcon} onChange={setContactButtonIcon} placeholder="#94a3b8" />
+                    <ColorQuickField label="Texto normal" value={contactButtonText} onChange={setContactButtonText} placeholder="#cbd5e1" />
+                    <ColorQuickField label="Fondo hover" value={contactButtonHoverBg} onChange={setContactButtonHoverBg} placeholder="var(--brand)" includeTransparent />
+                    <ColorQuickField label="Borde hover" value={contactButtonHoverBorder} onChange={setContactButtonHoverBorder} placeholder="var(--brand)" includeTransparent />
+                    <ColorQuickField label="Ícono hover" value={contactButtonHoverIcon} onChange={setContactButtonHoverIcon} placeholder="#ffffff" />
+                    <ColorQuickField label="Texto hover" value={contactButtonHoverText} onChange={setContactButtonHoverText} placeholder="#ffffff" />
                 </div>
             </div>
 
@@ -275,14 +359,8 @@ export default function AdvancedStyleInspector({ block, onSaved }: { block: any,
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
-                    <div>
-                        <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1 block">Color Texto</label>
-                        <input type="text" placeholder="#ffffff" value={textColor} onChange={e => setTextColor(e.target.value)} className="w-full text-xs p-3 border border-slate-200 rounded-lg focus:ring-1 focus:ring-indigo-500" />
-                    </div>
-                    <div>
-                        <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1 block">Color Títulos</label>
-                        <input type="text" placeholder="#ffffff" value={titleColor} onChange={e => setTitleColor(e.target.value)} className="w-full text-xs p-3 border border-slate-200 rounded-lg focus:ring-1 focus:ring-indigo-500" />
-                    </div>
+                    <ColorQuickField label="Color Texto" value={textColor} onChange={setTextColor} placeholder="#ffffff" />
+                    <ColorQuickField label="Color Títulos" value={titleColor} onChange={setTitleColor} placeholder="#ffffff" />
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
