@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
 import { resolveLocale, type Locale } from '@/lib/i18n';
 
-const OPENAI_API_URL = 'https://api.openai.com/v1/responses';
-const OPENAI_MODEL = 'gpt-4.1-mini';
+const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models';
+const GEMINI_MODEL = 'gemini-2.5-flash';
 const MAX_TEXTS = 180;
 const MAX_BATCH_SIZE = 40;
 const MAX_TEXT_LENGTH = 1200;
@@ -46,28 +46,6 @@ function isProbablyTranslatable(value: string): boolean {
     if (/^#[0-9a-f]{3,8}$/i.test(text)) return false;
     if (/^[\d\s\W_]+$/.test(text)) return false;
     return true;
-}
-
-function extractResponseText(payload: any): string {
-    if (typeof payload?.output_text === 'string' && payload.output_text.trim()) {
-        return payload.output_text.trim();
-    }
-
-    if (Array.isArray(payload?.output)) {
-        const chunks: string[] = [];
-        for (const item of payload.output) {
-            if (item?.type !== 'message' || !Array.isArray(item.content)) continue;
-            for (const part of item.content) {
-                if (part?.type === 'output_text' && typeof part.text === 'string') {
-                    chunks.push(part.text);
-                }
-            }
-        }
-        const joined = chunks.join('\n').trim();
-        if (joined) return joined;
-    }
-
-    return '';
 }
 
 function safeJsonParse<T>(value: string): T | null {
@@ -117,44 +95,63 @@ function parseTranslations(text: string): string[] | null {
     return null;
 }
 
+function extractGeminiText(payload: any): string {
+    if (!payload || !Array.isArray(payload.candidates) || payload.candidates.length === 0) {
+        return '';
+    }
+
+    const parts = payload.candidates?.[0]?.content?.parts;
+    if (!Array.isArray(parts)) return '';
+
+    const text = parts
+        .map((part: any) => (typeof part?.text === 'string' ? part.text : ''))
+        .join('\n')
+        .trim();
+
+    return text;
+}
+
 async function translateBatch(apiKey: string, payload: TranslationPayload): Promise<string[] | null> {
     const systemPrompt = [
-        'You are a translation engine.',
+        'You are a professional translation engine.',
         payload.target === 'en'
-            ? 'Translate every input text into fluent, natural English.'
-            : 'Traduis chaque texte en français fluide et naturel.',
-        'Avoid literal, robotic wording.',
-        'Keep meaning, punctuation, dates and numbers.',
-        'Keep markdown, HTML tags, and line breaks structure.',
+            ? 'Translate every input text into fluent, natural, idiomatic English.'
+            : 'Traduis chaque texte en français fluide, naturel et idiomatique.',
+        'Prefer meaning-equivalent phrasing over literal wording.',
+        'Keep punctuation, dates, numbers, acronyms, and terminology.',
+        'Keep markdown, HTML tags, and line-break structure exactly when present.',
         'Do not add commentary.',
         'Return strict JSON only with this exact schema: {"translations": ["..."]}.',
         'The number of translations must match the number of input texts and preserve order.',
     ].join(' ');
 
-    const response = await fetch(OPENAI_API_URL, {
+    const response = await fetch(`${GEMINI_API_URL}/${GEMINI_MODEL}:generateContent`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
-            Authorization: `Bearer ${apiKey}`,
+            'x-goog-api-key': apiKey,
         },
         body: JSON.stringify({
-            model: OPENAI_MODEL,
-            input: [
-                { role: 'system', content: systemPrompt },
+            systemInstruction: {
+                parts: [{ text: systemPrompt }],
+            },
+            contents: [
                 {
                     role: 'user',
-                    content: JSON.stringify({ texts: payload.texts }),
+                    parts: [{ text: JSON.stringify({ texts: payload.texts }) }],
                 },
             ],
-            temperature: 0.1,
-            max_output_tokens: 2800,
+            generationConfig: {
+                temperature: 0.15,
+                responseMimeType: 'application/json',
+            },
         }),
     });
 
     if (!response.ok) return null;
 
     const raw = await response.json().catch(() => null);
-    const text = extractResponseText(raw);
+    const text = extractGeminiText(raw);
     if (!text) return null;
 
     const values = parseTranslations(text);
@@ -165,9 +162,9 @@ async function translateBatch(apiKey: string, payload: TranslationPayload): Prom
 }
 
 export async function POST(req: Request) {
-    const apiKey = process.env.OPENAI_API_KEY;
+    const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY || process.env.GOOGLE_GENERATIVE_AI_API_KEY;
     if (!apiKey) {
-        return NextResponse.json({ error: 'OPENAI_API_KEY is not configured.' }, { status: 500 });
+        return NextResponse.json({ error: 'GEMINI_API_KEY is not configured.' }, { status: 500 });
     }
 
     try {
@@ -188,7 +185,7 @@ export async function POST(req: Request) {
             new Set(
                 input
                     .filter((item: unknown): item is string => typeof item === 'string')
-                    .map((item: string) => item.trim())
+                    .map((item: string) => item)
                     .filter(isProbablyTranslatable)
                     .slice(0, MAX_TEXTS)
             )

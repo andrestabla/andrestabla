@@ -17,6 +17,7 @@ type TextTarget = {
     type: 'text';
     node: Text;
     source: string;
+    normalizedSource: string;
 };
 
 type AttrTarget = {
@@ -24,6 +25,7 @@ type AttrTarget = {
     element: Element;
     attr: (typeof TRANSLATABLE_ATTRIBUTES)[number];
     source: string;
+    normalizedSource: string;
 };
 
 type Target = TextTarget | AttrTarget;
@@ -40,6 +42,16 @@ function isProbablyTranslatable(value: string): boolean {
 
 function buildKey(locale: Locale, source: string) {
     return `${locale}::${source}`;
+}
+
+function normalizeSource(value: string): string {
+    return value.trim();
+}
+
+function preserveTextNodeSpacing(source: string, translated: string) {
+    const leading = source.match(/^\s*/)?.[0] || '';
+    const trailing = source.match(/\s*$/)?.[0] || '';
+    return `${leading}${translated}${trailing}`;
 }
 
 function chunkArray<T>(values: T[], size: number): T[][] {
@@ -117,9 +129,10 @@ export default function AutoTranslatePage() {
                 textOriginalsRef.current.set(node, node.textContent || '');
             }
             const source = textOriginalsRef.current.get(node) || '';
-            if (!isProbablyTranslatable(source)) continue;
+            const normalizedSource = normalizeSource(source);
+            if (!isProbablyTranslatable(normalizedSource)) continue;
 
-            targets.push({ type: 'text', node, source });
+            targets.push({ type: 'text', node, source, normalizedSource });
         }
 
         const elements = root.querySelectorAll<Element>('[placeholder], [title], [aria-label], img[alt]');
@@ -135,8 +148,9 @@ export default function AutoTranslatePage() {
                     existing[attr] = value;
                 }
                 const source = existing[attr];
-                if (!isProbablyTranslatable(source)) return;
-                targets.push({ type: 'attr', element, attr, source });
+                const normalizedSource = normalizeSource(source);
+                if (!isProbablyTranslatable(normalizedSource)) return;
+                targets.push({ type: 'attr', element, attr, source, normalizedSource });
                 hasAny = true;
             });
 
@@ -193,7 +207,7 @@ export default function AutoTranslatePage() {
                 if (list.length > 0) {
                     list.forEach((item) => {
                         if (!item || typeof item.source !== 'string') return;
-                        const source = item.source;
+                        const source = normalizeSource(item.source);
                         const rawTarget = typeof item.target === 'string' ? item.target : source;
                         const target = rawTarget.trim() || source;
                         output.set(source, target);
@@ -228,7 +242,13 @@ export default function AutoTranslatePage() {
         }
 
         const targets = collectTargets();
-        const sources = Array.from(new Set(targets.map((target) => target.source)));
+        const sources = Array.from(
+            new Set(
+                targets
+                    .map((target) => target.normalizedSource)
+                    .filter((value) => value.length > 0)
+            )
+        );
         if (sources.length === 0) return;
 
         isApplyingRef.current = true;
@@ -237,14 +257,14 @@ export default function AutoTranslatePage() {
             if (runId !== runIdRef.current) return;
 
             targets.forEach((target) => {
-                const translated = translatedMap.get(target.source) || target.source;
+                const translatedCore = translatedMap.get(target.normalizedSource) || target.normalizedSource;
                 if (target.type === 'text') {
                     if (!target.node.isConnected) return;
-                    target.node.textContent = translated;
+                    target.node.textContent = preserveTextNodeSpacing(target.source, translatedCore);
                     return;
                 }
                 if (!target.element.isConnected) return;
-                target.element.setAttribute(target.attr, translated);
+                target.element.setAttribute(target.attr, translatedCore);
             });
         } finally {
             isApplyingRef.current = false;
