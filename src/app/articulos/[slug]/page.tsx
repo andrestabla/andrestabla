@@ -6,6 +6,7 @@ import BlockRenderer from '@/app/components/BlockRenderer';
 import AndresAssistant from '@/components/AndresAssistant';
 import AnalyticsTracker from '@/components/AnalyticsTracker';
 import DataPolicyConsent from '@/components/DataPolicyConsent';
+import AutoTranslatePage from '@/components/AutoTranslatePage';
 import { buildArticlePageSlug, buildArticlePublicPath, normalizeSlugPart } from '@/lib/articlePages';
 import {
     absoluteUrl,
@@ -229,6 +230,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
             />
             <DataPolicyConsent />
             <AnalyticsTracker />
+            <AutoTranslatePage />
 
             <GlobalNav siteConfig={siteConfig} />
 

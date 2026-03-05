@@ -5,6 +5,7 @@ import BlockRenderer from './components/BlockRenderer';
 import AndresAssistant from '@/components/AndresAssistant';
 import AnalyticsTracker from '@/components/AnalyticsTracker';
 import DataPolicyConsent from '@/components/DataPolicyConsent';
+import AutoTranslatePage from '@/components/AutoTranslatePage';
 import { absoluteUrl, DEFAULT_SEO_DESCRIPTION, SITE_NAME, SITE_URL } from '@/lib/seo';
 
 export const dynamic = 'force-dynamic';
@@ -145,6 +146,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ [
       />
       {!isEditor && <DataPolicyConsent />}
       {!isEditor && <AnalyticsTracker />}
+      {!isEditor && <AutoTranslatePage />}
 
       {/* Global Navigation (Hamburger Menu) */}
       <GlobalNav siteConfig={siteConfig} />
