@@ -3,14 +3,16 @@
 import React, { useState } from 'react';
 import { Menu, X } from 'lucide-react';
 import { safeHtml } from '@/lib/html';
+import { useI18n } from '@/components/I18nProvider';
 
 export default function NavMenuBlock({ data, isEditor }: { data: any, isEditor?: boolean }) {
+    const { t } = useI18n();
     const defaultMenu = [
-        { label: 'Inicio', link: '#' },
-        { label: 'Servicios', link: '#' },
-        { label: 'Portafolio', link: '#' },
-        { label: 'Acerca', link: '#' },
-        { label: 'Contacto', link: '#contact', isButton: true }
+        { label: t('navmenu.default.home'), link: '#' },
+        { label: t('navmenu.default.services'), link: '#' },
+        { label: t('navmenu.default.portfolio'), link: '#' },
+        { label: t('navmenu.default.about'), link: '#' },
+        { label: t('navmenu.default.contact'), link: '#contact', isButton: true }
     ];
 
     const items = data.items || defaultMenu;
@@ -45,7 +47,7 @@ export default function NavMenuBlock({ data, isEditor }: { data: any, isEditor?:
     if (style === 'hamburger') {
         return (
             <div className="w-full flex items-center justify-between p-4 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-full shadow-sm">
-                <div className="font-heading font-black text-xl tracking-tight pl-4">Menú</div>
+                <div className="font-heading font-black text-xl tracking-tight pl-4">{t('navmenu.menuTitle')}</div>
 
                 <button
                     onClick={() => setIsOpen(!isOpen)}

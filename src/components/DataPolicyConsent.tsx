@@ -2,49 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { CONSENT_EVENT_NAME, CONSENT_POLICY_VERSION, ConsentDecision, readStoredConsent, writeStoredConsent } from '@/lib/consent';
-
-const POLICY_TITLE = 'Política de tratamiento de datos';
-
-const POLICY_BULLETS = [
-    'Ubicación geográfica aproximada por IP (país, región, ciudad).',
-    'Páginas y secciones consultadas en el sitio.',
-    'Tiempo de permanencia estimado por página.',
-    'Eventos de interacción técnica para analítica operativa.',
-];
-
-const POLICY_PURPOSES = [
-    'Mejorar experiencia de navegación y usabilidad.',
-    'Medir interacción con páginas y secciones.',
-    'Optimizar contenido y rendimiento del sitio.',
-    'Generar trazabilidad de aceptación del consentimiento.',
-];
-
-const POLICY_SECTIONS = [
-    {
-        title: '1. Alcance y consentimiento',
-        content:
-            'El tratamiento descrito en esta política aplica a datos técnicos y de navegación recolectados en este sitio una vez otorgado el consentimiento. Puedes continuar sin analítica; en ese caso, no se registran eventos de navegación para fines analíticos.',
-    },
-    {
-        title: '2. Datos tratados',
-        content: 'No hay lista de datos configurada aún en el CMS. Puedes completarla en Admin > Configuración.',
-    },
-    {
-        title: '3. Conservación y uso de la información',
-        content:
-            'Los datos de consentimiento y navegación se almacenan en infraestructura de servidor y base de datos asociada al sitio para analítica, operación y trazabilidad. Se utilizan de forma agregada y operativa, y no para decisiones automatizadas sobre el usuario final.',
-    },
-    {
-        title: '4. Derechos del usuario',
-        content:
-            'Puedes negarte al uso de analítica mediante la opción “Continuar sin analítica”. También puedes revocar el consentimiento limpiando los datos locales del navegador (cookies/localStorage/sessionStorage) y dejando de usar el sitio.',
-    },
-    {
-        title: '5. Texto administrado en CMS',
-        content:
-            'Tratamos datos de navegación con fines de analítica, mejora continua, seguridad y optimización de la experiencia digital. Esto puede incluir ubicación geográfica aproximada por IP, páginas y secciones visitadas y tiempo de permanencia estimado por página, una vez otorgado el consentimiento.',
-    },
-];
+import { useI18n } from '@/components/I18nProvider';
 
 function dispatchConsentUpdated(decision: ConsentDecision) {
     if (typeof window === 'undefined') return;
@@ -56,10 +14,35 @@ function dispatchConsentUpdated(decision: ConsentDecision) {
 }
 
 export default function DataPolicyConsent() {
+    const { t } = useI18n();
     const [isMounted, setIsMounted] = useState(false);
     const [decision, setDecision] = useState<ConsentDecision | null>(null);
     const [isSaving, setIsSaving] = useState(false);
     const [showPolicy, setShowPolicy] = useState(false);
+
+    const policyBullets = useMemo(
+        () => [t('policy.dataItem1'), t('policy.dataItem2'), t('policy.dataItem3'), t('policy.dataItem4')],
+        [t]
+    );
+    const policyPurposes = useMemo(
+        () => [
+            t('policy.purposeItem1'),
+            t('policy.purposeItem2'),
+            t('policy.purposeItem3'),
+            t('policy.purposeItem4'),
+        ],
+        [t]
+    );
+    const policySections = useMemo(
+        () => [
+            { title: t('policy.section1Title'), content: t('policy.section1Body') },
+            { title: t('policy.section2Title'), content: t('policy.section2Body') },
+            { title: t('policy.section3Title'), content: t('policy.section3Body') },
+            { title: t('policy.section4Title'), content: t('policy.section4Body') },
+            { title: t('policy.section5Title'), content: t('policy.section5Body') },
+        ],
+        [t]
+    );
 
     useEffect(() => {
         setIsMounted(true);
@@ -105,13 +88,12 @@ export default function DataPolicyConsent() {
             <div className="fixed inset-0 z-[90] bg-black/70 backdrop-blur-sm" />
 
             <div className="fixed z-[91] left-3 right-3 bottom-3 md:left-1/2 md:-translate-x-1/2 md:max-w-2xl bg-zinc-950 border border-zinc-800 rounded-2xl shadow-2xl p-4 md:p-5">
-                <p className="text-[11px] uppercase tracking-widest font-bold text-[var(--brand)] mb-1">Política y Consentimiento</p>
-                <h3 className="text-lg md:text-xl font-bold text-white">{POLICY_TITLE}</h3>
-                <p className="text-[11px] text-zinc-400 mt-1">Versión {CONSENT_POLICY_VERSION}</p>
+                <p className="text-[11px] uppercase tracking-widest font-bold text-[var(--brand)] mb-1">{t('policy.badge')}</p>
+                <h3 className="text-lg md:text-xl font-bold text-white">{t('policy.title')}</h3>
+                <p className="text-[11px] text-zinc-400 mt-1">{t('policy.versionLabel')} {CONSENT_POLICY_VERSION}</p>
 
                 <p className="text-sm text-zinc-300 mt-3 leading-relaxed">
-                    Usamos cookies y analítica de navegación para mejorar la experiencia, medir interacción y optimizar el contenido del sitio.
-                    Puedes consultar el detalle de tratamiento y aceptar para continuar con analítica.
+                    {t('policy.intro')}
                 </p>
 
                 <div className="mt-4 flex flex-col md:flex-row gap-2">
@@ -120,7 +102,7 @@ export default function DataPolicyConsent() {
                         onClick={() => setShowPolicy(true)}
                         className="flex-1 rounded-xl border border-zinc-700 text-zinc-200 px-4 py-2.5 text-xs font-bold uppercase tracking-widest hover:border-[var(--brand)] hover:text-white transition-colors"
                     >
-                        Leer política
+                        {t('policy.readPolicy')}
                     </button>
                     <button
                         type="button"
@@ -128,7 +110,7 @@ export default function DataPolicyConsent() {
                         disabled={isSaving}
                         className="flex-1 rounded-xl border border-zinc-700 text-zinc-200 px-4 py-2.5 text-xs font-bold uppercase tracking-widest hover:border-zinc-500 transition-colors disabled:opacity-60"
                     >
-                        Continuar sin analítica
+                        {t('policy.continueWithoutAnalytics')}
                     </button>
                     <button
                         type="button"
@@ -136,7 +118,7 @@ export default function DataPolicyConsent() {
                         disabled={isSaving}
                         className="flex-1 rounded-xl bg-[var(--brand)] text-white px-4 py-2.5 text-xs font-bold uppercase tracking-widest hover:brightness-110 transition-all disabled:opacity-60"
                     >
-                        Aceptar y continuar
+                        {t('policy.acceptAndContinue')}
                     </button>
                 </div>
             </div>
@@ -148,39 +130,39 @@ export default function DataPolicyConsent() {
                     <div className="relative w-full max-w-3xl max-h-[90vh] overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-950 shadow-2xl">
                         <div className="px-4 md:px-6 py-4 border-b border-zinc-800 flex items-start justify-between gap-3">
                             <div>
-                                <p className="text-[11px] uppercase tracking-widest font-bold text-[var(--brand)]">Política y Consentimiento</p>
-                                <h4 className="text-lg font-bold text-white mt-1">{POLICY_TITLE}</h4>
-                                <p className="text-[11px] text-zinc-400 mt-1">Versión {CONSENT_POLICY_VERSION}</p>
+                                <p className="text-[11px] uppercase tracking-widest font-bold text-[var(--brand)]">{t('policy.badge')}</p>
+                                <h4 className="text-lg font-bold text-white mt-1">{t('policy.title')}</h4>
+                                <p className="text-[11px] text-zinc-400 mt-1">{t('policy.versionLabel')} {CONSENT_POLICY_VERSION}</p>
                             </div>
                             <button
                                 type="button"
                                 onClick={() => setShowPolicy(false)}
                                 className="rounded-lg border border-zinc-700 px-3 py-1.5 text-xs font-bold uppercase tracking-widest text-zinc-300 hover:text-white"
                             >
-                                Cerrar
+                                {t('policy.close')}
                             </button>
                         </div>
 
                         <div className="p-4 md:p-6 overflow-y-auto max-h-[calc(90vh-150px)] text-sm text-zinc-300 space-y-5">
                             <div>
-                                <h5 className="text-xs font-bold uppercase tracking-widest text-zinc-400 mb-2">Datos que podemos registrar</h5>
+                                <h5 className="text-xs font-bold uppercase tracking-widest text-zinc-400 mb-2">{t('policy.dataRegisteredTitle')}</h5>
                                 <ul className="list-disc pl-5 space-y-1.5">
-                                    {POLICY_BULLETS.map((item) => (
+                                    {policyBullets.map((item) => (
                                         <li key={item}>{item}</li>
                                     ))}
                                 </ul>
                             </div>
 
                             <div>
-                                <h5 className="text-xs font-bold uppercase tracking-widest text-zinc-400 mb-2">Finalidad del tratamiento</h5>
+                                <h5 className="text-xs font-bold uppercase tracking-widest text-zinc-400 mb-2">{t('policy.purposeTitle')}</h5>
                                 <ul className="list-disc pl-5 space-y-1.5">
-                                    {POLICY_PURPOSES.map((item) => (
+                                    {policyPurposes.map((item) => (
                                         <li key={item}>{item}</li>
                                     ))}
                                 </ul>
                             </div>
 
-                            {POLICY_SECTIONS.map((section) => (
+                            {policySections.map((section) => (
                                 <div key={section.title}>
                                     <h5 className="text-sm font-bold text-white mb-1">{section.title}</h5>
                                     <p className="leading-relaxed">{section.content}</p>
@@ -195,7 +177,7 @@ export default function DataPolicyConsent() {
                                 disabled={isSaving}
                                 className="flex-1 rounded-xl border border-zinc-700 text-zinc-200 px-4 py-2.5 text-xs font-bold uppercase tracking-widest hover:border-zinc-500 transition-colors disabled:opacity-60"
                             >
-                                Continuar sin analítica
+                                {t('policy.continueWithoutAnalytics')}
                             </button>
                             <button
                                 type="button"
@@ -203,7 +185,7 @@ export default function DataPolicyConsent() {
                                 disabled={isSaving}
                                 className="flex-1 rounded-xl bg-[var(--brand)] text-white px-4 py-2.5 text-xs font-bold uppercase tracking-widest hover:brightness-110 transition-all disabled:opacity-60"
                             >
-                                Aceptar y continuar
+                                {t('policy.acceptAndContinue')}
                             </button>
                         </div>
                     </div>

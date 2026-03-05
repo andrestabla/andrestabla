@@ -9,6 +9,7 @@ import {
     LINKEDIN_URL,
 } from '@/lib/assistantKnowledge';
 import { CONSENT_POLICY_VERSION } from '@/lib/consent';
+import { resolveLocale, t, type Locale } from '@/lib/i18n';
 
 const OPENAI_API_URL = 'https://api.openai.com/v1/responses';
 const OPENAI_MODEL = 'gpt-4.1-nano';
@@ -36,6 +37,30 @@ type SiteContextCache = {
 };
 
 let siteContextCache: SiteContextCache | null = null;
+
+const API_ERRORS: Record<Locale, Record<'missingApiKey' | 'noMessages' | 'openaiError' | 'noAssistantResponse' | 'internal', string>> = {
+    es: {
+        missingApiKey: 'OPENAI_API_KEY no configurada en el servidor.',
+        noMessages: 'No hay mensajes para procesar.',
+        openaiError: 'Error llamando a OpenAI.',
+        noAssistantResponse: 'No se obtuvo respuesta del asistente.',
+        internal: 'Error interno del servidor en el asistente.',
+    },
+    en: {
+        missingApiKey: 'OPENAI_API_KEY is not configured on the server.',
+        noMessages: 'No messages to process.',
+        openaiError: 'Error calling OpenAI.',
+        noAssistantResponse: 'No assistant response was returned.',
+        internal: 'Internal server error in the assistant.',
+    },
+    fr: {
+        missingApiKey: 'OPENAI_API_KEY n’est pas configurée sur le serveur.',
+        noMessages: 'Aucun message à traiter.',
+        openaiError: "Erreur lors de l'appel à OpenAI.",
+        noAssistantResponse: "Aucune réponse de l'assistant n'a été reçue.",
+        internal: "Erreur interne du serveur dans l'assistant.",
+    },
+};
 
 function cleanText(value: string): string {
     return value
@@ -72,12 +97,12 @@ function normalizeForIntent(value: string): string {
 
 function isAgeQuestion(value: string): boolean {
     const text = normalizeForIntent(value);
-    return /\b(que edad|cuantos anos|anos tiene|edad tiene|edad de andres|edad)\b/.test(text);
+    return /\b(que edad|cuantos anos|anos tiene|edad tiene|edad de andres|how old|old is andres|quel age|age)\b/.test(text);
 }
 
 function isContactQuestion(value: string): boolean {
     const text = normalizeForIntent(value);
-    return /\b(contacto|contactar|correo|email|e-mail|whatsapp|agendar|reunion|reunirse|escribir)\b/.test(text);
+    return /\b(contacto|contactar|correo|email|e-mail|mail|whatsapp|agendar|reunion|reunirse|escribir|contact|schedule|book|meeting|rendezvous)\b/.test(text);
 }
 
 function escapeRegExp(value: string): string {
@@ -90,19 +115,19 @@ function messageContainsContactDetails(value: string): boolean {
         normalized.includes(normalizeForIntent(CONTACT_EMAIL)) ||
         normalized.includes(normalizeForIntent(CONTACT_BOOKING_URL)) ||
         normalized.includes(normalizeForIntent(CONTACT_WHATSAPP_URL)) ||
-        /\b(contacto|contactar|agendar|whatsapp|correo|email|reunion)\b/.test(normalized)
+        /\b(contacto|contactar|agendar|whatsapp|correo|email|mail|reunion|contact|schedule|book|meeting|rendezvous)\b/.test(normalized)
     );
 }
 
-function buildContactMessage(): string {
-    return 'Para contactarte con Andrés Tabla, usa uno de estos botones: Correo, Agendar reunión o WhatsApp.';
+function buildContactMessage(locale: Locale): string {
+    return t(locale, 'assistantApi.contactHint');
 }
 
-function buildContactActions(): ChatAction[] {
+function buildContactActions(locale: Locale): ChatAction[] {
     return [
-        { label: `Correo: ${CONTACT_EMAIL}`, url: `mailto:${CONTACT_EMAIL}` },
-        { label: 'Agendar reunión', url: CONTACT_BOOKING_URL },
-        { label: 'WhatsApp', url: CONTACT_WHATSAPP_URL },
+        { label: `${t(locale, 'assistantApi.actionEmail')}: ${CONTACT_EMAIL}`, url: `mailto:${CONTACT_EMAIL}` },
+        { label: t(locale, 'assistantApi.actionBooking'), url: CONTACT_BOOKING_URL },
+        { label: t(locale, 'assistantApi.actionWhatsapp'), url: CONTACT_WHATSAPP_URL },
     ];
 }
 
@@ -112,7 +137,7 @@ function sanitizeContactMessageForCta(message: string): string {
         .replace(new RegExp(escapeRegExp(CONTACT_WHATSAPP_URL), 'gi'), '')
         .replace(new RegExp(escapeRegExp(CONTACT_EMAIL), 'gi'), '')
         .replace(/https?:\/\/\S+/gi, '')
-        .replace(/\[\s*enlace\s*\]/gi, '')
+        .replace(/\[\s*(enlace|link|lien)\s*\]/gi, '')
         .replace(/\(\s*\)/g, '');
 
     const lines = withoutLinks
@@ -123,11 +148,51 @@ function sanitizeContactMessageForCta(message: string): string {
             const normalized = normalizeForIntent(line);
             const looksLikeRedundantContactLine =
                 /^(\d+[\.\)]|-|•)\s*/.test(line) &&
-                /\b(correo|email|agendar|reunion|whatsapp|contacto)\b/.test(normalized);
+                /\b(correo|email|agendar|reunion|whatsapp|contacto|contact|meeting|book|schedule|rendezvous)\b/.test(normalized);
             return !looksLikeRedundantContactLine;
         });
 
     return lines.join('\n').trim();
+}
+
+function inferLocaleFromAcceptLanguage(value: string | null): Locale {
+    if (!value) return resolveLocale(null);
+    const parts = value.split(',');
+    for (const part of parts) {
+        const token = part.trim().split(';')[0];
+        if (!token) continue;
+        const code = token.split('-')[0];
+        const resolved = resolveLocale(code);
+        if (resolved !== 'es' || code.toLowerCase().startsWith('es')) {
+            return resolved;
+        }
+    }
+    return resolveLocale(null);
+}
+
+function resolveRequestLocale(req: Request, body: any): Locale {
+    if (typeof body?.locale === 'string') {
+        return resolveLocale(body.locale);
+    }
+    const localeHeader = req.headers.get('x-locale');
+    if (localeHeader) {
+        return resolveLocale(localeHeader);
+    }
+    return inferLocaleFromAcceptLanguage(req.headers.get('accept-language'));
+}
+
+function resolveRequestLocaleFromHeaders(req: Request): Locale {
+    const localeHeader = req.headers.get('x-locale');
+    if (localeHeader) {
+        return resolveLocale(localeHeader);
+    }
+    return inferLocaleFromAcceptLanguage(req.headers.get('accept-language'));
+}
+
+function getLanguageInstruction(locale: Locale): string {
+    if (locale === 'en') return 'CRITICAL: Respond ONLY in English. Do not respond in Spanish.';
+    if (locale === 'fr') return 'CRITIQUE: Réponds UNIQUEMENT en français. Ne réponds pas en espagnol.';
+    return 'Responde SIEMPRE en español.';
 }
 
 function isLikelyUrl(value: string): boolean {
@@ -241,16 +306,18 @@ function extractResponseText(payload: any): string {
 }
 
 export async function POST(req: Request) {
+    const requestLocale = resolveRequestLocaleFromHeaders(req);
     const apiKey = process.env.OPENAI_API_KEY;
     if (!apiKey) {
         return NextResponse.json(
-            { error: 'OPENAI_API_KEY no configurada en el servidor.' },
+            { error: API_ERRORS[requestLocale].missingApiKey },
             { status: 500 }
         );
     }
 
     try {
         const body = await req.json();
+        const locale = resolveRequestLocale(req, body);
         const rawMessages = Array.isArray(body?.messages) ? body.messages : [];
 
         const messages: ChatMessage[] = rawMessages
@@ -262,7 +329,7 @@ export async function POST(req: Request) {
             .slice(-MAX_HISTORY_MESSAGES);
 
         if (messages.length === 0) {
-            return NextResponse.json({ error: 'No hay mensajes para procesar.' }, { status: 400 });
+            return NextResponse.json({ error: API_ERRORS[locale].noMessages }, { status: 400 });
         }
 
         const latestUserMessage =
@@ -298,14 +365,14 @@ export async function POST(req: Request) {
             if (asksAge || asksContact) {
                 const directParts: string[] = [];
                 if (asksAge) {
-                    directParts.push(`Andrés tiene ${getAndresCurrentAge()} años.`);
+                    directParts.push(t(locale, 'assistantApi.ageSentence', { age: getAndresCurrentAge() }));
                 }
                 if (asksContact) {
-                    directParts.push(buildContactMessage());
+                    directParts.push(buildContactMessage(locale));
                 }
                 return NextResponse.json({
                     message: directParts.join('\n\n'),
-                    actions: asksContact ? buildContactActions() : undefined,
+                    actions: asksContact ? buildContactActions(locale) : undefined,
                 });
             }
         }
@@ -314,7 +381,8 @@ export async function POST(req: Request) {
 
         const systemPrompt = [
             'Eres el asistente oficial del portafolio de Andrés Tabla Rico.',
-            'Responde SIEMPRE en español, con tono profesional, claro y útil.',
+            getLanguageInstruction(locale),
+            'Mantén tono profesional, claro y útil.',
             'Tu objetivo es ayudar a visitantes a conocer su perfil, experiencia, formación, cursos y servicios.',
             'Usa únicamente la información de contexto entregada; no inventes datos.',
             'Si te preguntan algo no disponible en el contexto, dilo explícitamente y sugiere contactar a Andrés con las 3 opciones oficiales de contacto.',
@@ -356,7 +424,7 @@ export async function POST(req: Request) {
 
         if (!response.ok) {
             const errorPayload = await response.json().catch(() => null);
-            const errorMessage = errorPayload?.error?.message || 'Error llamando a OpenAI.';
+            const errorMessage = errorPayload?.error?.message || API_ERRORS[locale].openaiError;
             return NextResponse.json({ error: errorMessage }, { status: 500 });
         }
 
@@ -365,7 +433,7 @@ export async function POST(req: Request) {
 
         if (!message) {
             return NextResponse.json(
-                { error: 'No se obtuvo respuesta del asistente.' },
+                { error: API_ERRORS[locale].noAssistantResponse },
                 { status: 500 }
             );
         }
@@ -380,7 +448,7 @@ export async function POST(req: Request) {
         const finalMessage = attachContactActions
             ? [
                 sanitizedMessage,
-                'Usa los botones CTA de abajo para contactar a Andrés.',
+                t(locale, 'assistantApi.ctaHint'),
             ]
                 .filter(Boolean)
                 .join('\n\n')
@@ -388,11 +456,11 @@ export async function POST(req: Request) {
 
         return NextResponse.json({
             message: finalMessage,
-            actions: attachContactActions ? buildContactActions() : undefined,
+            actions: attachContactActions ? buildContactActions(locale) : undefined,
         });
     } catch (_error) {
         return NextResponse.json(
-            { error: 'Error interno del servidor en el asistente.' },
+            { error: API_ERRORS[requestLocale].internal },
             { status: 500 }
         );
     }

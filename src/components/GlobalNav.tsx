@@ -3,11 +3,14 @@
 import { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useI18n } from '@/components/I18nProvider';
+import LanguageSwitcher from '@/components/LanguageSwitcher';
 
 export default function GlobalNav({ siteConfig }: { siteConfig?: any }) {
     const [isOpen, setIsOpen] = useState(false);
     const [scrolled, setScrolled] = useState(false);
     const pathname = usePathname();
+    const { t } = useI18n();
 
     useEffect(() => {
         const handleScroll = () => setScrolled(window.scrollY > 50);
@@ -22,12 +25,15 @@ export default function GlobalNav({ siteConfig }: { siteConfig?: any }) {
         try { parsedStyles = JSON.parse(siteConfig.globalStyles); } catch (_error) { }
     }
     const logoUrl = parsedStyles?.logoUrl;
-    const navLinks: { label: string; href: string }[] = parsedStyles?.navLinks || [
-        { label: 'Inicio', href: '#' },
-        { label: 'Experiencia', href: '#experiencia' },
-        { label: 'Educación', href: '#educacion' },
-        { label: 'Cursos', href: '#cursos' },
-    ];
+    const navLinks: { label: string; href: string }[] =
+        Array.isArray(parsedStyles?.navLinks) && parsedStyles.navLinks.length > 0
+            ? parsedStyles.navLinks
+            : [
+                { label: t('nav.default.home'), href: '#' },
+                { label: t('nav.default.experience'), href: '#experiencia' },
+                { label: t('nav.default.education'), href: '#educacion' },
+                { label: t('nav.default.courses'), href: '#cursos' },
+            ];
 
     const resolveNavHref = (rawHref: string) => {
         const href = String(rawHref || '').trim() || '#';
@@ -52,13 +58,17 @@ export default function GlobalNav({ siteConfig }: { siteConfig?: any }) {
                         )}
                     </a>
 
-                    <button
-                        onClick={toggleMenu}
-                        className="w-12 h-12 rounded-full border border-zinc-800 bg-zinc-900/50 backdrop-blur-sm flex flex-col items-center justify-center gap-1.5 z-50 hover:border-[#f25c54] hover:bg-zinc-900 transition-all duration-300 group"
-                    >
-                        <span className={`block w-5 h-[2px] bg-slate-400 group-hover:bg-[#f25c54] transition-all duration-300 ${isOpen ? 'rotate-45 translate-y-[4px]' : ''}`}></span>
-                        <span className={`block w-5 h-[2px] bg-slate-400 group-hover:bg-[#f25c54] transition-all duration-300 ${isOpen ? '-rotate-45 -translate-y-[4px]' : ''}`}></span>
-                    </button>
+                    <div className="flex items-center gap-2">
+                        <LanguageSwitcher compact />
+                        <button
+                            onClick={toggleMenu}
+                            className="w-12 h-12 rounded-full border border-zinc-800 bg-zinc-900/50 backdrop-blur-sm flex flex-col items-center justify-center gap-1.5 z-50 hover:border-[#f25c54] hover:bg-zinc-900 transition-all duration-300 group"
+                            aria-label={isOpen ? t('nav.closeMenu') : t('nav.openMenu')}
+                        >
+                            <span className={`block w-5 h-[2px] bg-slate-400 group-hover:bg-[#f25c54] transition-all duration-300 ${isOpen ? 'rotate-45 translate-y-[4px]' : ''}`}></span>
+                            <span className={`block w-5 h-[2px] bg-slate-400 group-hover:bg-[#f25c54] transition-all duration-300 ${isOpen ? '-rotate-45 -translate-y-[4px]' : ''}`}></span>
+                        </button>
+                    </div>
                 </div>
             </div>
 

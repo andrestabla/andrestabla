@@ -1,9 +1,12 @@
 import type { Metadata } from 'next';
 import { Inter, Playfair_Display, Roboto, Outfit, DM_Sans } from 'next/font/google';
+import { cookies } from 'next/headers';
 import './globals.css';
 import { prisma } from '@/lib/prisma';
 import SiteLoader from '@/components/SiteLoader';
+import I18nProvider from '@/components/I18nProvider';
 import { DEFAULT_SEO_DESCRIPTION, DEFAULT_SEO_TITLE, SITE_NAME, SITE_URL } from '@/lib/seo';
+import { LOCALE_COOKIE_KEY, resolveLocale } from '@/lib/i18n';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter', display: 'swap' });
 const playfair = Playfair_Display({ subsets: ['latin'], variable: '--font-playfair', display: 'swap' });
@@ -69,6 +72,9 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const cookieStore = await cookies();
+  const initialLocale = resolveLocale(cookieStore.get(LOCALE_COOKIE_KEY)?.value);
+
   let settings = null;
   try {
     settings = await prisma.siteSettings.findUnique({ where: { id: 'global' } });
@@ -105,7 +111,7 @@ export default async function RootLayout({
   const faviconHref = (parsedStyles.faviconUrl || '').trim() || '/favicon.ico';
 
   return (
-    <html lang="es" className={`${fontClass} scroll-smooth`}>
+    <html lang={initialLocale} className={`${fontClass} scroll-smooth`}>
       <head>
         <link rel="icon" href={faviconHref} />
         <link rel="shortcut icon" href={faviconHref} />
@@ -133,8 +139,10 @@ export default async function RootLayout({
         `}</style>
       </head>
       <body className="antialiased bg-zinc-950 text-slate-300 font-sans selection:bg-[var(--brand)] selection:text-white relative">
-        {parsedStyles.loaderEnabled && <SiteLoader />}
-        {children}
+        <I18nProvider initialLocale={initialLocale}>
+          {parsedStyles.loaderEnabled && <SiteLoader />}
+          {children}
+        </I18nProvider>
       </body>
     </html>
   );
