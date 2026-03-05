@@ -1,11 +1,67 @@
+'use client';
+
+import { CSSProperties, useEffect, useMemo, useRef, useState } from 'react';
 import { resolveBackgroundVideo } from '@/lib/backgroundVideo';
 
 export default function BlockBackgroundVideo({ url }: { url?: string }) {
-    const media = resolveBackgroundVideo(String(url || ''));
+    const media = useMemo(() => resolveBackgroundVideo(String(url || '')), [url]);
+    const containerRef = useRef<HTMLDivElement | null>(null);
+    const [iframeStyle, setIframeStyle] = useState<CSSProperties>({
+        width: 'max(100%, 177.7778vh)',
+        height: 'max(100%, 56.25vw)',
+        transform: 'translate(-50%, -50%)',
+    });
+
+    useEffect(() => {
+        if (!media || media.kind === 'file') return;
+        const target = containerRef.current;
+        if (!target) return;
+
+        const VIDEO_RATIO = 16 / 9;
+        const OVERSCAN = 1.02;
+
+        const updateFrame = () => {
+            const rect = target.getBoundingClientRect();
+            const width = Math.max(1, rect.width);
+            const height = Math.max(1, rect.height);
+            const containerRatio = width / height;
+
+            let frameWidth = width;
+            let frameHeight = height;
+
+            if (containerRatio > VIDEO_RATIO) {
+                frameWidth = width * OVERSCAN;
+                frameHeight = (width / VIDEO_RATIO) * OVERSCAN;
+            } else {
+                frameHeight = height * OVERSCAN;
+                frameWidth = (height * VIDEO_RATIO) * OVERSCAN;
+            }
+
+            setIframeStyle({
+                width: `${frameWidth}px`,
+                height: `${frameHeight}px`,
+                transform: 'translate(-50%, -50%)',
+            });
+        };
+
+        updateFrame();
+        const observer = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(updateFrame) : null;
+        observer?.observe(target);
+        window.addEventListener('resize', updateFrame);
+        window.addEventListener('orientationchange', updateFrame);
+
+        return () => {
+            observer?.disconnect();
+            window.removeEventListener('resize', updateFrame);
+            window.removeEventListener('orientationchange', updateFrame);
+        };
+    }, [media]);
+
     if (!media) return null;
 
     return (
         <div
+            ref={containerRef}
             className="block-bg-video absolute inset-0 z-0 overflow-hidden pointer-events-none"
             aria-hidden="true"
             data-no-auto-translate="true"
@@ -27,11 +83,7 @@ export default function BlockBackgroundVideo({ url }: { url?: string }) {
                     tabIndex={-1}
                     aria-hidden="true"
                     className="block-bg-video-iframe pointer-events-none absolute left-1/2 top-1/2 border-0"
-                    style={{
-                        width: 'max(100%, 177.7778vh)',
-                        height: 'max(100%, 56.25vw)',
-                        transform: 'translate(-50%, -50%)',
-                    }}
+                    style={iframeStyle}
                     allow="autoplay; fullscreen; picture-in-picture"
                 />
             )}
