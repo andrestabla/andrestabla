@@ -4,6 +4,8 @@ import { prisma } from '@/lib/prisma';
 import GlobalNav from '@/components/GlobalNav';
 import BlockRenderer from '@/app/components/BlockRenderer';
 import AndresAssistant from '@/components/AndresAssistant';
+import AnalyticsTracker from '@/components/AnalyticsTracker';
+import DataPolicyConsent from '@/components/DataPolicyConsent';
 import { buildArticlePageSlug, buildArticlePublicPath, normalizeSlugPart } from '@/lib/articlePages';
 import {
     absoluteUrl,
@@ -186,6 +188,8 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
                 type="application/ld+json"
                 dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
             />
+            <DataPolicyConsent />
+            <AnalyticsTracker />
 
             <GlobalNav siteConfig={siteConfig} />
 

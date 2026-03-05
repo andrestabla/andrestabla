@@ -2,6 +2,7 @@
 
 import { FormEvent, KeyboardEvent, useEffect, useMemo, useRef, useState } from 'react';
 import { Bot, MessageCircle, Send, X } from 'lucide-react';
+import { CONSENT_POLICY_VERSION, readStoredConsent } from '@/lib/consent';
 
 type ChatMessage = {
     role: 'assistant' | 'user';
@@ -64,10 +65,17 @@ export default function AndresAssistant() {
         setIsLoading(true);
 
         try {
+            const consent = readStoredConsent();
+            const consentState = consent?.decision === 'accepted' ? 'accepted' : 'declined';
+            const consentVersion = consent?.version || CONSENT_POLICY_VERSION;
             const res = await fetch('/api/assistant', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ messages: nextMessages }),
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-consent-state': consentState,
+                    'x-consent-version': consentVersion,
+                },
+                body: JSON.stringify({ messages: nextMessages, path: window.location.pathname }),
             });
 
             const payload = await res.json();

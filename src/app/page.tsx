@@ -3,6 +3,8 @@ import { prisma } from '@/lib/prisma';
 import GlobalNav from '@/components/GlobalNav';
 import BlockRenderer from './components/BlockRenderer';
 import AndresAssistant from '@/components/AndresAssistant';
+import AnalyticsTracker from '@/components/AnalyticsTracker';
+import DataPolicyConsent from '@/components/DataPolicyConsent';
 import { absoluteUrl, DEFAULT_SEO_DESCRIPTION, SITE_NAME, SITE_URL } from '@/lib/seo';
 
 export const dynamic = 'force-dynamic';
@@ -141,6 +143,8 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ [
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
       />
+      {!isEditor && <DataPolicyConsent />}
+      {!isEditor && <AnalyticsTracker />}
 
       {/* Global Navigation (Hamburger Menu) */}
       <GlobalNav siteConfig={siteConfig} />

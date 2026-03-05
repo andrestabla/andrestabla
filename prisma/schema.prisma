@@ -14,6 +14,17 @@ model User {
   password String
 }
 
+enum ConsentDecision {
+  accepted
+  declined
+}
+
+enum AnalyticsEventType {
+  page_view
+  section_view
+  assistant_question
+}
+
 model SiteSettings {
   id           String @id @default("global")
   title        String
@@ -51,4 +62,42 @@ model Block {
 
   @@index([pageId])
   @@index([parentId])
+}
+
+model ConsentRecord {
+  id            String          @id @default(cuid())
+  decision      ConsentDecision
+  policyVersion String
+  path          String?
+  country       String?
+  region        String?
+  city          String?
+  latitude      Float?
+  longitude     Float?
+  userAgent     String?
+  createdAt     DateTime        @default(now())
+
+  @@index([decision, createdAt])
+  @@index([country, region, city])
+}
+
+model AnalyticsEvent {
+  id            String             @id @default(cuid())
+  eventType     AnalyticsEventType
+  pagePath      String?
+  sectionId     String?
+  sectionLabel  String?
+  question      String?
+  policyVersion String?
+  country       String?
+  region        String?
+  city          String?
+  latitude      Float?
+  longitude     Float?
+  userAgent     String?
+  createdAt     DateTime           @default(now())
+
+  @@index([eventType, createdAt])
+  @@index([pagePath, eventType])
+  @@index([country, region, city])
 }

@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { updateBlockData, deleteBlock, addBlock, reorderBlocks, publishPageAndSyncArticles } from './actions';
 import {
     Trash2, Plus, Layers, Box, Settings2,
-    Save, X, ChevronLeft, PanelLeft, Eye, ChevronUp, ChevronDown, Maximize2, Minimize2
+    Save, X, ChevronLeft, PanelLeft, Eye, ChevronUp, ChevronDown, Maximize2, Minimize2, BarChart3
 } from 'lucide-react';
 import GlobalSettingsForm from './GlobalSettingsForm';
 import ClientInlineBlockRenderer from './ClientInlineBlockRenderer';
@@ -363,6 +363,15 @@ export default function BuilderWorkspace({
                             </span>
                         </div>
                         <div className="flex items-center gap-3">
+                            <a
+                                href="/admin/analytics"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-[10px] uppercase tracking-widest font-bold text-indigo-200 hover:text-white flex items-center gap-1.5"
+                                title="Abrir módulo de analítica"
+                            >
+                                <BarChart3 size={13} /> Analítica
+                            </a>
                             <button
                                 onClick={() => setSidebarExpanded(prev => !prev)}
                                 className="text-indigo-200 hover:text-white"

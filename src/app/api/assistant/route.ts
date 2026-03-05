@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { recordAnalyticsEvent } from '@/lib/analytics';
 import { prisma } from '@/lib/prisma';
 import {
     ANDRES_ASSISTANT_KNOWLEDGE,
@@ -7,6 +8,7 @@ import {
     CONTACT_WHATSAPP_URL,
     LINKEDIN_URL,
 } from '@/lib/assistantKnowledge';
+import { CONSENT_POLICY_VERSION } from '@/lib/consent';
 
 const OPENAI_API_URL = 'https://api.openai.com/v1/responses';
 const OPENAI_MODEL = 'gpt-4.1-nano';
@@ -268,6 +270,26 @@ export async function POST(req: Request) {
                 .reverse()
                 .find((message) => message.role === 'user')
                 ?.content || '';
+
+        const consentState = req.headers.get('x-consent-state') === 'accepted' ? 'accepted' : 'declined';
+        const consentVersion =
+            (req.headers.get('x-consent-version') || '').trim().slice(0, 16) || CONSENT_POLICY_VERSION;
+        const pagePath = typeof body?.path === 'string' ? body.path : '';
+
+        if (latestUserMessage) {
+            try {
+                await recordAnalyticsEvent({
+                    request: req,
+                    eventType: 'assistant_question',
+                    consentState,
+                    policyVersion: consentVersion,
+                    pagePath,
+                    question: latestUserMessage,
+                });
+            } catch (_analyticsError) {
+                // Ignore analytics failures to keep the assistant responsive.
+            }
+        }
 
         if (latestUserMessage) {
             const asksAge = isAgeQuestion(latestUserMessage);
