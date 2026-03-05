@@ -78,6 +78,10 @@ function isContactQuestion(value: string): boolean {
     return /\b(contacto|contactar|correo|email|e-mail|whatsapp|agendar|reunion|reunirse|escribir)\b/.test(text);
 }
 
+function escapeRegExp(value: string): string {
+    return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
 function messageContainsContactDetails(value: string): boolean {
     const normalized = normalizeForIntent(value);
     return (
@@ -98,6 +102,30 @@ function buildContactActions(): ChatAction[] {
         { label: 'Agendar reunión', url: CONTACT_BOOKING_URL },
         { label: 'WhatsApp', url: CONTACT_WHATSAPP_URL },
     ];
+}
+
+function sanitizeContactMessageForCta(message: string): string {
+    const withoutLinks = message
+        .replace(new RegExp(escapeRegExp(CONTACT_BOOKING_URL), 'gi'), '')
+        .replace(new RegExp(escapeRegExp(CONTACT_WHATSAPP_URL), 'gi'), '')
+        .replace(new RegExp(escapeRegExp(CONTACT_EMAIL), 'gi'), '')
+        .replace(/https?:\/\/\S+/gi, '')
+        .replace(/\[\s*enlace\s*\]/gi, '')
+        .replace(/\(\s*\)/g, '');
+
+    const lines = withoutLinks
+        .split('\n')
+        .map((line) => line.trim().replace(/\s{2,}/g, ' '))
+        .filter(Boolean)
+        .filter((line) => {
+            const normalized = normalizeForIntent(line);
+            const looksLikeRedundantContactLine =
+                /^(\d+[\.\)]|-|•)\s*/.test(line) &&
+                /\b(correo|email|agendar|reunion|whatsapp|contacto)\b/.test(normalized);
+            return !looksLikeRedundantContactLine;
+        });
+
+    return lines.join('\n').trim();
 }
 
 function isLikelyUrl(value: string): boolean {
@@ -323,10 +351,21 @@ export async function POST(req: Request) {
         const attachContactActions =
             isContactQuestion(latestUserMessage) || messageContainsContactDetails(message);
 
+        const sanitizedMessage = attachContactActions
+            ? sanitizeContactMessageForCta(message)
+            : message;
+
+        const finalMessage = attachContactActions
+            ? [
+                sanitizedMessage,
+                'Usa los botones CTA de abajo para contactar a Andrés.',
+            ]
+                .filter(Boolean)
+                .join('\n\n')
+            : message;
+
         return NextResponse.json({
-            message: attachContactActions
-                ? `${message}\n\nPuedes usar los botones CTA de abajo para contactar a Andrés.`
-                : message,
+            message: finalMessage,
             actions: attachContactActions ? buildContactActions() : undefined,
         });
     } catch (_error) {
