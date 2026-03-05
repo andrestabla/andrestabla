@@ -122,16 +122,17 @@ export default function AndresAssistant() {
                             >
                                 <p className="whitespace-pre-line">{message.content}</p>
                                 {message.role === 'assistant' && message.actions && message.actions.length > 0 && (
-                                    <div className="mt-2 flex flex-wrap gap-2">
+                                    <div className="mt-3 grid gap-2">
                                         {message.actions.map((action, actionIdx) => (
                                             <a
                                                 key={`${action.label}-${actionIdx}`}
                                                 href={action.url}
                                                 target={action.url.startsWith('mailto:') ? undefined : '_blank'}
                                                 rel={action.url.startsWith('mailto:') ? undefined : 'noreferrer noopener'}
-                                                className="inline-flex items-center rounded-full border border-[var(--brand)]/60 px-3 py-1.5 text-xs font-semibold text-[var(--brand)] hover:bg-[var(--brand)] hover:text-white transition-colors"
+                                                className="group flex w-full items-center justify-between rounded-xl border border-[var(--brand)]/45 bg-[var(--brand)] px-3.5 py-2.5 text-sm font-semibold text-white shadow-md shadow-[var(--brand)]/25 transition-all hover:brightness-110 hover:shadow-lg hover:shadow-[var(--brand)]/35"
                                             >
-                                                {action.label}
+                                                <span>{action.label}</span>
+                                                <span className="text-base leading-none transition-transform group-hover:translate-x-0.5">→</span>
                                             </a>
                                         ))}
                                     </div>

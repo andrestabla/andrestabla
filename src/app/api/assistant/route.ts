@@ -78,6 +78,16 @@ function isContactQuestion(value: string): boolean {
     return /\b(contacto|contactar|correo|email|e-mail|whatsapp|agendar|reunion|reunirse|escribir)\b/.test(text);
 }
 
+function messageContainsContactDetails(value: string): boolean {
+    const normalized = normalizeForIntent(value);
+    return (
+        normalized.includes(normalizeForIntent(CONTACT_EMAIL)) ||
+        normalized.includes(normalizeForIntent(CONTACT_BOOKING_URL)) ||
+        normalized.includes(normalizeForIntent(CONTACT_WHATSAPP_URL)) ||
+        /\b(contacto|contactar|agendar|whatsapp|correo|email|reunion)\b/.test(normalized)
+    );
+}
+
 function buildContactMessage(): string {
     return 'Para contactarte con Andrés Tabla, usa uno de estos botones: Correo, Agendar reunión o WhatsApp.';
 }
@@ -310,7 +320,15 @@ export async function POST(req: Request) {
             );
         }
 
-        return NextResponse.json({ message });
+        const attachContactActions =
+            isContactQuestion(latestUserMessage) || messageContainsContactDetails(message);
+
+        return NextResponse.json({
+            message: attachContactActions
+                ? `${message}\n\nPuedes usar los botones CTA de abajo para contactar a Andrés.`
+                : message,
+            actions: attachContactActions ? buildContactActions() : undefined,
+        });
     } catch (_error) {
         return NextResponse.json(
             { error: 'Error interno del servidor en el asistente.' },
