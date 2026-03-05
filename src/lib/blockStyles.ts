@@ -56,18 +56,31 @@ export function resolveBackgroundOverlay(parsedStyles: RawBlockStyles): { color:
     return { color, opacity };
 }
 
-export function buildBlockInlineStyles(parsedStyles: RawBlockStyles, imageUrl: string): Record<string, string> {
+export function buildFullBleedBackgroundStyle({
+    color,
+    imageUrl,
+}: {
+    color?: unknown;
+    imageUrl?: unknown;
+}): Record<string, string> {
     const styleObject: Record<string, string> = {};
+    const bgColor = normalizeCssValue(color);
+    const bgImage = normalizeString(imageUrl);
 
-    const backgroundColor = normalizeCssValue(parsedStyles.backgroundColor);
-    if (backgroundColor) styleObject.backgroundColor = backgroundColor;
+    if (bgColor) styleObject.backgroundColor = bgColor;
 
-    if (imageUrl) {
-        styleObject.backgroundImage = `url('${escapeForCssUrl(imageUrl)}')`;
+    if (bgImage) {
+        styleObject.backgroundImage = `url('${escapeForCssUrl(bgImage)}')`;
         styleObject.backgroundSize = 'cover';
         styleObject.backgroundPosition = 'center';
         styleObject.backgroundRepeat = 'no-repeat';
     }
+
+    return styleObject;
+}
+
+export function buildBlockInlineStyles(parsedStyles: RawBlockStyles): Record<string, string> {
+    const styleObject: Record<string, string> = {};
 
     const paddingTop = normalizeRem(parsedStyles.paddingTop);
     if (paddingTop) styleObject.paddingTop = paddingTop;

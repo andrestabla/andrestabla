@@ -33,7 +33,7 @@ import LoopGridBlock from '@/components/LoopGridBlock';
 import ClickToEditWrapper from '@/components/ClickToEditWrapper';
 import BlockBackgroundVideo from '@/components/BlockBackgroundVideo';
 import { resolveBackgroundMediaUrls } from '@/lib/backgroundVideo';
-import { buildBlockInlineStyles, resolveBackgroundOverlay } from '@/lib/blockStyles';
+import { buildBlockInlineStyles, buildFullBleedBackgroundStyle, resolveBackgroundOverlay } from '@/lib/blockStyles';
 
 const BlockComponents: Record<string, any> = {
     hero: HeroBlock,
@@ -91,11 +91,15 @@ function BlockNode({ block, allBlocks, isEditor }: { block: any, allBlocks: any[
     }
 
     const { imageUrl, videoUrl } = resolveBackgroundMediaUrls(parsedStyles);
-    const styleString: any = buildBlockInlineStyles(parsedStyles, imageUrl);
+    const styleString: any = buildBlockInlineStyles(parsedStyles);
+    const baseBackgroundStyle = buildFullBleedBackgroundStyle({
+        color: parsedStyles.backgroundColor,
+        imageUrl,
+    });
+    const hasBaseBackground = Boolean(baseBackgroundStyle.backgroundColor || baseBackgroundStyle.backgroundImage);
     const overlay = resolveBackgroundOverlay(parsedStyles);
     const hasCustomBackground = Boolean(
-        String(parsedStyles.backgroundColor || '').trim() ||
-        imageUrl ||
+        hasBaseBackground ||
         videoUrl ||
         overlay.opacity > 0
     );
@@ -124,10 +128,17 @@ function BlockNode({ block, allBlocks, isEditor }: { block: any, allBlocks: any[
             data-block-id={block.id}
             id={`block-${block.id}`}
         >
+            {hasBaseBackground && (
+                <div
+                    className="block-bg-fullbleed absolute inset-y-0 left-1/2 z-0 -translate-x-1/2 pointer-events-none"
+                    style={baseBackgroundStyle}
+                    aria-hidden="true"
+                />
+            )}
             <BlockBackgroundVideo url={videoUrl} fullBleed />
             {overlay.opacity > 0 && (
                 <div
-                    className="absolute inset-0 z-0 pointer-events-none"
+                    className="block-bg-fullbleed absolute inset-y-0 left-1/2 z-0 -translate-x-1/2 pointer-events-none"
                     style={{ backgroundColor: overlay.color, opacity: overlay.opacity }}
                     aria-hidden="true"
                 />

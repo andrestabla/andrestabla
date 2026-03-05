@@ -245,6 +245,12 @@
   background-position: center;
 }
 
+.block-bg-fullbleed {
+  width: 100vw;
+  width: 100dvw;
+  min-width: 100vw;
+}
+
 /* Mobile: force media backgrounds to fill the entire block area */
 @media (max-width: 768px) {
   .block-has-background-media {

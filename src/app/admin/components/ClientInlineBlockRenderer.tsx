@@ -34,7 +34,7 @@ import HotspotsBlock from '@/components/HotspotsBlock';
 import LoopGridBlock from '@/components/LoopGridBlock';
 import BlockBackgroundVideo from '@/components/BlockBackgroundVideo';
 import { resolveBackgroundMediaUrls } from '@/lib/backgroundVideo';
-import { buildBlockInlineStyles, resolveBackgroundOverlay } from '@/lib/blockStyles';
+import { buildBlockInlineStyles, buildFullBleedBackgroundStyle, resolveBackgroundOverlay } from '@/lib/blockStyles';
 
 const BlockComponents: Record<string, any> = {
     hero: HeroBlock,
@@ -90,11 +90,15 @@ function BlockNode({ block, allBlocks, selectedBlockId, onSelect }: BlockNodePro
     try { if (block.styles) parsedStyles = JSON.parse(block.styles); } catch { /* noop */ }
 
     const { imageUrl, videoUrl } = resolveBackgroundMediaUrls(parsedStyles);
-    const styleObj = buildBlockInlineStyles(parsedStyles, imageUrl) as React.CSSProperties;
+    const styleObj = buildBlockInlineStyles(parsedStyles) as React.CSSProperties;
+    const baseBackgroundStyle = buildFullBleedBackgroundStyle({
+        color: parsedStyles.backgroundColor,
+        imageUrl,
+    }) as React.CSSProperties;
+    const hasBaseBackground = Boolean((baseBackgroundStyle as any).backgroundColor || (baseBackgroundStyle as any).backgroundImage);
     const overlay = resolveBackgroundOverlay(parsedStyles);
     const hasCustomBackground = Boolean(
-        String(parsedStyles.backgroundColor || '').trim() ||
-        imageUrl ||
+        hasBaseBackground ||
         videoUrl ||
         overlay.opacity > 0
     );
@@ -130,10 +134,17 @@ function BlockNode({ block, allBlocks, selectedBlockId, onSelect }: BlockNodePro
                 onSelect(block.id);
             }}
         >
+            {hasBaseBackground && (
+                <div
+                    className="block-bg-fullbleed absolute inset-y-0 left-1/2 z-0 -translate-x-1/2 pointer-events-none"
+                    style={baseBackgroundStyle}
+                    aria-hidden="true"
+                />
+            )}
             <BlockBackgroundVideo url={videoUrl} fullBleed />
             {overlay.opacity > 0 && (
                 <div
-                    className="absolute inset-0 z-0 pointer-events-none"
+                    className="block-bg-fullbleed absolute inset-y-0 left-1/2 z-0 -translate-x-1/2 pointer-events-none"
                     style={{ backgroundColor: overlay.color, opacity: overlay.opacity }}
                     aria-hidden="true"
                 />
