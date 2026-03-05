@@ -2,6 +2,13 @@
 
 import { prisma } from '@/lib/prisma';
 import { revalidatePath } from 'next/cache';
+import {
+    buildAdminEditPath,
+    buildArticlePageSlug,
+    buildArticlePublicPath,
+    humanizeSlug,
+    normalizeSlugPart,
+} from '@/lib/articlePages';
 
 // Update a single block's JSON data
 export async function updateBlockData(id: string, newData: string) {
@@ -76,4 +83,103 @@ export async function updateGlobalSettings(newStyles: string) {
 
     revalidatePath('/');
     revalidatePath('/admin');
+}
+
+type EnsureArticlePageInput = {
+    articleSlug?: string;
+    title?: string;
+    excerpt?: string;
+    image?: string;
+};
+
+export async function ensureArticlePage(input: EnsureArticlePageInput) {
+    const slugSeed = input.articleSlug || input.title || 'articulo';
+    const articleSlug = normalizeSlugPart(slugSeed);
+    const pageSlug = buildArticlePageSlug(articleSlug);
+    const pageTitle = (input.title || '').trim() || humanizeSlug(articleSlug);
+    const pageDescription = (input.excerpt || '').trim();
+    const coverImage = (input.image || '').trim();
+
+    let page = await prisma.page.findUnique({
+        where: { slug: pageSlug },
+        include: { blocks: { orderBy: { order: 'asc' } } },
+    });
+
+    if (!page) {
+        page = await prisma.page.create({
+            data: {
+                slug: pageSlug,
+                title: pageTitle,
+                description: pageDescription || null,
+                isPublished: true,
+            },
+            include: { blocks: { orderBy: { order: 'asc' } } },
+        });
+    } else {
+        await prisma.page.update({
+            where: { id: page.id },
+            data: {
+                title: page.title || pageTitle,
+                description: page.description || pageDescription || null,
+            },
+        });
+    }
+
+    const hasBlocks = page.blocks.length > 0;
+    if (!hasBlocks) {
+        const starterBlocks = [
+            {
+                type: 'heading',
+                data: {
+                    text: pageTitle,
+                    tag: 'h1',
+                    align: 'left',
+                },
+            },
+            {
+                type: 'image',
+                data: {
+                    url: coverImage,
+                    alt: pageTitle,
+                },
+            },
+            {
+                type: 'richtext',
+                data: {
+                    title: 'Introducción',
+                    content: pageDescription
+                        ? `<p>${pageDescription}</p>`
+                        : '<p>Escribe aquí el contenido principal del artículo.</p>',
+                },
+            },
+            {
+                type: 'video',
+                data: {
+                    url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+                },
+            },
+        ];
+
+        await prisma.$transaction(
+            starterBlocks.map((block, index) =>
+                prisma.block.create({
+                    data: {
+                        pageId: page!.id,
+                        type: block.type,
+                        data: JSON.stringify(block.data),
+                        order: index + 1,
+                    },
+                })
+            )
+        );
+    }
+
+    const publicPath = buildArticlePublicPath(articleSlug);
+    const adminPath = buildAdminEditPath(pageSlug);
+
+    revalidatePath('/');
+    revalidatePath(publicPath);
+    revalidatePath('/admin');
+
+    return { articleSlug, pageSlug, publicPath, adminPath };
 }

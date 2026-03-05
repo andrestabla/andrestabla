@@ -2,6 +2,11 @@
 
 import { useState } from 'react';
 import { Plus, Trash2 } from 'lucide-react';
+import { ensureArticlePage } from '../actions';
+import {
+    buildArticlePublicPath,
+    normalizeSlugPart,
+} from '@/lib/articlePages';
 
 type LoopItem = {
     title: string;
@@ -10,6 +15,7 @@ type LoopItem = {
     excerpt: string;
     image: string;
     href?: string;
+    articleSlug?: string;
 };
 
 const DEFAULT_BLOG_ITEMS: LoopItem[] = [
@@ -19,7 +25,8 @@ const DEFAULT_BLOG_ITEMS: LoopItem[] = [
         date: 'Mar 02, 2026',
         excerpt: 'Explorando estrategias modernas con Next.js y arquitecturas híbridas.',
         image: 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?q=80&w=600&auto=format&fit=crop',
-        href: '#',
+        articleSlug: 'futuro-del-desarrollo-web',
+        href: '/articulos/futuro-del-desarrollo-web',
     },
     {
         title: 'Minimalismo en Diseño UI',
@@ -27,7 +34,8 @@ const DEFAULT_BLOG_ITEMS: LoopItem[] = [
         date: 'Feb 18, 2026',
         excerpt: 'Cómo reducir fricción visual y mejorar la conversión con layouts claros.',
         image: 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?q=80&w=600&auto=format&fit=crop',
-        href: '#',
+        articleSlug: 'minimalismo-en-diseno-ui',
+        href: '/articulos/minimalismo-en-diseno-ui',
     },
     {
         title: 'SEO Técnico para Portafolios',
@@ -35,7 +43,8 @@ const DEFAULT_BLOG_ITEMS: LoopItem[] = [
         date: 'Ene 30, 2026',
         excerpt: 'Checklist práctico para posicionar tu sitio de servicios profesionales.',
         image: 'https://images.unsplash.com/photo-1432888498266-38ffec3eaf0a?q=80&w=600&auto=format&fit=crop',
-        href: '#',
+        articleSlug: 'seo-tecnico-para-portafolios',
+        href: '/articulos/seo-tecnico-para-portafolios',
     },
 ];
 
@@ -69,13 +78,23 @@ const DEFAULT_PORTFOLIO_ITEMS: LoopItem[] = [
 const getDefaultItems = (postType: string): LoopItem[] =>
     postType === 'portfolio' ? DEFAULT_PORTFOLIO_ITEMS : DEFAULT_BLOG_ITEMS;
 
+const extractArticleSlugFromHref = (href?: string): string => {
+    const value = (href || '').trim();
+    if (!value) return '';
+
+    const directMatch = value.match(/\/articulos\/([^/?#]+)/i);
+    if (directMatch?.[1]) return normalizeSlugPart(directMatch[1]);
+
+    return '';
+};
+
 export default function LoopGridInspector({
     initialData,
     onSave,
     isSaving,
 }: {
     initialData: any;
-    onSave: (data: any) => void;
+    onSave: (data: any) => void | Promise<void>;
     isSaving: boolean;
 }) {
     const initialPostType = initialData.postType || 'blog';
@@ -84,9 +103,14 @@ export default function LoopGridInspector({
     const [columns, setColumns] = useState(initialData.columns || 'grid-cols-1 md:grid-cols-3');
     const [limit, setLimit] = useState(initialData.limit || 3);
     const [showImage, setShowImage] = useState(initialData.showImage !== undefined ? initialData.showImage : true);
+    const [activeBuilderIndex, setActiveBuilderIndex] = useState<number | null>(null);
+    const [builderError, setBuilderError] = useState('');
     const [items, setItems] = useState<LoopItem[]>(
         Array.isArray(initialData.items) && initialData.items.length > 0
-            ? initialData.items
+            ? initialData.items.map((item: LoopItem) => ({
+                ...item,
+                articleSlug: (item.articleSlug || '').trim() || extractArticleSlugFromHref(item.href),
+            }))
             : getDefaultItems(initialPostType)
     );
 
@@ -97,6 +121,7 @@ export default function LoopGridInspector({
     };
 
     const addItem = () => {
+        const articleSlug = postType === 'blog' ? normalizeSlugPart(`articulo-${items.length + 1}`) : '';
         setItems([
             ...items,
             {
@@ -105,7 +130,8 @@ export default function LoopGridInspector({
                 date: '',
                 excerpt: '',
                 image: '',
-                href: '#',
+                href: postType === 'blog' ? buildArticlePublicPath(articleSlug) : '#',
+                articleSlug: postType === 'blog' ? articleSlug : '',
             },
         ]);
     };
@@ -114,17 +140,76 @@ export default function LoopGridInspector({
         setItems(items.filter((_, i) => i !== index));
     };
 
-    const handleSave = () => {
-        const sanitizedItems = items
-            .map((item) => ({
+    const resolveArticleSlug = (item: LoopItem, index: number): string =>
+        normalizeSlugPart(
+            (item.articleSlug || '').trim() ||
+            extractArticleSlugFromHref(item.href) ||
+            (item.title || '').trim() ||
+            `articulo-${index + 1}`
+        );
+
+    const buildSanitizedItems = (sourceItems: LoopItem[]) =>
+        sourceItems
+            .map((item, index) => {
+                const isBlog = postType === 'blog';
+                const articleSlug = isBlog ? resolveArticleSlug(item, index) : '';
+                const defaultHref = isBlog ? buildArticlePublicPath(articleSlug) : '';
+
+                return {
+                    title: (item.title || '').trim(),
+                    category: (item.category || '').trim() || 'General',
+                    date: (item.date || '').trim(),
+                    excerpt: (item.excerpt || '').trim(),
+                    image: (item.image || '').trim(),
+                    href: ((item.href || '').trim() || defaultHref).trim(),
+                    articleSlug,
+                };
+            })
+            .filter((item) => item.title || item.excerpt || item.image);
+
+    const handleOpenArticleBuilder = async (index: number) => {
+        const item = items[index];
+        if (!item) return;
+
+        const articleSlug = resolveArticleSlug(item, index);
+
+        setBuilderError('');
+        setActiveBuilderIndex(index);
+
+        try {
+            const response = await ensureArticlePage({
+                articleSlug,
                 title: (item.title || '').trim(),
-                category: (item.category || '').trim() || 'General',
-                date: (item.date || '').trim(),
                 excerpt: (item.excerpt || '').trim(),
                 image: (item.image || '').trim(),
-                href: (item.href || '').trim(),
-            }))
-            .filter((item) => item.title || item.excerpt || item.image);
+            });
+
+            const updatedItems = [...items];
+            updatedItems[index] = {
+                ...updatedItems[index],
+                articleSlug: response.articleSlug,
+                href: response.publicPath,
+            };
+            setItems(updatedItems);
+
+            await onSave({
+                postType,
+                columns,
+                limit,
+                showImage,
+                items: buildSanitizedItems(updatedItems),
+            });
+
+            window.open(response.adminPath, '_blank', 'noopener,noreferrer');
+        } catch (_error) {
+            setBuilderError('No se pudo crear/abrir la página del artículo. Intenta de nuevo.');
+        } finally {
+            setActiveBuilderIndex(null);
+        }
+    };
+
+    const handleSave = () => {
+        const sanitizedItems = buildSanitizedItems(items);
 
         onSave({ postType, columns, limit, showImage, items: sanitizedItems });
     };
@@ -136,6 +221,12 @@ export default function LoopGridInspector({
                     Este bloque ahora se edita desde aquí: agrega, modifica y elimina artículos/proyectos.
                 </p>
             </div>
+
+            {builderError && (
+                <div className="bg-red-50 border border-red-100 p-3 rounded-xl">
+                    <p className="text-[10px] text-red-700 font-medium">{builderError}</p>
+                </div>
+            )}
 
             <div>
                 <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Fuente de Datos</label>
@@ -250,6 +341,32 @@ export default function LoopGridInspector({
                                     />
                                 </div>
                             </div>
+
+                            {postType === 'blog' && (
+                                <div className="space-y-2 rounded-md border border-indigo-100 bg-indigo-50/40 p-2.5">
+                                    <div>
+                                        <label className="text-[9px] font-bold uppercase tracking-widest text-indigo-500">Slug del artículo</label>
+                                        <input
+                                            type="text"
+                                            value={item.articleSlug || ''}
+                                            onChange={e => handleItemChange(idx, 'articleSlug', normalizeSlugPart(e.target.value))}
+                                            className="w-full border border-indigo-200 rounded-md p-2 text-xs font-mono"
+                                            placeholder="mi-articulo"
+                                        />
+                                    </div>
+                                    <button
+                                        type="button"
+                                        onClick={() => handleOpenArticleBuilder(idx)}
+                                        disabled={activeBuilderIndex === idx}
+                                        className="w-full rounded-md bg-indigo-600 text-white py-2 text-[10px] font-bold uppercase tracking-widest hover:bg-indigo-700 disabled:opacity-60"
+                                    >
+                                        {activeBuilderIndex === idx ? 'Abriendo Builder...' : 'Construir / Editar Artículo'}
+                                    </button>
+                                    <p className="text-[10px] text-indigo-700">
+                                        Se abrirá una página editable por bloques ({`heading, image, richtext, video, embeds y más`}).
+                                    </p>
+                                </div>
+                            )}
                         </div>
                     ))}
                 </div>

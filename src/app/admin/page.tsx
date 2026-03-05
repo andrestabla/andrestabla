@@ -1,19 +1,59 @@
 import { prisma } from '@/lib/prisma';
 import BuilderWorkspace from './components/BuilderWorkspace';
+import {
+    buildArticlePublicPath,
+    extractArticleSlugPart,
+    humanizeSlug,
+    isArticlePageSlug,
+    normalizeSlugPart,
+} from '@/lib/articlePages';
 
 export const revalidate = 0;
 
-export default async function AdminPage() {
+type AdminPageProps = {
+    searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+};
 
-    const homePage = await prisma.page.findUnique({
-        where: { slug: 'home' },
+export default async function AdminPage({ searchParams }: AdminPageProps) {
+    const resolvedSearchParams = await searchParams;
+    const slugParam = Array.isArray(resolvedSearchParams?.slug)
+        ? resolvedSearchParams.slug[0]
+        : resolvedSearchParams?.slug;
+
+    const requestedSlug = typeof slugParam === 'string' && slugParam.trim()
+        ? normalizeSlugPart(slugParam.trim(), 'home')
+        : 'home';
+
+    const selectedPageSlug =
+        requestedSlug === 'home'
+            ? 'home'
+            : isArticlePageSlug(requestedSlug)
+                ? requestedSlug
+                : 'home';
+
+    let page = await prisma.page.findUnique({
+        where: { slug: selectedPageSlug },
         include: {
             blocks: { orderBy: { order: 'asc' } }
         }
     });
 
-    if (!homePage) {
-        return <div className="p-12 text-center text-red-500">Error: Base de datos no inicializada (Falta The Home Page).</div>;
+    if (!page && isArticlePageSlug(selectedPageSlug)) {
+        page = await prisma.page.create({
+            data: {
+                slug: selectedPageSlug,
+                title: humanizeSlug(selectedPageSlug.replace(/^article-/, '')),
+                description: '',
+                isPublished: true,
+            },
+            include: {
+                blocks: { orderBy: { order: 'asc' } }
+            }
+        });
+    }
+
+    if (!page) {
+        return <div className="p-12 text-center text-red-500">Error: Base de datos no inicializada (Falta la página solicitada).</div>;
     }
 
     let siteSettings = await prisma.siteSettings.findUnique({ where: { id: 'global' } });
@@ -35,12 +75,15 @@ export default async function AdminPage() {
 
     // Serialize: strip Prisma Date objects (createdAt, updatedAt) which are NOT
     // JSON-serializable across the server→client component boundary.
-    const serializedPage = JSON.parse(JSON.stringify(homePage));
+    const serializedPage = JSON.parse(JSON.stringify(page));
     const serializedSettings = JSON.parse(JSON.stringify(siteSettings));
+    const previewPath = isArticlePageSlug(page.slug)
+        ? buildArticlePublicPath(extractArticleSlugPart(page.slug))
+        : '/';
 
     return (
         <div className="min-h-screen w-full overflow-x-hidden">
-            <BuilderWorkspace page={serializedPage} settings={serializedSettings} />
+            <BuilderWorkspace page={serializedPage} settings={serializedSettings} previewPath={previewPath} />
         </div>
     );
 }

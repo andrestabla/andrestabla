@@ -157,15 +157,20 @@ function BlockNode({ block, allBlocks, isEditor }: { block: any, allBlocks: any[
 }
 
 // Dispatcher Component: Fetches raw JSON blocks and injects them into the recursive tree
-export default async function BlockRenderer({ isEditor }: { isEditor?: boolean }) {
-    // @ts-ignore
-    const page = await prisma.page.findFirst({
-        where: { slug: 'home' },
+export default async function BlockRenderer({
+    isEditor,
+    pageSlug = 'home',
+}: {
+    isEditor?: boolean;
+    pageSlug?: string;
+}) {
+    const page = await prisma.page.findUnique({
+        where: { slug: pageSlug },
         include: { blocks: true },
     });
 
     if (!page) {
-        return <div className="p-8 text-center text-slate-500">No home page found. Please configure the CMS.</div>;
+        return <div className="p-8 text-center text-slate-500">No se encontró la página solicitada en el CMS.</div>;
     }
 
     // Sort root blocks by order

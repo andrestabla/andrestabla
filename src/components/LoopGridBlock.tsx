@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { ArrowRight } from 'lucide-react';
+import { buildArticlePublicPath, normalizeSlugPart } from '@/lib/articlePages';
 
 type LoopItem = {
     id?: string | number;
@@ -11,6 +12,7 @@ type LoopItem = {
     excerpt?: string;
     image?: string;
     href?: string;
+    articleSlug?: string;
 };
 
 const DEFAULT_BLOG_ITEMS: LoopItem[] = [
@@ -21,7 +23,8 @@ const DEFAULT_BLOG_ITEMS: LoopItem[] = [
         date: 'Mar 02, 2026',
         excerpt: 'Explorando estrategias modernas con Next.js y arquitecturas híbridas.',
         image: 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?q=80&w=600&auto=format&fit=crop',
-        href: '#',
+        articleSlug: 'futuro-del-desarrollo-web',
+        href: '/articulos/futuro-del-desarrollo-web',
     },
     {
         id: 2,
@@ -30,7 +33,8 @@ const DEFAULT_BLOG_ITEMS: LoopItem[] = [
         date: 'Feb 18, 2026',
         excerpt: 'Cómo reducir fricción visual y mejorar la conversión con layouts claros.',
         image: 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?q=80&w=600&auto=format&fit=crop',
-        href: '#',
+        articleSlug: 'minimalismo-en-diseno-ui',
+        href: '/articulos/minimalismo-en-diseno-ui',
     },
     {
         id: 3,
@@ -39,7 +43,8 @@ const DEFAULT_BLOG_ITEMS: LoopItem[] = [
         date: 'Ene 30, 2026',
         excerpt: 'Checklist práctico para posicionar tu sitio de servicios profesionales.',
         image: 'https://images.unsplash.com/photo-1432888498266-38ffec3eaf0a?q=80&w=600&auto=format&fit=crop',
-        href: '#',
+        articleSlug: 'seo-tecnico-para-portafolios',
+        href: '/articulos/seo-tecnico-para-portafolios',
     },
 ];
 
@@ -105,28 +110,37 @@ export default function LoopGridBlock({ data }: { data: any }) {
             </div>
 
             <div className={`grid ${columns} gap-6 md:gap-8`}>
-                {items.map((post: LoopItem, idx: number) => (
-                    <article key={post.id || `${post.title}-${idx}`} className="group cursor-pointer flex flex-col bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300">
-                        {showImage && post.image && (
-                            <div className="relative aspect-[4/3] w-full overflow-hidden bg-zinc-100 dark:bg-zinc-800">
-                                <div className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-105" style={{ backgroundImage: `url(${post.image})` }}></div>
-                                <div className="absolute top-4 left-4 px-3 py-1 bg-white/90 dark:bg-zinc-900/90 backdrop-blur-sm text-[10px] font-bold uppercase tracking-widest rounded-full text-slate-800 dark:text-zinc-200 shadow-sm">
-                                    {post.category || 'General'}
+                {items.map((post: LoopItem, idx: number) => {
+                    const articleSlug = post.articleSlug ? normalizeSlugPart(post.articleSlug) : '';
+                    const articleHref = articleSlug ? buildArticlePublicPath(articleSlug) : '';
+                    const destination =
+                        postType === 'blog'
+                            ? articleHref || post.href || '#'
+                            : post.href || '#';
+
+                    return (
+                        <article key={post.id || `${post.title}-${idx}`} className="group cursor-pointer flex flex-col bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300">
+                            {showImage && post.image && (
+                                <div className="relative aspect-[4/3] w-full overflow-hidden bg-zinc-100 dark:bg-zinc-800">
+                                    <div className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-105" style={{ backgroundImage: `url(${post.image})` }}></div>
+                                    <div className="absolute top-4 left-4 px-3 py-1 bg-white/90 dark:bg-zinc-900/90 backdrop-blur-sm text-[10px] font-bold uppercase tracking-widest rounded-full text-slate-800 dark:text-zinc-200 shadow-sm">
+                                        {post.category || 'General'}
+                                    </div>
                                 </div>
+                            )}
+
+                            <div className="p-6 flex flex-col flex-1">
+                                {post.date && <time className="text-xs font-medium text-slate-400 dark:text-zinc-500 mb-2">{post.date}</time>}
+                                <h4 className="text-lg font-bold text-slate-800 dark:text-zinc-100 mb-2 leading-tight group-hover:text-indigo-500 transition-colors">{post.title || 'Sin título'}</h4>
+                                <p className="text-sm text-slate-600 dark:text-zinc-400 mb-6 flex-1">{post.excerpt || 'Sin descripción'}</p>
+
+                                <a href={destination} className="mt-auto flex items-center text-xs font-bold uppercase tracking-widest text-indigo-500 group-hover:translate-x-2 transition-transform">
+                                    Leer más <ArrowRight size={14} className="ml-1" />
+                                </a>
                             </div>
-                        )}
-
-                        <div className="p-6 flex flex-col flex-1">
-                            {post.date && <time className="text-xs font-medium text-slate-400 dark:text-zinc-500 mb-2">{post.date}</time>}
-                            <h4 className="text-lg font-bold text-slate-800 dark:text-zinc-100 mb-2 leading-tight group-hover:text-indigo-500 transition-colors">{post.title || 'Sin título'}</h4>
-                            <p className="text-sm text-slate-600 dark:text-zinc-400 mb-6 flex-1">{post.excerpt || 'Sin descripción'}</p>
-
-                            <a href={post.href || '#'} className="mt-auto flex items-center text-xs font-bold uppercase tracking-widest text-indigo-500 group-hover:translate-x-2 transition-transform">
-                                Leer más <ArrowRight size={14} className="ml-1" />
-                            </a>
-                        </div>
-                    </article>
-                ))}
+                        </article>
+                    );
+                })}
             </div>
 
             <a href="#" className="md:hidden mt-8 flex items-center justify-center text-xs font-bold uppercase tracking-widest text-indigo-500 bg-indigo-50 dark:bg-indigo-500/10 py-3 rounded-xl transition-colors">

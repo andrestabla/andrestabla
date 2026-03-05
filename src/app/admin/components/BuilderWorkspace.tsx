@@ -154,7 +154,15 @@ function InspectorForm({ block, onSaved }: { block: any; onSaved: () => void }) 
 }
 
 // ── Main Component ─────────────────────────────────────────────────
-export default function BuilderWorkspace({ page: initialPage, settings }: { page: any; settings: any }) {
+export default function BuilderWorkspace({
+    page: initialPage,
+    settings,
+    previewPath = '/',
+}: {
+    page: any;
+    settings: any;
+    previewPath?: string;
+}) {
     const [blocks, setBlocks] = useState<any[]>(initialPage?.blocks || []);
     const [page] = useState(initialPage);
     const [selectedBlockId, setSelectedBlockId] = useState<string | null>(null);
@@ -332,7 +340,10 @@ export default function BuilderWorkspace({ page: initialPage, settings }: { page
                     <div className="flex items-center justify-between px-4 py-3 bg-indigo-700 text-white shrink-0">
                         <div className="flex items-center gap-2">
                             <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                            <span className="text-[11px] font-bold uppercase tracking-widest">Supreme Builder</span>
+                            <span className="text-[11px] font-bold uppercase tracking-widest">
+                                Supreme Builder
+                                {page?.slug && page.slug !== 'home' ? ` - ${page.slug}` : ''}
+                            </span>
                         </div>
                         <div className="flex items-center gap-3">
                             <button
@@ -544,7 +555,7 @@ export default function BuilderWorkspace({ page: initialPage, settings }: { page
                             <span className="text-white text-[11px] font-bold uppercase tracking-widest">Vista Previa</span>
                         </div>
                         <div className="flex items-center gap-3">
-                            <a href="/" target="_blank"
+                            <a href={previewPath} target="_blank"
                                 className="text-white/60 hover:text-white text-[10px] font-bold uppercase tracking-widest flex items-center gap-1.5 px-3 py-1.5 border border-white/20 rounded-lg hover:bg-white/10 transition-colors">
                                 Abrir en Pestaña
                             </a>
@@ -556,7 +567,7 @@ export default function BuilderWorkspace({ page: initialPage, settings }: { page
                     </div>
                     <div className="flex-1 relative bg-zinc-900 p-4">
                         <iframe
-                            src="/"
+                            src={previewPath}
                             className="w-full h-full rounded-xl border-none shadow-2xl"
                             title="Vista Previa del Sitio"
                         />
