@@ -19,6 +19,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         changeFrequency: 'weekly',
         priority: 1,
     });
+    map.set(absoluteUrl('/articulos'), {
+        url: absoluteUrl('/articulos'),
+        lastModified: new Date(),
+        changeFrequency: 'daily',
+        priority: 0.9,
+    });
 
     for (const page of pages) {
         let path = '/';

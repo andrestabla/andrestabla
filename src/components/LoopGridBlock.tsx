@@ -94,6 +94,7 @@ export default function LoopGridBlock({ data }: { data: any }) {
         : getFallbackItems(postType);
 
     const items = sourceItems.slice(0, limit);
+    const canViewAllArticles = postType === 'blog' && sourceItems.length > 3;
 
     const sectionTitle =
         postType === 'portfolio'
@@ -109,9 +110,11 @@ export default function LoopGridBlock({ data }: { data: any }) {
                 >
                     {sectionTitle}
                 </h3>
-                <a href="#" className="hidden md:flex items-center text-xs font-bold uppercase tracking-widest text-indigo-500 hover:text-indigo-600 transition-colors">
-                    {t('loopgrid.viewAll')} <ArrowRight size={14} className="ml-1" />
-                </a>
+                {canViewAllArticles && (
+                    <a href="/articulos" className="hidden md:flex items-center text-xs font-bold uppercase tracking-widest text-indigo-500 hover:text-indigo-600 transition-colors">
+                        {t('loopgrid.viewAll')} <ArrowRight size={14} className="ml-1" />
+                    </a>
+                )}
             </div>
 
             <div className={`grid ${columns} gap-6 md:gap-8`}>
@@ -148,9 +151,11 @@ export default function LoopGridBlock({ data }: { data: any }) {
                 })}
             </div>
 
-            <a href="#" className="md:hidden mt-8 flex items-center justify-center text-xs font-bold uppercase tracking-widest text-indigo-500 bg-indigo-50 dark:bg-indigo-500/10 py-3 rounded-xl transition-colors">
-                {t('loopgrid.viewAll')} <ArrowRight size={14} className="ml-1" />
-            </a>
+            {canViewAllArticles && (
+                <a href="/articulos" className="md:hidden mt-8 flex items-center justify-center text-xs font-bold uppercase tracking-widest text-indigo-500 bg-indigo-50 dark:bg-indigo-500/10 py-3 rounded-xl transition-colors">
+                    {t('loopgrid.viewAll')} <ArrowRight size={14} className="ml-1" />
+                </a>
+            )}
         </div>
     );
 }
