@@ -3,7 +3,7 @@
 import { CSSProperties, useEffect, useMemo, useRef, useState } from 'react';
 import { resolveBackgroundVideo } from '@/lib/backgroundVideo';
 
-export default function BlockBackgroundVideo({ url }: { url?: string }) {
+export default function BlockBackgroundVideo({ url, fullBleed = false }: { url?: string; fullBleed?: boolean }) {
     const media = useMemo(() => resolveBackgroundVideo(String(url || '')), [url]);
     const containerRef = useRef<HTMLDivElement | null>(null);
     const [iframeStyle, setIframeStyle] = useState<CSSProperties>({
@@ -59,10 +59,14 @@ export default function BlockBackgroundVideo({ url }: { url?: string }) {
 
     if (!media) return null;
 
+    const containerClass = fullBleed
+        ? 'block-bg-video absolute inset-y-0 left-1/2 z-0 w-screen -translate-x-1/2 overflow-hidden pointer-events-none'
+        : 'block-bg-video absolute inset-0 z-0 overflow-hidden pointer-events-none';
+
     return (
         <div
             ref={containerRef}
-            className="block-bg-video absolute inset-0 z-0 overflow-hidden pointer-events-none"
+            className={containerClass}
             aria-hidden="true"
             data-no-auto-translate="true"
         >

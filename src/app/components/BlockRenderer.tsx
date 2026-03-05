@@ -119,12 +119,12 @@ function BlockNode({ block, allBlocks, isEditor }: { block: any, allBlocks: any[
 
     return (
         <div
-            className={`group/block block-style-scope relative w-full transition-all duration-300 ${hasCustomBackground ? 'overflow-hidden block-has-background-media' : ''} ${editorOutlineClass} ${isEditor ? 'admin-editor-node' : ''}`}
+            className={`group/block block-style-scope relative w-full transition-all duration-300 ${hasCustomBackground ? 'block-has-background-media' : ''} ${editorOutlineClass} ${isEditor ? 'admin-editor-node' : ''}`}
             style={styleString}
             data-block-id={block.id}
             id={`block-${block.id}`}
         >
-            <BlockBackgroundVideo url={videoUrl} />
+            <BlockBackgroundVideo url={videoUrl} fullBleed />
             {overlay.opacity > 0 && (
                 <div
                     className="absolute inset-0 z-0 pointer-events-none"
