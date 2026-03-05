@@ -136,7 +136,7 @@ function BlockNode({ block, allBlocks, selectedBlockId, onSelect }: BlockNodePro
         >
             {hasBaseBackground && (
                 <div
-                    className="block-bg-fullbleed absolute inset-y-0 left-1/2 z-0 -translate-x-1/2 pointer-events-none"
+                    className="block-bg-fullbleed absolute inset-y-0 z-0 pointer-events-none"
                     style={baseBackgroundStyle}
                     aria-hidden="true"
                 />
@@ -144,7 +144,7 @@ function BlockNode({ block, allBlocks, selectedBlockId, onSelect }: BlockNodePro
             <BlockBackgroundVideo url={videoUrl} fullBleed />
             {overlay.opacity > 0 && (
                 <div
-                    className="block-bg-fullbleed absolute inset-y-0 left-1/2 z-0 -translate-x-1/2 pointer-events-none"
+                    className="block-bg-fullbleed absolute inset-y-0 z-0 pointer-events-none"
                     style={{ backgroundColor: overlay.color, opacity: overlay.opacity }}
                     aria-hidden="true"
                 />

@@ -246,9 +246,17 @@
 }
 
 .block-bg-fullbleed {
+  left: calc(50% - 50vw);
   width: 100vw;
-  width: 100dvw;
   min-width: 100vw;
+}
+
+@supports (width: 100dvw) {
+  .block-bg-fullbleed {
+    left: calc(50% - 50dvw);
+    width: 100dvw;
+    min-width: 100dvw;
+  }
 }
 
 /* Mobile: force media backgrounds to fill the entire block area */

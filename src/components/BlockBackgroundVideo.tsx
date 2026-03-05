@@ -60,7 +60,7 @@ export default function BlockBackgroundVideo({ url, fullBleed = false }: { url?:
     if (!media) return null;
 
     const containerClass = fullBleed
-        ? 'block-bg-video block-bg-fullbleed absolute inset-y-0 left-1/2 z-0 -translate-x-1/2 overflow-hidden pointer-events-none'
+        ? 'block-bg-video block-bg-fullbleed absolute inset-y-0 z-0 overflow-hidden pointer-events-none'
         : 'block-bg-video absolute inset-0 z-0 overflow-hidden pointer-events-none';
 
     return (
