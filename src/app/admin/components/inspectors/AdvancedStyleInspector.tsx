@@ -24,6 +24,8 @@ function getHydratedStyleState(sourceBlock: any) {
         bgImage: parsedStyles.backgroundImage || '',
         bgVideo: parsedStyles.backgroundVideo || '',
         bgMediaType: backgroundMediaType,
+        overlayColor: parsedStyles.backgroundOverlayColor || '#000000',
+        overlayOpacity: String(parsedStyles.backgroundOverlayOpacity ?? '0'),
         paddingTop: parsedStyles.paddingTop || '0',
         paddingBottom: parsedStyles.paddingBottom || '0',
         textColor: parsedStyles.textColor || '',
@@ -42,12 +44,18 @@ export default function AdvancedStyleInspector({ block, onSaved }: { block: any,
     const [bgImage, setBgImage] = useState(initialState.bgImage);
     const [bgVideo, setBgVideo] = useState(initialState.bgVideo);
     const [bgMediaType, setBgMediaType] = useState(initialState.bgMediaType);
+    const [overlayColor, setOverlayColor] = useState(initialState.overlayColor);
+    const [overlayOpacity, setOverlayOpacity] = useState(initialState.overlayOpacity);
     const [paddingTop, setPaddingTop] = useState(initialState.paddingTop);
     const [paddingBottom, setPaddingBottom] = useState(initialState.paddingBottom);
     const [textColor, setTextColor] = useState(initialState.textColor);
     const [titleColor, setTitleColor] = useState(initialState.titleColor);
     const [fontSize, setFontSize] = useState(initialState.fontSize);
     const [fontFamily, setFontFamily] = useState(initialState.fontFamily);
+    const overlayOpacityNumber = Number(overlayOpacity);
+    const safeOverlayOpacity = Number.isFinite(overlayOpacityNumber)
+        ? Math.max(0, Math.min(100, overlayOpacityNumber))
+        : 0;
 
     useEffect(() => {
         const nextState = getHydratedStyleState(block);
@@ -55,6 +63,8 @@ export default function AdvancedStyleInspector({ block, onSaved }: { block: any,
         setBgImage(nextState.bgImage);
         setBgVideo(nextState.bgVideo);
         setBgMediaType(nextState.bgMediaType);
+        setOverlayColor(nextState.overlayColor);
+        setOverlayOpacity(nextState.overlayOpacity);
         setPaddingTop(nextState.paddingTop);
         setPaddingBottom(nextState.paddingBottom);
         setTextColor(nextState.textColor);
@@ -71,6 +81,8 @@ export default function AdvancedStyleInspector({ block, onSaved }: { block: any,
             backgroundMediaType: bgMediaType,
             backgroundImage: bgImage,
             backgroundVideo: bgVideo,
+            backgroundOverlayColor: overlayColor,
+            backgroundOverlayOpacity: String(safeOverlayOpacity),
             paddingTop,
             paddingBottom,
             textColor,
@@ -129,6 +141,41 @@ export default function AdvancedStyleInspector({ block, onSaved }: { block: any,
                         disabled={bgMediaType !== 'video'}
                         className="w-full text-xs p-3 border border-slate-200 rounded-lg focus:ring-1 focus:ring-indigo-500 disabled:bg-slate-100 disabled:text-slate-400"
                     />
+                </div>
+                <div>
+                    <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1 block">Color de Capa</label>
+                    <input
+                        type="text"
+                        placeholder="#000000"
+                        value={overlayColor}
+                        onChange={e => setOverlayColor(e.target.value)}
+                        className="w-full text-xs p-3 border border-slate-200 rounded-lg focus:ring-1 focus:ring-indigo-500"
+                    />
+                </div>
+                <div>
+                    <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-2 block">
+                        Transparencia de Capa (%)
+                    </label>
+                    <div className="grid grid-cols-[1fr_90px] gap-2">
+                        <input
+                            type="range"
+                            min={0}
+                            max={100}
+                            step={1}
+                            value={safeOverlayOpacity}
+                            onChange={e => setOverlayOpacity(e.target.value)}
+                            className="w-full"
+                        />
+                        <input
+                            type="number"
+                            min={0}
+                            max={100}
+                            step={1}
+                            value={overlayOpacity}
+                            onChange={e => setOverlayOpacity(e.target.value)}
+                            className="w-full text-xs p-2 border border-slate-200 rounded-lg focus:ring-1 focus:ring-indigo-500"
+                        />
+                    </div>
                 </div>
             </div>
 

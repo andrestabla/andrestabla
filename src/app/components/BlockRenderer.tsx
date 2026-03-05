@@ -33,7 +33,7 @@ import LoopGridBlock from '@/components/LoopGridBlock';
 import ClickToEditWrapper from '@/components/ClickToEditWrapper';
 import BlockBackgroundVideo from '@/components/BlockBackgroundVideo';
 import { resolveBackgroundMediaUrls } from '@/lib/backgroundVideo';
-import { buildBlockInlineStyles } from '@/lib/blockStyles';
+import { buildBlockInlineStyles, resolveBackgroundOverlay } from '@/lib/blockStyles';
 
 const BlockComponents: Record<string, any> = {
     hero: HeroBlock,
@@ -92,10 +92,12 @@ function BlockNode({ block, allBlocks, isEditor }: { block: any, allBlocks: any[
 
     const { imageUrl, videoUrl } = resolveBackgroundMediaUrls(parsedStyles);
     const styleString: any = buildBlockInlineStyles(parsedStyles, imageUrl);
+    const overlay = resolveBackgroundOverlay(parsedStyles);
     const hasCustomBackground = Boolean(
         String(parsedStyles.backgroundColor || '').trim() ||
         imageUrl ||
-        videoUrl
+        videoUrl ||
+        overlay.opacity > 0
     );
 
     // Find children attached to this node
@@ -123,6 +125,13 @@ function BlockNode({ block, allBlocks, isEditor }: { block: any, allBlocks: any[
             id={`block-${block.id}`}
         >
             <BlockBackgroundVideo url={videoUrl} />
+            {overlay.opacity > 0 && (
+                <div
+                    className="absolute inset-0 z-0 pointer-events-none"
+                    style={{ backgroundColor: overlay.color, opacity: overlay.opacity }}
+                    aria-hidden="true"
+                />
+            )}
             {isEditor && (
                 <div className="absolute top-0 right-0 bg-indigo-500 text-white text-[9px] font-bold px-2 py-1 rounded-bl-md rounded-tr-sm opacity-0 group-hover/block:opacity-100 transition-opacity z-50 pointer-events-none uppercase tracking-widest">
                     {block.type}

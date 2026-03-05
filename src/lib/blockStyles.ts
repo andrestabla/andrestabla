@@ -35,6 +35,27 @@ function escapeForCssUrl(value: string): string {
     return value.replace(/'/g, '%27');
 }
 
+function clamp(value: number, min: number, max: number): number {
+    if (Number.isNaN(value)) return min;
+    if (value < min) return min;
+    if (value > max) return max;
+    return value;
+}
+
+function toNumber(value: unknown): number {
+    const parsed = Number(String(value ?? '').trim());
+    return Number.isFinite(parsed) ? parsed : 0;
+}
+
+export function resolveBackgroundOverlay(parsedStyles: RawBlockStyles): { color: string; opacity: number } {
+    const color = normalizeCssValue(parsedStyles.backgroundOverlayColor);
+    const rawOpacity = toNumber(parsedStyles.backgroundOverlayOpacity);
+    const normalizedOpacity = rawOpacity > 1 ? rawOpacity / 100 : rawOpacity;
+    const opacity = clamp(normalizedOpacity, 0, 1);
+    if (!color || opacity <= 0) return { color: '', opacity: 0 };
+    return { color, opacity };
+}
+
 export function buildBlockInlineStyles(parsedStyles: RawBlockStyles, imageUrl: string): Record<string, string> {
     const styleObject: Record<string, string> = {};
 

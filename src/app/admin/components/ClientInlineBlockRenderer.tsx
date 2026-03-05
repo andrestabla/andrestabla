@@ -34,7 +34,7 @@ import HotspotsBlock from '@/components/HotspotsBlock';
 import LoopGridBlock from '@/components/LoopGridBlock';
 import BlockBackgroundVideo from '@/components/BlockBackgroundVideo';
 import { resolveBackgroundMediaUrls } from '@/lib/backgroundVideo';
-import { buildBlockInlineStyles } from '@/lib/blockStyles';
+import { buildBlockInlineStyles, resolveBackgroundOverlay } from '@/lib/blockStyles';
 
 const BlockComponents: Record<string, any> = {
     hero: HeroBlock,
@@ -91,10 +91,12 @@ function BlockNode({ block, allBlocks, selectedBlockId, onSelect }: BlockNodePro
 
     const { imageUrl, videoUrl } = resolveBackgroundMediaUrls(parsedStyles);
     const styleObj = buildBlockInlineStyles(parsedStyles, imageUrl) as React.CSSProperties;
+    const overlay = resolveBackgroundOverlay(parsedStyles);
     const hasCustomBackground = Boolean(
         String(parsedStyles.backgroundColor || '').trim() ||
         imageUrl ||
-        videoUrl
+        videoUrl ||
+        overlay.opacity > 0
     );
 
     const childrenBlocks = allBlocks
@@ -129,6 +131,13 @@ function BlockNode({ block, allBlocks, selectedBlockId, onSelect }: BlockNodePro
             }}
         >
             <BlockBackgroundVideo url={videoUrl} />
+            {overlay.opacity > 0 && (
+                <div
+                    className="absolute inset-0 z-0 pointer-events-none"
+                    style={{ backgroundColor: overlay.color, opacity: overlay.opacity }}
+                    aria-hidden="true"
+                />
+            )}
             {/* Floating label on hover */}
             <div className={`absolute top-0 left-0 z-30 px-2 py-0.5 text-[9px] font-bold uppercase tracking-widest pointer-events-none transition-opacity duration-150
                 ${isSelected
