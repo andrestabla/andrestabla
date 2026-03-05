@@ -1,6 +1,6 @@
 'use client';
 
-import { FormEvent, useEffect, useMemo, useRef, useState } from 'react';
+import { FormEvent, KeyboardEvent, useEffect, useMemo, useRef, useState } from 'react';
 import { Bot, MessageCircle, Send, X } from 'lucide-react';
 
 type ChatMessage = {
@@ -19,6 +19,12 @@ const INITIAL_MESSAGE: ChatMessage = {
     content: 'Hola, soy el asistente de Andrés Tabla. Puedo contarte sobre su perfil, experiencia, formación y proyectos. ¿Qué te gustaría conocer?',
 };
 
+const QUICK_PROMPTS = [
+    '¿Quién es Andrés Tabla?',
+    '¿Cuál es su experiencia?',
+    '¿Cómo puedo contactarlo?',
+];
+
 export default function AndresAssistant() {
     const [isOpen, setIsOpen] = useState(false);
     const [messages, setMessages] = useState<ChatMessage[]>([INITIAL_MESSAGE]);
@@ -26,22 +32,34 @@ export default function AndresAssistant() {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
     const scrollRef = useRef<HTMLDivElement | null>(null);
+    const inputRef = useRef<HTMLTextAreaElement | null>(null);
 
     useEffect(() => {
         if (!scrollRef.current) return;
         scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }, [messages, isLoading, isOpen]);
 
+    useEffect(() => {
+        if (!isOpen) return;
+        const previousOverflow = document.body.style.overflow;
+        document.body.style.overflow = 'hidden';
+        return () => {
+            document.body.style.overflow = previousOverflow;
+        };
+    }, [isOpen]);
+
     const canSend = useMemo(() => input.trim().length > 0 && !isLoading, [input, isLoading]);
 
-    const handleSubmit = async (e: FormEvent) => {
-        e.preventDefault();
-        const userText = input.trim();
+    const sendMessage = async (text: string) => {
+        const userText = text.trim();
         if (!userText || isLoading) return;
 
         const nextMessages = [...messages, { role: 'user', content: userText } as ChatMessage];
         setMessages(nextMessages);
         setInput('');
+        if (inputRef.current) {
+            inputRef.current.style.height = '44px';
+        }
         setError('');
         setIsLoading(true);
 
@@ -77,12 +95,36 @@ export default function AndresAssistant() {
         }
     };
 
+    const handleSubmit = async (e: FormEvent) => {
+        e.preventDefault();
+        await sendMessage(input);
+    };
+
+    const handleQuickPrompt = async (prompt: string) => {
+        await sendMessage(prompt);
+    };
+
+    const handleInputKeyDown = async (e: KeyboardEvent<HTMLTextAreaElement>) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            if (!canSend) return;
+            await sendMessage(input);
+        }
+    };
+
+    const handleInputChange = (value: string) => {
+        setInput(value);
+        if (!inputRef.current) return;
+        inputRef.current.style.height = '44px';
+        inputRef.current.style.height = `${Math.min(inputRef.current.scrollHeight, 140)}px`;
+    };
+
     return (
         <>
             {!isOpen && (
                 <button
                     onClick={() => setIsOpen(true)}
-                    className="fixed bottom-5 right-5 z-[80] rounded-full bg-[var(--brand)] text-white shadow-xl hover:brightness-105 transition-all px-4 py-3 flex items-center gap-2"
+                    className="safe-fab fixed right-4 z-[80] rounded-full bg-[var(--brand)] text-white shadow-xl hover:brightness-105 transition-all px-4 py-3 flex items-center gap-2"
                     aria-label="Abrir asistente de Andrés Tabla"
                 >
                     <MessageCircle size={18} />
@@ -91,8 +133,8 @@ export default function AndresAssistant() {
             )}
 
             {isOpen && (
-                <div className="fixed bottom-4 right-4 z-[80] w-[min(92vw,420px)] h-[min(72vh,620px)] bg-zinc-950 border border-zinc-800 rounded-2xl shadow-2xl flex flex-col overflow-hidden">
-                    <div className="px-4 py-3 border-b border-zinc-800 flex items-center justify-between bg-zinc-900/90">
+                <div className="fixed inset-x-2 top-2 bottom-2 z-[80] md:inset-auto md:bottom-4 md:right-4 md:w-[min(92vw,420px)] md:h-[min(72vh,620px)] bg-zinc-950 border border-zinc-800 rounded-2xl shadow-2xl flex flex-col overflow-hidden">
+                    <div className="safe-top px-3 py-2.5 md:px-4 md:py-3 border-b border-zinc-800 flex items-center justify-between bg-zinc-900/90">
                         <div className="flex items-center gap-2">
                             <div className="w-8 h-8 rounded-full bg-[var(--brand)]/20 flex items-center justify-center text-[var(--brand)]">
                                 <Bot size={16} />
@@ -111,7 +153,7 @@ export default function AndresAssistant() {
                         </button>
                     </div>
 
-                    <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-3 bg-zinc-950">
+                    <div ref={scrollRef} className="scrollbar-invisible flex-1 overflow-y-auto overscroll-contain p-3 md:p-4 space-y-3 bg-zinc-950">
                         {messages.map((message, idx) => (
                             <div
                                 key={`${message.role}-${idx}`}
@@ -140,6 +182,21 @@ export default function AndresAssistant() {
                             </div>
                         ))}
 
+                        {messages.length <= 2 && !isLoading && (
+                            <div className="grid grid-cols-1 gap-2">
+                                {QUICK_PROMPTS.map((prompt) => (
+                                    <button
+                                        key={prompt}
+                                        type="button"
+                                        onClick={() => handleQuickPrompt(prompt)}
+                                        className="text-left rounded-xl border border-zinc-700 bg-zinc-900 px-3 py-2.5 text-sm text-zinc-200 hover:border-[var(--brand)] hover:text-white transition-colors"
+                                    >
+                                        {prompt}
+                                    </button>
+                                ))}
+                            </div>
+                        )}
+
                         {isLoading && (
                             <div className="mr-auto bg-zinc-900 text-zinc-300 border border-zinc-800 rounded-2xl px-3 py-2 text-sm">
                                 Escribiendo...
@@ -153,18 +210,20 @@ export default function AndresAssistant() {
                         )}
                     </div>
 
-                    <form onSubmit={handleSubmit} className="p-3 border-t border-zinc-800 bg-zinc-900/80 flex items-end gap-2">
+                    <form onSubmit={handleSubmit} className="safe-bottom p-2.5 md:p-3 border-t border-zinc-800 bg-zinc-900/80 flex items-end gap-2">
                         <textarea
+                            ref={inputRef}
                             value={input}
-                            onChange={(e) => setInput(e.target.value)}
+                            onChange={(e) => handleInputChange(e.target.value)}
+                            onKeyDown={handleInputKeyDown}
                             placeholder="Escribe tu pregunta..."
-                            rows={2}
-                            className="flex-1 resize-none rounded-xl bg-zinc-950 border border-zinc-800 text-zinc-100 placeholder:text-zinc-500 p-2.5 text-sm outline-none focus:border-[var(--brand)]"
+                            rows={1}
+                            className="flex-1 resize-none min-h-[44px] max-h-[140px] rounded-xl bg-zinc-950 border border-zinc-800 text-zinc-100 placeholder:text-zinc-500 p-2.5 text-base md:text-sm outline-none focus:border-[var(--brand)]"
                         />
                         <button
                             type="submit"
                             disabled={!canSend}
-                            className="shrink-0 h-[42px] w-[42px] rounded-xl bg-[var(--brand)] text-white flex items-center justify-center disabled:opacity-40 disabled:cursor-not-allowed hover:brightness-105 transition-all"
+                            className="shrink-0 h-[44px] w-[44px] rounded-xl bg-[var(--brand)] text-white flex items-center justify-center disabled:opacity-40 disabled:cursor-not-allowed hover:brightness-105 transition-all"
                             aria-label="Enviar mensaje"
                         >
                             <Send size={16} />

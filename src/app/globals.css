@@ -162,3 +162,26 @@
   text-decoration: underline;
   text-underline-offset: 2px;
 }
+
+.scrollbar-invisible {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-invisible::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
+.safe-top {
+  padding-top: max(0.5rem, env(safe-area-inset-top));
+}
+
+.safe-bottom {
+  padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
+}
+
+.safe-fab {
+  bottom: calc(1rem + env(safe-area-inset-bottom));
+}
