@@ -32,7 +32,7 @@ import HotspotsBlock from '@/components/HotspotsBlock';
 import LoopGridBlock from '@/components/LoopGridBlock';
 import ClickToEditWrapper from '@/components/ClickToEditWrapper';
 import BlockBackgroundVideo from '@/components/BlockBackgroundVideo';
-import { resolveBackgroundVideo } from '@/lib/backgroundVideo';
+import { resolveBackgroundMediaUrls } from '@/lib/backgroundVideo';
 
 const BlockComponents: Record<string, any> = {
     hero: HeroBlock,
@@ -92,11 +92,9 @@ function BlockNode({ block, allBlocks, isEditor }: { block: any, allBlocks: any[
     // Apply parsed styles dynamically
     const styleString: any = {};
     if (parsedStyles.backgroundColor) styleString.backgroundColor = parsedStyles.backgroundColor;
-    const hasVideoBackground = !!resolveBackgroundVideo(
-        String(parsedStyles.backgroundVideo || parsedStyles.backgroundImage || '')
-    );
-    if (parsedStyles.backgroundImage && !hasVideoBackground) {
-        styleString.backgroundImage = `url('${parsedStyles.backgroundImage}')`;
+    const { imageUrl, videoUrl } = resolveBackgroundMediaUrls(parsedStyles);
+    if (imageUrl) {
+        styleString.backgroundImage = `url('${imageUrl}')`;
         styleString.backgroundSize = 'cover';
         styleString.backgroundPosition = 'center';
     }
@@ -154,7 +152,7 @@ function BlockNode({ block, allBlocks, isEditor }: { block: any, allBlocks: any[
             data-block-id={block.id}
             id={`block-${block.id}`}
         >
-            <BlockBackgroundVideo url={parsedStyles.backgroundVideo || parsedStyles.backgroundImage} />
+            <BlockBackgroundVideo url={videoUrl} />
             {isEditor && (
                 <div className="absolute top-0 right-0 bg-indigo-500 text-white text-[9px] font-bold px-2 py-1 rounded-bl-md rounded-tr-sm opacity-0 group-hover/block:opacity-100 transition-opacity z-50 pointer-events-none uppercase tracking-widest">
                     {block.type}

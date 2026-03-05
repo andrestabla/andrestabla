@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { updateBlockStyles } from '../actions';
 import { Palette, Baseline, Type } from 'lucide-react';
+import { inferBackgroundMediaType, normalizeBackgroundMediaType } from '@/lib/backgroundVideo';
 
 export default function AdvancedStyleInspector({ block, onSaved }: { block: any, onSaved: () => void }) {
     const [isSaving, setIsSaving] = useState(false);
@@ -13,6 +14,11 @@ export default function AdvancedStyleInspector({ block, onSaved }: { block: any,
     const [bgColor, setBgColor] = useState(parsedStyles.backgroundColor || '');
     const [bgImage, setBgImage] = useState(parsedStyles.backgroundImage || '');
     const [bgVideo, setBgVideo] = useState(parsedStyles.backgroundVideo || '');
+    const [bgMediaType, setBgMediaType] = useState(
+        normalizeBackgroundMediaType(parsedStyles.backgroundMediaType) === 'auto'
+            ? inferBackgroundMediaType(parsedStyles)
+            : normalizeBackgroundMediaType(parsedStyles.backgroundMediaType)
+    );
     const [paddingTop, setPaddingTop] = useState(parsedStyles.paddingTop || '0');
     const [paddingBottom, setPaddingBottom] = useState(parsedStyles.paddingBottom || '0');
     const [textColor, setTextColor] = useState(parsedStyles.textColor || '');
@@ -25,6 +31,7 @@ export default function AdvancedStyleInspector({ block, onSaved }: { block: any,
         setIsSaving(true);
         const newStyles = {
             backgroundColor: bgColor,
+            backgroundMediaType: bgMediaType,
             backgroundImage: bgImage,
             backgroundVideo: bgVideo,
             paddingTop,
@@ -54,12 +61,37 @@ export default function AdvancedStyleInspector({ block, onSaved }: { block: any,
                     <input type="text" placeholder="#f25c54 o transparent" value={bgColor} onChange={e => setBgColor(e.target.value)} className="w-full text-xs p-3 border border-slate-200 rounded-lg focus:ring-1 focus:ring-indigo-500" />
                 </div>
                 <div>
+                    <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1 block">Tipo de Fondo</label>
+                    <select
+                        value={bgMediaType}
+                        onChange={e => setBgMediaType(e.target.value as 'image' | 'video')}
+                        className="w-full text-xs p-3 border border-slate-200 rounded-lg bg-white focus:ring-1 focus:ring-indigo-500"
+                    >
+                        <option value="image">Imagen</option>
+                        <option value="video">Video</option>
+                    </select>
+                </div>
+                <div>
                     <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1 block">URL Imagen de Fondo</label>
-                    <input type="text" placeholder="https://ejemplo.com/imagen.jpg" value={bgImage} onChange={e => setBgImage(e.target.value)} className="w-full text-xs p-3 border border-slate-200 rounded-lg focus:ring-1 focus:ring-indigo-500" />
+                    <input
+                        type="text"
+                        placeholder="https://ejemplo.com/imagen.jpg"
+                        value={bgImage}
+                        onChange={e => setBgImage(e.target.value)}
+                        disabled={bgMediaType !== 'image'}
+                        className="w-full text-xs p-3 border border-slate-200 rounded-lg focus:ring-1 focus:ring-indigo-500 disabled:bg-slate-100 disabled:text-slate-400"
+                    />
                 </div>
                 <div>
                     <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1 block">URL Video de Fondo</label>
-                    <input type="text" placeholder="https://...mp4 o YouTube/Vimeo URL" value={bgVideo} onChange={e => setBgVideo(e.target.value)} className="w-full text-xs p-3 border border-slate-200 rounded-lg focus:ring-1 focus:ring-indigo-500" />
+                    <input
+                        type="text"
+                        placeholder="https://...mp4 o YouTube/Vimeo URL"
+                        value={bgVideo}
+                        onChange={e => setBgVideo(e.target.value)}
+                        disabled={bgMediaType !== 'video'}
+                        className="w-full text-xs p-3 border border-slate-200 rounded-lg focus:ring-1 focus:ring-indigo-500 disabled:bg-slate-100 disabled:text-slate-400"
+                    />
                 </div>
             </div>
 

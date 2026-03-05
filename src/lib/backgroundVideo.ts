@@ -3,6 +3,14 @@ export type BackgroundVideoConfig =
     | { kind: 'youtube'; embedUrl: string }
     | { kind: 'vimeo'; embedUrl: string };
 
+export type BackgroundMediaType = 'auto' | 'image' | 'video';
+
+type BackgroundStyleInput = {
+    backgroundImage?: string;
+    backgroundVideo?: string;
+    backgroundMediaType?: string;
+};
+
 function normalizeInput(rawValue: string): string {
     const value = String(rawValue || '').trim();
     if (!value) return '';
@@ -60,6 +68,48 @@ function extractVimeoId(url: URL): string | null {
 function isLikelyDirectVideo(url: URL): boolean {
     const pathname = url.pathname.toLowerCase();
     return /\.(mp4|webm|ogg|m4v|mov|m3u8)(\?.*)?$/.test(pathname);
+}
+
+function normalizeValue(value: unknown): string {
+    return String(value || '').trim();
+}
+
+export function normalizeBackgroundMediaType(value: unknown): BackgroundMediaType {
+    const normalized = String(value || '').trim().toLowerCase();
+    if (normalized === 'image') return 'image';
+    if (normalized === 'video') return 'video';
+    return 'auto';
+}
+
+export function inferBackgroundMediaType(input: BackgroundStyleInput): Exclude<BackgroundMediaType, 'auto'> {
+    const backgroundVideo = normalizeValue(input.backgroundVideo);
+    if (backgroundVideo) return 'video';
+
+    const backgroundImage = normalizeValue(input.backgroundImage);
+    if (backgroundImage && resolveBackgroundVideo(backgroundImage)) return 'video';
+
+    return 'image';
+}
+
+export function resolveBackgroundMediaUrls(input: BackgroundStyleInput): { imageUrl: string; videoUrl: string } {
+    const backgroundImage = normalizeValue(input.backgroundImage);
+    const backgroundVideo = normalizeValue(input.backgroundVideo);
+    const mediaType = normalizeBackgroundMediaType(input.backgroundMediaType);
+
+    if (mediaType === 'image') {
+        return { imageUrl: backgroundImage, videoUrl: '' };
+    }
+
+    if (mediaType === 'video') {
+        return { imageUrl: '', videoUrl: backgroundVideo || backgroundImage };
+    }
+
+    const autoVideoSource = backgroundVideo || backgroundImage;
+    if (autoVideoSource && resolveBackgroundVideo(autoVideoSource)) {
+        return { imageUrl: '', videoUrl: autoVideoSource };
+    }
+
+    return { imageUrl: backgroundImage, videoUrl: '' };
 }
 
 export function resolveBackgroundVideo(rawValue: string): BackgroundVideoConfig | null {

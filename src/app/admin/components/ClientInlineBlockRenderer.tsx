@@ -33,7 +33,7 @@ import PortfolioBlock from '@/components/PortfolioBlock';
 import HotspotsBlock from '@/components/HotspotsBlock';
 import LoopGridBlock from '@/components/LoopGridBlock';
 import BlockBackgroundVideo from '@/components/BlockBackgroundVideo';
-import { resolveBackgroundVideo } from '@/lib/backgroundVideo';
+import { resolveBackgroundMediaUrls } from '@/lib/backgroundVideo';
 
 const BlockComponents: Record<string, any> = {
     hero: HeroBlock,
@@ -90,11 +90,9 @@ function BlockNode({ block, allBlocks, selectedBlockId, onSelect }: BlockNodePro
 
     const styleObj: React.CSSProperties = {};
     if (parsedStyles.backgroundColor) styleObj.backgroundColor = parsedStyles.backgroundColor;
-    const hasVideoBackground = !!resolveBackgroundVideo(
-        String(parsedStyles.backgroundVideo || parsedStyles.backgroundImage || '')
-    );
-    if (parsedStyles.backgroundImage && !hasVideoBackground) {
-        styleObj.backgroundImage = `url('${parsedStyles.backgroundImage}')`;
+    const { imageUrl, videoUrl } = resolveBackgroundMediaUrls(parsedStyles);
+    if (imageUrl) {
+        styleObj.backgroundImage = `url('${imageUrl}')`;
         styleObj.backgroundSize = 'cover';
         styleObj.backgroundPosition = 'center';
     }
@@ -160,7 +158,7 @@ function BlockNode({ block, allBlocks, selectedBlockId, onSelect }: BlockNodePro
                 onSelect(block.id);
             }}
         >
-            <BlockBackgroundVideo url={parsedStyles.backgroundVideo || parsedStyles.backgroundImage} />
+            <BlockBackgroundVideo url={videoUrl} />
             {/* Floating label on hover */}
             <div className={`absolute top-0 left-0 z-30 px-2 py-0.5 text-[9px] font-bold uppercase tracking-widest pointer-events-none transition-opacity duration-150
                 ${isSelected
