@@ -91,6 +91,11 @@ function BlockNode({ block, allBlocks, selectedBlockId, onSelect }: BlockNodePro
 
     const { imageUrl, videoUrl } = resolveBackgroundMediaUrls(parsedStyles);
     const styleObj = buildBlockInlineStyles(parsedStyles, imageUrl) as React.CSSProperties;
+    const hasCustomBackground = Boolean(
+        String(parsedStyles.backgroundColor || '').trim() ||
+        imageUrl ||
+        videoUrl
+    );
 
     const childrenBlocks = allBlocks
         .filter((b: any) => b.parentId === block.id)
@@ -115,7 +120,7 @@ function BlockNode({ block, allBlocks, selectedBlockId, onSelect }: BlockNodePro
 
     return (
         <div
-            className={`block-style-scope relative w-full transition-all duration-150 cursor-pointer ${hoverClass}`}
+            className={`block-style-scope relative w-full transition-all duration-150 cursor-pointer ${hasCustomBackground ? 'overflow-hidden' : ''} ${hoverClass}`}
             style={{ ...styleObj, outline: outlineStyle }}
             data-block-id={block.id}
             onClick={(e) => {
@@ -134,7 +139,7 @@ function BlockNode({ block, allBlocks, selectedBlockId, onSelect }: BlockNodePro
                 {isContainer ? '📦' : '🔷'} {block.type}
             </div>
 
-            <div className="relative z-[1]">
+            <div className={`relative z-[1] ${hasCustomBackground ? 'block-force-transparent-root' : ''}`}>
                 <Component data={parsedData} childrenNodes={childrenNodes} isEditor={true} />
             </div>
         </div>

@@ -92,6 +92,11 @@ function BlockNode({ block, allBlocks, isEditor }: { block: any, allBlocks: any[
 
     const { imageUrl, videoUrl } = resolveBackgroundMediaUrls(parsedStyles);
     const styleString: any = buildBlockInlineStyles(parsedStyles, imageUrl);
+    const hasCustomBackground = Boolean(
+        String(parsedStyles.backgroundColor || '').trim() ||
+        imageUrl ||
+        videoUrl
+    );
 
     // Find children attached to this node
     const childrenBlocks = allBlocks
@@ -112,7 +117,7 @@ function BlockNode({ block, allBlocks, isEditor }: { block: any, allBlocks: any[
 
     return (
         <div
-            className={`group/block block-style-scope relative w-full transition-all duration-300 ${editorOutlineClass} ${isEditor ? 'admin-editor-node' : ''}`}
+            className={`group/block block-style-scope relative w-full transition-all duration-300 ${hasCustomBackground ? 'overflow-hidden' : ''} ${editorOutlineClass} ${isEditor ? 'admin-editor-node' : ''}`}
             style={styleString}
             data-block-id={block.id}
             id={`block-${block.id}`}
@@ -123,7 +128,7 @@ function BlockNode({ block, allBlocks, isEditor }: { block: any, allBlocks: any[
                     {block.type}
                 </div>
             )}
-            <div className="relative z-[1]">
+            <div className={`relative z-[1] ${hasCustomBackground ? 'block-force-transparent-root' : ''}`}>
                 <Component data={parsedData} childrenNodes={childrenNodes} isEditor={isEditor} />
             </div>
         </div>

@@ -194,6 +194,11 @@
   color: var(--block-text, var(--text, inherit));
 }
 
+/* When a block has custom background from inspector, let wrapper background show */
+.block-force-transparent-root > * {
+  background-color: transparent !important;
+}
+
 .scrollbar-invisible {
   -ms-overflow-style: none;
   scrollbar-width: none;
