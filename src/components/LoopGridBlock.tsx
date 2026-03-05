@@ -101,7 +101,10 @@ export default function LoopGridBlock({ data }: { data: any }) {
     return (
         <div className="w-full">
             <div className="flex items-center justify-between mb-8">
-                <h3 className="text-xl font-bold font-heading text-slate-800 dark:text-zinc-100">
+                <h3
+                    className="text-xl font-bold font-heading text-slate-800 dark:text-zinc-100"
+                    style={{ color: 'var(--block-heading)' }}
+                >
                     {sectionTitle}
                 </h3>
                 <a href="#" className="hidden md:flex items-center text-xs font-bold uppercase tracking-widest text-indigo-500 hover:text-indigo-600 transition-colors">
