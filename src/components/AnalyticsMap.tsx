@@ -28,7 +28,7 @@ interface AnalyticsMapProps {
 
 export default function AnalyticsMap({ points }: AnalyticsMapProps) {
     const [tooltipContent, setTooltipContent] = useState<string | null>(null);
-    const [theme, setTheme] = useState<'dark' | 'light'>('dark');
+    const [theme, setTheme] = useState<'dark' | 'light'>('light');
 
     const validPoints = points.filter(
         p => p.latitude !== null && p.longitude !== null
@@ -38,10 +38,10 @@ export default function AnalyticsMap({ points }: AnalyticsMapProps) {
     const mapColors = {
         dark: {
             bg: "bg-zinc-950",
-            land: "#18181b",
-            border: "#27272a",
-            hover: "#27272a",
-            text: "text-zinc-500",
+            land: "#ffffff",
+            border: "#e4e4e7",
+            hover: "#f4f4f5",
+            text: "text-zinc-400",
             tooltipBg: "bg-zinc-900/90",
             tooltipBorder: "border-zinc-700",
             tooltipText: "text-zinc-100"
