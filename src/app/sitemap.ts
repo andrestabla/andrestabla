@@ -3,7 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { absoluteUrl } from '@/lib/seo';
 import { buildArticlePublicPath, extractArticleSlugPart, isArticlePageSlug } from '@/lib/articlePages';
 
-export const revalidate = 3600;
+export const dynamic = 'force-dynamic';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     const pages = await prisma.page.findMany({
