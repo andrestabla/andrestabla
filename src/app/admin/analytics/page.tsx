@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { prisma } from '@/lib/prisma';
+import AnalyticsMap from '@/components/AnalyticsMap';
 
 export const dynamic = 'force-dynamic';
 
@@ -15,14 +16,6 @@ type GeoPoint = {
 
 function formatCount(value: number): string {
     return new Intl.NumberFormat('es-CO').format(value);
-}
-
-function mapX(longitude: number) {
-    return ((longitude + 180) / 360) * 1000;
-}
-
-function mapY(latitude: number) {
-    return ((90 - latitude) / 180) * 460;
 }
 
 function sanitizeGeo(value: string | null | undefined, fallback: string): string {
@@ -74,15 +67,15 @@ export default async function AdminAnalyticsPage() {
     const declined = consentSummary.find((item) => item.decision === 'declined')?._count._all || 0;
     const totalConsents = accepted + declined;
 
-    const geoPoints: GeoPoint[] = consentGeoGrouped
+    const geoPoints = (consentGeoGrouped as any[])
         .map((row) => ({
-        key: `${row.country || 'NA'}-${row.region || 'NA'}-${row.city || 'NA'}-${row.latitude ?? 'NA'}-${row.longitude ?? 'NA'}`,
-        country: sanitizeGeo(row.country, 'N/D'),
-        region: sanitizeGeo(row.region, 'N/D'),
-        city: sanitizeGeo(row.city, 'N/D'),
-        latitude: row.latitude,
-        longitude: row.longitude,
-        hits: row._count._all,
+            key: `${row.country || 'NA'}-${row.region || 'NA'}-${row.city || 'NA'}-${row.latitude ?? 'NA'}-${row.longitude ?? 'NA'}`,
+            country: sanitizeGeo(row.country, 'N/D'),
+            region: sanitizeGeo(row.region, 'N/D'),
+            city: sanitizeGeo(row.city, 'N/D'),
+            latitude: row.latitude,
+            longitude: row.longitude,
+            hits: row._count._all,
         }))
         .sort((a, b) => b.hits - a.hits)
         .slice(0, 100);
@@ -94,15 +87,6 @@ export default async function AdminAnalyticsPage() {
     const topQuestions = questionsGrouped
         .sort((a, b) => b._count._all - a._count._all)
         .slice(0, 30);
-
-    const mapPoints = geoPoints
-        .filter((point) => typeof point.latitude === 'number' && typeof point.longitude === 'number')
-        .map((point) => ({
-            ...point,
-            x: mapX(point.longitude as number),
-            y: mapY(point.latitude as number),
-            r: Math.max(3, Math.min(16, 3 + Math.log10(point.hits + 1) * 6)),
-        }));
 
     return (
         <main className="min-h-screen bg-zinc-950 text-zinc-200 p-6 md:p-10">
@@ -138,41 +122,8 @@ export default async function AdminAnalyticsPage() {
                 <section className="grid grid-cols-1 xl:grid-cols-[1.3fr_1fr] gap-4">
                     <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-4">
                         <h2 className="text-sm font-bold uppercase tracking-widest text-zinc-300 mb-3">Mapa global de accesos</h2>
-                        <div className="rounded-xl border border-zinc-800 bg-zinc-950 overflow-hidden">
-                            <svg viewBox="0 0 1000 460" className="w-full h-auto">
-                                <rect x="0" y="0" width="1000" height="460" fill="#09090b" />
-                                {[1, 2, 3, 4, 5].map((n) => (
-                                    <line
-                                        key={`lat-${n}`}
-                                        x1="0"
-                                        y1={n * (460 / 6)}
-                                        x2="1000"
-                                        y2={n * (460 / 6)}
-                                        stroke="#18181b"
-                                        strokeWidth="1"
-                                    />
-                                ))}
-                                {[1, 2, 3, 4, 5, 6, 7].map((n) => (
-                                    <line
-                                        key={`lon-${n}`}
-                                        x1={n * (1000 / 8)}
-                                        y1="0"
-                                        x2={n * (1000 / 8)}
-                                        y2="460"
-                                        stroke="#18181b"
-                                        strokeWidth="1"
-                                    />
-                                ))}
-                                {mapPoints.map((point) => (
-                                    <g key={point.key}>
-                                        <circle cx={point.x} cy={point.y} r={point.r + 2} fill="rgba(84,182,242,0.22)" />
-                                        <circle cx={point.x} cy={point.y} r={point.r} fill="#54b6f2" fillOpacity="0.9" />
-                                    </g>
-                                ))}
-                                <text x="16" y="24" fill="#71717a" fontSize="11">Proyección simple lat/lon (consentimientos registrados)</text>
-                            </svg>
-                        </div>
-                        {mapPoints.length === 0 && (
+                        <AnalyticsMap points={geoPoints} />
+                        {geoPoints.length === 0 && (
                             <p className="text-xs text-zinc-500 mt-2">Aún no hay coordenadas disponibles para mapear accesos.</p>
                         )}
                     </div>
