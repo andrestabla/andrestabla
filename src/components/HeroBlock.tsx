@@ -1,7 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { Phone, Mail, Link as LinkIcon } from 'lucide-react';
+import { Link as LinkIcon } from 'lucide-react';
 import { safeHtml } from '@/lib/html';
 import ResumeActions from '@/components/ResumeActions';
 
@@ -60,34 +60,9 @@ export default function HeroBlock({ data }: { data: any }) {
                 >
                     <ResumeActions
                         fullName={fullName}
-                        role={data.role}
-                        resumeUrl={data.resumeUrl}
-                        shareText={data.shareText}
+                        phone={data.phone}
+                        email={data.email}
                     />
-                </motion.div>
-
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.6, duration: 0.8 }}
-                    className="flex flex-col md:flex-row items-start md:items-center gap-8 mt-16"
-                >
-                    {data.phone && (
-                        <a href={`tel:${data.phone}`} className="block-contact-btn flex items-center gap-4 group">
-                            <div className="block-contact-icon-wrap w-12 h-12 flex items-center justify-center rounded-full border transition-all duration-300">
-                                <Phone size={18} className="block-contact-icon transition-colors" />
-                            </div>
-                            <span className="block-contact-text font-medium text-sm tracking-wide">{data.phone}</span>
-                        </a>
-                    )}
-                    {data.email && (
-                        <a href={`mailto:${data.email}`} className="block-contact-btn flex items-center gap-4 group">
-                            <div className="block-contact-icon-wrap w-12 h-12 flex items-center justify-center rounded-full border transition-all duration-300">
-                                <Mail size={18} className="block-contact-icon transition-colors" />
-                            </div>
-                            <span className="block-contact-text font-medium text-sm tracking-wide">{data.email}</span>
-                        </a>
-                    )}
                 </motion.div>
 
                 {data.links && data.links.length > 0 && (
@@ -95,7 +70,7 @@ export default function HeroBlock({ data }: { data: any }) {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         transition={{ delay: 0.8, duration: 1 }}
-                        className="flex flex-wrap gap-4 mt-12 pt-12 border-t border-zinc-900"
+                        className="flex flex-wrap gap-4 mt-14 pt-12 border-t border-zinc-900"
                     >
                         {data.links.map((link: any, idx: number) => (
                             <a key={idx} href={link.url} target="_blank" className="block-link-btn px-6 py-3 rounded-full border transition-all duration-300 font-medium text-xs tracking-widest uppercase flex items-center gap-2">

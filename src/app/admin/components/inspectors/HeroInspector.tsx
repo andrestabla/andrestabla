@@ -71,27 +71,6 @@ export default function HeroInspector({ initialData, onSave, isSaving }: any) {
                     />
                 </div>
 
-                <div className="flex flex-col gap-1">
-                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">URL de HV descargable (Opcional)</label>
-                    <input
-                        name="resumeUrl"
-                        value={data.resumeUrl || ''}
-                        onChange={handleChange}
-                        placeholder="https://.../hoja-de-vida.pdf"
-                        className="w-full text-xs border border-slate-200 rounded-lg p-2.5 outline-none focus:border-blue-500 transition-all text-slate-600"
-                    />
-                    <p className="text-[10px] text-slate-400 ml-1">Si lo dejas vacío, el botón abrirá la vista de impresión para guardar en PDF.</p>
-                </div>
-
-                <div className="flex flex-col gap-1">
-                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Texto para compartir (Opcional)</label>
-                    <RichTextField
-                        value={data.shareText || ''}
-                        onChange={(value) => setData({ ...data, shareText: value })}
-                        placeholder="Perfil directivo de transformación digital educativa"
-                        minHeightClass="min-h-[72px]"
-                    />
-                </div>
             </div>
 
             {/* Contacto */}

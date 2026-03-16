@@ -70,7 +70,17 @@ const BlockComponents: Record<string, any> = {
 };
 
 // Recursive Node Renderer
-function BlockNode({ block, allBlocks, isEditor }: { block: any, allBlocks: any[], isEditor?: boolean }) {
+function BlockNode({
+    block,
+    allBlocks,
+    isEditor,
+    isLastRootBlock,
+}: {
+    block: any,
+    allBlocks: any[],
+    isEditor?: boolean,
+    isLastRootBlock?: boolean,
+}) {
     const Component = BlockComponents[block.type];
     if (!Component) return null;
 
@@ -149,7 +159,12 @@ function BlockNode({ block, allBlocks, isEditor }: { block: any, allBlocks: any[
                 </div>
             )}
             <div className={`relative z-[1] ${hasCustomBackground ? 'block-force-transparent-root' : ''}`}>
-                <Component data={parsedData} childrenNodes={childrenNodes} isEditor={isEditor} />
+                <Component
+                    data={parsedData}
+                    childrenNodes={childrenNodes}
+                    isEditor={isEditor}
+                    isLastRootBlock={isLastRootBlock}
+                />
             </div>
         </div>
     );
@@ -180,8 +195,14 @@ export default async function BlockRenderer({
     return (
         <div className="w-full relative admin-canvas-wrapper max-w-none md:max-w-[1200px] mx-auto px-0 md:px-12 pt-16 print:max-w-none print:px-0 print:pt-0">
             {isEditor && <ClickToEditWrapper />}
-            {rootBlocks.map((block: any) => (
-                <BlockNode key={block.id} block={block} allBlocks={page.blocks} isEditor={isEditor} />
+            {rootBlocks.map((block: any, index: number) => (
+                <BlockNode
+                    key={block.id}
+                    block={block}
+                    allBlocks={page.blocks}
+                    isEditor={isEditor}
+                    isLastRootBlock={index === rootBlocks.length - 1}
+                />
             ))}
         </div>
     );
