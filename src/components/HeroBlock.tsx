@@ -3,6 +3,7 @@
 import { motion } from 'framer-motion';
 import { Phone, Mail, Link as LinkIcon } from 'lucide-react';
 import { safeHtml } from '@/lib/html';
+import ResumeActions from '@/components/ResumeActions';
 
 export default function HeroBlock({ data }: { data: any }) {
     const fullName = data.name || 'Nombre Apellido';
@@ -10,10 +11,10 @@ export default function HeroBlock({ data }: { data: any }) {
     const lastName = fullName.split(' ').slice(1).join(' ') || 'Apellido';
 
     return (
-        <header className="min-h-[90vh] flex flex-col justify-center items-start py-24 relative overflow-hidden bg-zinc-950">
+        <header className="min-h-[90vh] flex flex-col justify-center items-start py-24 relative overflow-hidden bg-zinc-950 print:min-h-0 print:bg-transparent print:py-8">
 
             {/* Abstract Background Element (Aali Style) */}
-            <div className="absolute top-[-10%] right-[-5%] w-[600px] h-[600px] bg-[var(--brand)]/10 rounded-full blur-[100px] -z-10 pointer-events-none"></div>
+            <div className="absolute top-[-10%] right-[-5%] w-[600px] h-[600px] bg-[var(--brand)]/10 rounded-full blur-[100px] -z-10 pointer-events-none print:hidden"></div>
 
             <motion.div
                 initial={{ opacity: 0, y: 40 }}
@@ -51,6 +52,19 @@ export default function HeroBlock({ data }: { data: any }) {
                         dangerouslySetInnerHTML={safeHtml(data.tagline)}
                     />
                 )}
+
+                <motion.div
+                    initial={{ opacity: 0, y: 16 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.58, duration: 0.8 }}
+                >
+                    <ResumeActions
+                        fullName={fullName}
+                        role={data.role}
+                        resumeUrl={data.resumeUrl}
+                        shareText={data.shareText}
+                    />
+                </motion.div>
 
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}

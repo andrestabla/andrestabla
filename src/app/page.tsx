@@ -131,7 +131,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ [
   };
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-slate-300 antialiased selection:bg-[#f25c54] selection:text-white pb-24 relative overflow-x-hidden">
+    <div className="min-h-screen bg-zinc-950 text-slate-300 antialiased selection:bg-[#f25c54] selection:text-white pb-24 relative overflow-x-hidden print:min-h-0 print:bg-white print:text-zinc-900 print:pb-0">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(personSchema) }}
@@ -144,12 +144,14 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ [
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
       />
-      {!isEditor && <DataPolicyConsent />}
+      {!isEditor && <div className="print:hidden"><DataPolicyConsent /></div>}
       {!isEditor && <AnalyticsTracker />}
       {!isEditor && <AutoTranslatePage />}
 
       {/* Global Navigation (Hamburger Menu) */}
-      <GlobalNav siteConfig={siteConfig} />
+      <div className="print:hidden">
+        <GlobalNav siteConfig={siteConfig} />
+      </div>
 
       {/* Dynamic Content Engine */}
       {/* @ts-ignore */}
@@ -158,7 +160,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ [
       </div>
 
       {/* Footer Element */}
-      <footer className="w-full border-t mt-24" style={footerBaseStyle}>
+      <footer className="w-full border-t mt-24 print:hidden" style={footerBaseStyle}>
         {footerStyle === 'split' ? (
           <div className="max-w-6xl mx-auto px-6 md:px-12 py-6 flex flex-col gap-2 md:flex-row md:items-center md:justify-between text-xs font-bold uppercase tracking-[0.16em]">
             <span>{siteConfig?.title || 'Andrés Tabla'} &copy; {new Date().getFullYear()}</span>
@@ -182,7 +184,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ [
         )}
       </footer>
 
-      {!isEditor && <AndresAssistant />}
+      {!isEditor && <div className="print:hidden"><AndresAssistant /></div>}
     </div>
   );
 }

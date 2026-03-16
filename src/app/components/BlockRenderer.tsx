@@ -178,7 +178,10 @@ export default async function BlockRenderer({
         .sort((a: any, b: any) => a.order - b.order);
 
     return (
-        <div className="w-full relative admin-canvas-wrapper max-w-none md:max-w-[1200px] mx-auto px-0 md:px-12 pt-16">
+        <div
+            className="w-full relative admin-canvas-wrapper max-w-none md:max-w-[1200px] mx-auto px-0 md:px-12 pt-16 print:max-w-none print:px-0 print:pt-0"
+            data-pdf-root="resume"
+        >
             {isEditor && <ClickToEditWrapper />}
             {rootBlocks.map((block: any) => (
                 <BlockNode key={block.id} block={block} allBlocks={page.blocks} isEditor={isEditor} />
