@@ -97,6 +97,23 @@ async function main() {
                 ]
             },
             order: 4
+        },
+        {
+            type: 'button',
+            data: {
+                text: 'Descargar HV',
+                link: '/api/resume-pdf',
+                openInNewTab: false,
+                style: 'primary',
+                size: 'lg',
+                align: 'text-center'
+            },
+            styles: {
+                paddingTop: '3',
+                paddingBottom: '5',
+                fontSize: '1'
+            },
+            order: 5
         }
     ];
 
@@ -106,6 +123,7 @@ async function main() {
                 pageId: homePage.id,
                 type: block.type,
                 data: JSON.stringify(block.data),
+                styles: block.styles ? JSON.stringify(block.styles) : null,
                 order: block.order
             }
         });

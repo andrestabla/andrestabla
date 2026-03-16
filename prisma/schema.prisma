@@ -60,6 +60,7 @@ model Block {
   type      String   // e.g., 'hero', 'timeline', 'bento', 'richtext', 'spacer', 'grid'
   data      String   // JSON stringified payload specific to the block type
   styles    String?  // JSON stringified styling overrides (padding, background, grid config)
+  isHidden  Boolean  @default(false)
   order     Int      @default(0)
   
   // Advanced Layout: Hierarchy for Nesting (e.g. Columns inside a Grid)

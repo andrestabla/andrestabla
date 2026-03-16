@@ -70,19 +70,10 @@ const BlockComponents: Record<string, any> = {
 };
 
 // Recursive Node Renderer
-function BlockNode({
-    block,
-    allBlocks,
-    isEditor,
-    isLastRootBlock,
-}: {
-    block: any,
-    allBlocks: any[],
-    isEditor?: boolean,
-    isLastRootBlock?: boolean,
-}) {
+function BlockNode({ block, allBlocks, isEditor }: { block: any, allBlocks: any[], isEditor?: boolean }) {
     const Component = BlockComponents[block.type];
     if (!Component) return null;
+    if (block.isHidden && !isEditor) return null;
 
     let parsedData = {};
     try {
@@ -116,7 +107,7 @@ function BlockNode({
 
     // Find children attached to this node
     const childrenBlocks = allBlocks
-        .filter(b => b.parentId === block.id)
+        .filter(b => b.parentId === block.id && (isEditor || !b.isHidden))
         .sort((a, b) => a.order - b.order);
 
     // If it has children, parse them recursively
@@ -133,7 +124,7 @@ function BlockNode({
 
     return (
         <div
-            className={`group/block block-style-scope relative w-full transition-all duration-300 ${hasCustomBackground ? 'block-has-background-media' : ''} ${editorOutlineClass} ${isEditor ? 'admin-editor-node' : ''}`}
+            className={`group/block block-style-scope relative w-full transition-all duration-300 ${hasCustomBackground ? 'block-has-background-media' : ''} ${editorOutlineClass} ${isEditor ? 'admin-editor-node' : ''} ${block.isHidden ? 'opacity-45' : ''}`}
             style={styleString}
             data-block-id={block.id}
             id={`block-${block.id}`}
@@ -155,16 +146,11 @@ function BlockNode({
             )}
             {isEditor && (
                 <div className="absolute top-0 right-0 bg-indigo-500 text-white text-[9px] font-bold px-2 py-1 rounded-bl-md rounded-tr-sm opacity-0 group-hover/block:opacity-100 transition-opacity z-50 pointer-events-none uppercase tracking-widest">
-                    {block.type}
+                    {block.type}{block.isHidden ? ' · oculto' : ''}
                 </div>
             )}
             <div className={`relative z-[1] ${hasCustomBackground ? 'block-force-transparent-root' : ''}`}>
-                <Component
-                    data={parsedData}
-                    childrenNodes={childrenNodes}
-                    isEditor={isEditor}
-                    isLastRootBlock={isLastRootBlock}
-                />
+                <Component data={parsedData} childrenNodes={childrenNodes} isEditor={isEditor} />
             </div>
         </div>
     );
@@ -189,20 +175,14 @@ export default async function BlockRenderer({
 
     // Sort root blocks by order
     const rootBlocks = page.blocks
-        .filter((b: any) => !b.parentId)
+        .filter((b: any) => !b.parentId && (isEditor || !b.isHidden))
         .sort((a: any, b: any) => a.order - b.order);
 
     return (
         <div className="w-full relative admin-canvas-wrapper max-w-none md:max-w-[1200px] mx-auto px-0 md:px-12 pt-16 print:max-w-none print:px-0 print:pt-0">
             {isEditor && <ClickToEditWrapper />}
-            {rootBlocks.map((block: any, index: number) => (
-                <BlockNode
-                    key={block.id}
-                    block={block}
-                    allBlocks={page.blocks}
-                    isEditor={isEditor}
-                    isLastRootBlock={index === rootBlocks.length - 1}
-                />
+            {rootBlocks.map((block: any) => (
+                <BlockNode key={block.id} block={block} allBlocks={page.blocks} isEditor={isEditor} />
             ))}
         </div>
     );

@@ -1,10 +1,10 @@
 'use client';
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { updateBlockData, deleteBlock, addBlock, reorderBlocks, publishPageAndSyncArticles } from './actions';
+import { updateBlockData, deleteBlock, addBlock, reorderBlocks, publishPageAndSyncArticles, toggleBlockVisibility } from './actions';
 import {
     Trash2, Plus, Layers, Box, Settings2,
-    Save, X, ChevronLeft, PanelLeft, Eye, ChevronUp, ChevronDown, Maximize2, Minimize2, BarChart3
+    Save, X, ChevronLeft, PanelLeft, Eye, EyeOff, ChevronUp, ChevronDown, Maximize2, Minimize2, BarChart3
 } from 'lucide-react';
 import GlobalSettingsForm from './GlobalSettingsForm';
 import ClientInlineBlockRenderer from './ClientInlineBlockRenderer';
@@ -303,7 +303,7 @@ export default function BuilderWorkspace({
             return (
                 <div key={block.id}>
                     <div
-                        className={`w-full flex items-center gap-1 p-1 rounded-lg transition-colors ${selectedBlockId === block.id ? 'bg-indigo-100 text-indigo-800' : 'hover:bg-slate-100'}`}
+                        className={`w-full flex items-center gap-1 p-1 rounded-lg transition-colors ${selectedBlockId === block.id ? 'bg-indigo-100 text-indigo-800' : 'hover:bg-slate-100'} ${block.isHidden ? 'opacity-60' : ''}`}
                         style={{ paddingLeft: `${8 + depth * 12}px` }}
                     >
                         <button
@@ -314,11 +314,40 @@ export default function BuilderWorkspace({
                             <div className="flex-1 min-w-0">
                                 <div className="text-xs font-bold text-slate-800 uppercase tracking-wider">{block.type}</div>
                                 <div className="text-[10px] text-slate-500 truncate max-w-[160px]">
-                                    {isGrid ? 'Contenedor de Columnas' : block.data.substring(0, 40) + '...'}
+                                    {block.isHidden
+                                        ? 'Bloque oculto'
+                                        : isGrid
+                                            ? 'Contenedor de Columnas'
+                                            : block.data.substring(0, 40) + '...'}
                                 </div>
                             </div>
                         </button>
                         <div className="flex items-center gap-0.5">
+                            <button
+                                onClick={async (e) => {
+                                    e.stopPropagation();
+                                    await toggleBlockVisibility(block.id, !block.isHidden);
+                                    await reloadBlocks();
+                                    setSelectedBlockId(block.id);
+                                }}
+                                title={block.isHidden ? 'Mostrar bloque' : 'Ocultar bloque'}
+                                className="p-1 rounded text-slate-400 hover:text-indigo-600 hover:bg-white"
+                            >
+                                {block.isHidden ? <Eye size={13} /> : <EyeOff size={13} />}
+                            </button>
+                            <button
+                                onClick={async (e) => {
+                                    e.stopPropagation();
+                                    if (!confirm('¿Eliminar este bloque?')) return;
+                                    if (selectedBlockId === block.id) setSelectedBlockId(null);
+                                    await deleteBlock(block.id);
+                                    await reloadBlocks();
+                                }}
+                                title="Eliminar bloque"
+                                className="p-1 rounded text-slate-400 hover:text-red-600 hover:bg-white"
+                            >
+                                <Trash2 size={13} />
+                            </button>
                             <button
                                 onClick={(e) => { e.stopPropagation(); moveBlock(block.id, 'up'); }}
                                 disabled={isFirst}
@@ -491,16 +520,28 @@ export default function BuilderWorkspace({
 
                                 <div className="flex justify-between items-center mb-4 border-b border-slate-100 pb-3">
                                     <h3 className="text-sm font-bold text-slate-800 uppercase tracking-tight">✏️ {selectedBlock.type}</h3>
-                                    <button
-                                        onClick={async () => {
-                                            if (confirm('¿Eliminar este bloque?')) {
-                                                await deleteBlock(selectedBlock.id);
-                                                setSelectedBlockId(null);
+                                    <div className="flex items-center gap-2">
+                                        <button
+                                            onClick={async () => {
+                                                await toggleBlockVisibility(selectedBlock.id, !selectedBlock.isHidden);
                                                 await reloadBlocks();
-                                            }
-                                        }}
-                                        className="text-red-500 hover:bg-red-50 p-1.5 rounded-md"
-                                    ><Trash2 size={16} /></button>
+                                            }}
+                                            className="text-slate-500 hover:bg-slate-100 p-1.5 rounded-md"
+                                            title={selectedBlock.isHidden ? 'Mostrar bloque' : 'Ocultar bloque'}
+                                        >
+                                            {selectedBlock.isHidden ? <Eye size={16} /> : <EyeOff size={16} />}
+                                        </button>
+                                        <button
+                                            onClick={async () => {
+                                                if (confirm('¿Eliminar este bloque?')) {
+                                                    await deleteBlock(selectedBlock.id);
+                                                    setSelectedBlockId(null);
+                                                    await reloadBlocks();
+                                                }
+                                            }}
+                                            className="text-red-500 hover:bg-red-50 p-1.5 rounded-md"
+                                        ><Trash2 size={16} /></button>
+                                    </div>
                                 </div>
 
                                 <InspectorForm block={selectedBlock} onSaved={reloadBlocks} />

@@ -12,21 +12,15 @@ import {
     normalizeSlugPart,
 } from '@/lib/articlePages';
 
-async function revalidateRoutesForBlock(blockId: string) {
-    const blockRecord = await prisma.block.findUnique({
-        where: { id: blockId },
-        select: {
-            page: {
-                select: { slug: true },
-            },
-        },
-    });
-
+function revalidateSharedRoutes() {
     revalidatePath('/');
     revalidatePath('/articulos');
     revalidatePath('/admin');
+}
 
-    const pageSlug = blockRecord?.page?.slug;
+async function revalidateRoutesForPageSlug(pageSlug?: string | null) {
+    revalidateSharedRoutes();
+
     if (!pageSlug) return;
 
     if (pageSlug === 'home') {
@@ -38,6 +32,28 @@ async function revalidateRoutesForBlock(blockId: string) {
         const articleSlug = extractArticleSlugPart(pageSlug);
         revalidatePath(buildArticlePublicPath(articleSlug));
     }
+}
+
+async function revalidateRoutesForPage(pageId: string) {
+    const pageRecord = await prisma.page.findUnique({
+        where: { id: pageId },
+        select: { slug: true },
+    });
+
+    await revalidateRoutesForPageSlug(pageRecord?.slug);
+}
+
+async function revalidateRoutesForBlock(blockId: string) {
+    const blockRecord = await prisma.block.findUnique({
+        where: { id: blockId },
+        select: {
+            page: {
+                select: { slug: true },
+            },
+        },
+    });
+
+    await revalidateRoutesForPageSlug(blockRecord?.page?.slug);
 }
 
 // Update a single block's JSON data
@@ -58,6 +74,14 @@ export async function updateBlockStyles(id: string, newStyles: string) {
     await revalidateRoutesForBlock(id);
 }
 
+export async function toggleBlockVisibility(id: string, nextHidden: boolean) {
+    await prisma.block.update({
+        where: { id },
+        data: { isHidden: nextHidden },
+    });
+    await revalidateRoutesForBlock(id);
+}
+
 // Add a new block to the end of the page (or inside a parent)
 export async function addBlock(pageId: string, type: string, defaultData: any, parentId?: string) {
     const count = await prisma.block.count({ where: { pageId, parentId: parentId || null } });
@@ -71,15 +95,24 @@ export async function addBlock(pageId: string, type: string, defaultData: any, p
             order: count + 1
         }
     });
-    revalidatePath('/');
-    revalidatePath('/admin');
+    await revalidateRoutesForPage(pageId);
 }
 
 // Delete a block
 export async function deleteBlock(id: string) {
+    const blockRecord = await prisma.block.findUnique({
+        where: { id },
+        select: { pageId: true },
+    });
+
     await prisma.block.delete({ where: { id } });
-    revalidatePath('/');
-    revalidatePath('/admin');
+
+    if (blockRecord?.pageId) {
+        await revalidateRoutesForPage(blockRecord.pageId);
+        return;
+    }
+
+    revalidateSharedRoutes();
 }
 
 // Reorder blocks (drag and drop support)
@@ -93,8 +126,7 @@ export async function reorderBlocks(pageId: string, blockIds: string[]) {
     );
 
     await prisma.$transaction(updatePromises);
-    revalidatePath('/');
-    revalidatePath('/admin');
+    await revalidateRoutesForPage(pageId);
 }
 
 // Update Global Settings (SiteSettings)

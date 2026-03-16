@@ -126,7 +126,7 @@ function BlockNode({ block, allBlocks, selectedBlockId, onSelect }: BlockNodePro
 
     return (
         <div
-            className={`block-style-scope relative w-full transition-all duration-150 cursor-pointer ${hasCustomBackground ? 'block-has-background-media' : ''} ${hoverClass}`}
+            className={`block-style-scope relative w-full transition-all duration-150 cursor-pointer ${hasCustomBackground ? 'block-has-background-media' : ''} ${hoverClass} ${block.isHidden ? 'opacity-45' : ''}`}
             style={{ ...styleObj, outline: outlineStyle }}
             data-block-id={block.id}
             onClick={(e) => {
@@ -156,7 +156,7 @@ function BlockNode({ block, allBlocks, selectedBlockId, onSelect }: BlockNodePro
                     : 'opacity-0 group-hover/block:opacity-100 bg-slate-900/80 text-white'
                 }`}
             >
-                {isContainer ? '📦' : '🔷'} {block.type}
+                {isContainer ? '📦' : '🔷'} {block.type}{block.isHidden ? ' · oculto' : ''}
             </div>
 
             <div className={`relative z-[1] ${hasCustomBackground ? 'block-force-transparent-root' : ''}`}>
