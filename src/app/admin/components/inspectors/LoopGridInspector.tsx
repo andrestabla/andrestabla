@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Plus, Trash2 } from 'lucide-react';
+import { ChevronDown, ChevronUp, Plus, Trash2 } from 'lucide-react';
 import { ensureArticlePage } from '../actions';
 import {
     buildArticlePublicPath,
@@ -140,6 +140,15 @@ export default function LoopGridInspector({
         setItems(items.filter((_, i) => i !== index));
     };
 
+    const moveItem = (index: number, direction: 'up' | 'down') => {
+        const nextIndex = direction === 'up' ? index - 1 : index + 1;
+        if (nextIndex < 0 || nextIndex >= items.length) return;
+
+        const updated = [...items];
+        [updated[index], updated[nextIndex]] = [updated[nextIndex], updated[index]];
+        setItems(updated);
+    };
+
     const resolveArticleSlug = (item: LoopItem, index: number): string =>
         normalizeSlugPart(
             (item.articleSlug || '').trim() ||
@@ -275,9 +284,39 @@ export default function LoopGridInspector({
                 <div className="space-y-3">
                     {items.map((item, idx) => (
                         <div key={idx} className="relative bg-slate-50 border border-slate-200 rounded-lg p-3 space-y-2">
-                            <button onClick={() => removeItem(idx)} className="absolute top-2 right-2 text-slate-400 hover:text-red-500 p-1" type="button">
-                                <Trash2 size={14} />
-                            </button>
+                            <div className="flex items-center justify-between gap-2 pr-8">
+                                <div className="flex items-center gap-2">
+                                    <span className="inline-flex min-w-8 justify-center rounded-full bg-white border border-slate-200 px-2 py-1 text-[10px] font-bold uppercase tracking-widest text-slate-500">
+                                        #{idx + 1}
+                                    </span>
+                                    <span className="text-[9px] font-bold uppercase tracking-widest text-slate-400">
+                                        Posición del {postType === 'portfolio' ? 'proyecto' : 'artículo'}
+                                    </span>
+                                </div>
+                                <div className="flex items-center gap-1">
+                                    <button
+                                        onClick={() => moveItem(idx, 'up')}
+                                        className="rounded-md border border-slate-200 bg-white p-1 text-slate-400 hover:text-indigo-600 disabled:opacity-40 disabled:cursor-not-allowed"
+                                        type="button"
+                                        disabled={idx === 0}
+                                        title="Mover arriba"
+                                    >
+                                        <ChevronUp size={14} />
+                                    </button>
+                                    <button
+                                        onClick={() => moveItem(idx, 'down')}
+                                        className="rounded-md border border-slate-200 bg-white p-1 text-slate-400 hover:text-indigo-600 disabled:opacity-40 disabled:cursor-not-allowed"
+                                        type="button"
+                                        disabled={idx === items.length - 1}
+                                        title="Mover abajo"
+                                    >
+                                        <ChevronDown size={14} />
+                                    </button>
+                                    <button onClick={() => removeItem(idx)} className="text-slate-400 hover:text-red-500 p-1" type="button" title="Eliminar">
+                                        <Trash2 size={14} />
+                                    </button>
+                                </div>
+                            </div>
 
                             <label className="text-[9px] font-bold uppercase tracking-widest text-slate-400">Título</label>
                             <input
