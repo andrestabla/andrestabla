@@ -42,12 +42,23 @@ async function getArticleRecord(pageSlug: string) {
 }
 
 async function resolveArticleBySlug(requestedSlug: string) {
-    let currentSlug = normalizeSlugPart(requestedSlug || 'articulo');
+    const initialSlug = normalizeSlugPart(requestedSlug || 'articulo');
+    let currentSlug = initialSlug;
     const visited = new Set<string>();
 
     for (let hop = 0; hop < MAX_SLUG_REDIRECT_HOPS; hop += 1) {
         if (visited.has(currentSlug)) break;
         visited.add(currentSlug);
+
+        const redirect = await prisma.articleSlugRedirect.findUnique({
+            where: { fromSlug: currentSlug },
+            select: { toSlug: true },
+        });
+        const nextSlug = normalizeSlugPart(redirect?.toSlug || '', currentSlug);
+        if (redirect?.toSlug && nextSlug && nextSlug !== currentSlug) {
+            currentSlug = nextSlug;
+            continue;
+        }
 
         const pageSlug = buildArticlePageSlug(currentSlug);
         const articleRecord = await getArticleRecord(pageSlug);
@@ -58,19 +69,21 @@ async function resolveArticleBySlug(requestedSlug: string) {
             };
         }
 
-        const redirect = await prisma.articleSlugRedirect.findUnique({
-            where: { fromSlug: currentSlug },
-            select: { toSlug: true },
-        });
-        if (!redirect?.toSlug) break;
+        break;
+    }
 
-        const nextSlug = normalizeSlugPart(redirect.toSlug, currentSlug);
-        if (!nextSlug || nextSlug === currentSlug) break;
-        currentSlug = nextSlug;
+    if (currentSlug !== initialSlug) {
+        const fallbackRecord = await getArticleRecord(buildArticlePageSlug(initialSlug));
+        if (fallbackRecord) {
+            return {
+                resolvedSlug: initialSlug,
+                articleRecord: fallbackRecord,
+            };
+        }
     }
 
     return {
-        resolvedSlug: normalizeSlugPart(requestedSlug || 'articulo'),
+        resolvedSlug: initialSlug,
         articleRecord: null,
     };
 }

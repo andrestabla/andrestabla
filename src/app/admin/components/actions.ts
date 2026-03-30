@@ -58,9 +58,17 @@ async function revalidateRoutesForBlock(blockId: string) {
 
 // Update a single block's JSON data
 export async function updateBlockData(id: string, newData: string) {
+    const blockRecord = await prisma.block.findUnique({
+        where: { id },
+        select: { type: true },
+    });
+    const nextData = blockRecord?.type === 'loopgrid'
+        ? await normalizeLoopgridBlockData(newData)
+        : newData;
+
     await prisma.block.update({
         where: { id },
-        data: { data: newData }
+        data: { data: nextData }
     });
     await revalidateRoutesForBlock(id);
 }
@@ -153,17 +161,15 @@ type EnsureArticlePageInput = {
 };
 
 export async function ensureArticlePage(input: EnsureArticlePageInput) {
-    const slugSeed = input.articleSlug || input.title || 'articulo';
-    const articleSlug = normalizeSlugPart(slugSeed);
+    const slugSeed = normalizeSlugPart(input.articleSlug || input.title || 'articulo');
+    const existingArticle = await resolveArticlePageByAlias(slugSeed);
+    const articleSlug = existingArticle?.articleSlug || slugSeed;
     const pageSlug = buildArticlePageSlug(articleSlug);
     const pageTitle = (input.title || '').trim() || humanizeSlug(articleSlug);
     const pageDescription = (input.excerpt || '').trim();
     const coverImage = (input.image || '').trim();
 
-    let page = await prisma.page.findUnique({
-        where: { slug: pageSlug },
-        include: { blocks: { orderBy: { order: 'asc' } } },
-    });
+    let page = existingArticle?.page || null;
 
     if (!page) {
         page = await prisma.page.create({
@@ -179,8 +185,8 @@ export async function ensureArticlePage(input: EnsureArticlePageInput) {
         await prisma.page.update({
             where: { id: page.id },
             data: {
-                title: page.title || pageTitle,
-                description: page.description || pageDescription || null,
+                title: pageTitle || page.title,
+                description: pageDescription || page.description || null,
             },
         });
     }
@@ -358,6 +364,69 @@ function resolveRedirectedSlug(slug: string, redirectMap: Map<string, string>): 
     return current;
 }
 
+function buildArticleRedirectMap(
+    redirectRows: Array<{ fromSlug: string; toSlug: string }>,
+    excludedFromSlug = ''
+) {
+    const redirectMap = new Map<string, string>();
+
+    for (const row of redirectRows) {
+        const fromSlug = normalizeSlugPart(row.fromSlug, '');
+        const toSlug = normalizeSlugPart(row.toSlug, '');
+        if (!fromSlug || !toSlug || fromSlug === excludedFromSlug || fromSlug === toSlug) continue;
+        redirectMap.set(fromSlug, toSlug);
+    }
+
+    return redirectMap;
+}
+
+async function loadArticleRedirectMap(excludedFromSlug = '') {
+    const redirectRows = await prisma.articleSlugRedirect.findMany({
+        select: { fromSlug: true, toSlug: true },
+    });
+
+    return buildArticleRedirectMap(redirectRows, excludedFromSlug);
+}
+
+function normalizeLoopGridItem(item: any, redirectMap: Map<string, string>) {
+    if (!item || typeof item !== 'object') return {};
+
+    const nextItem = { ...item };
+    const rawSlug = getLoopItemSlug(nextItem);
+    const canonicalSlug = rawSlug ? resolveRedirectedSlug(rawSlug, redirectMap) : '';
+
+    if (canonicalSlug) {
+        nextItem.articleSlug = canonicalSlug;
+        nextItem.href = buildArticlePublicPath(canonicalSlug);
+    }
+
+    return nextItem;
+}
+
+async function normalizeLoopgridBlockData(rawData: string): Promise<string> {
+    let parsed: any = null;
+    try {
+        parsed = JSON.parse(rawData);
+    } catch {
+        return rawData;
+    }
+
+    if (!parsed || typeof parsed !== 'object') {
+        return rawData;
+    }
+
+    if (String(parsed.postType || 'blog') !== 'blog') {
+        return JSON.stringify(parsed);
+    }
+
+    const sourceItems = Array.isArray(parsed.items) ? parsed.items : [];
+    const redirectMap = await loadArticleRedirectMap();
+    const normalizedItems = sourceItems.map((item: any) => normalizeLoopGridItem(item, redirectMap));
+    parsed.items = dedupeLoopItems(normalizedItems, redirectMap, '');
+
+    return JSON.stringify(parsed);
+}
+
 function rankLoopItem(item: any, preferredSlug: string): number {
     const slug = getLoopItemSlug(item);
     let score = 0;
@@ -417,26 +486,45 @@ function formatBlogDate(date: Date): string {
     }).format(date);
 }
 
-async function resolveUniqueArticleSlug(baseSlug: string, pageId: string): Promise<string> {
-    const cleanBase = normalizeSlugPart(baseSlug, 'articulo');
-    let attempt = 0;
+async function resolveArticlePageByAlias(articleSlugSeed: string) {
+    const requestedSlug = normalizeSlugPart(articleSlugSeed, 'articulo');
+    let currentSlug = requestedSlug;
+    const visited = new Set<string>();
 
-    while (attempt < 50) {
-        const candidate = attempt === 0 ? cleanBase : normalizeSlugPart(`${cleanBase}-${attempt + 1}`, 'articulo');
-        const candidatePageSlug = buildArticlePageSlug(candidate);
-        const existing = await prisma.page.findUnique({
-            where: { slug: candidatePageSlug },
-            select: { id: true },
+    while (currentSlug && !visited.has(currentSlug)) {
+        visited.add(currentSlug);
+
+        const slugRedirect = await prisma.articleSlugRedirect.findUnique({
+            where: { fromSlug: currentSlug },
+            select: { toSlug: true },
         });
-
-        if (!existing || existing.id === pageId) {
-            return candidate;
+        const redirectedSlug = normalizeSlugPart(slugRedirect?.toSlug || '', '');
+        if (redirectedSlug && redirectedSlug !== currentSlug) {
+            currentSlug = redirectedSlug;
+            continue;
         }
 
-        attempt += 1;
+        const page = await prisma.page.findUnique({
+            where: { slug: buildArticlePageSlug(currentSlug) },
+            include: { blocks: { orderBy: { order: 'asc' } } },
+        });
+        if (page) {
+            return { articleSlug: currentSlug, page };
+        }
+        break;
     }
 
-    return normalizeSlugPart(`${cleanBase}-${Date.now()}`, 'articulo');
+    if (currentSlug !== requestedSlug) {
+        const fallbackPage = await prisma.page.findUnique({
+            where: { slug: buildArticlePageSlug(requestedSlug) },
+            include: { blocks: { orderBy: { order: 'asc' } } },
+        });
+        if (fallbackPage) {
+            return { articleSlug: requestedSlug, page: fallbackPage };
+        }
+    }
+
+    return null;
 }
 
 type PublishSyncResult = {
@@ -485,28 +573,14 @@ export async function publishPageAndSyncArticles(pageId: string): Promise<Publis
 
     const currentArticleSlug = extractArticleSlugPart(page.slug);
     const articleMeta = extractArticleMeta(page);
-    const preferredArticleSlug = normalizeSlugPart(articleMeta.title || currentArticleSlug, currentArticleSlug);
-    const articleSlug = await resolveUniqueArticleSlug(preferredArticleSlug, page.id);
-    const nextPageSlug = buildArticlePageSlug(articleSlug);
+    const articleSlug = currentArticleSlug;
+    const nextPageSlug = page.slug;
     const publicPath = buildArticlePublicPath(articleSlug);
     const oldPublicPath = buildArticlePublicPath(currentArticleSlug);
     const adminPath = buildAdminEditPath(nextPageSlug);
     const defaultDate = formatBlogDate(new Date());
-    const redirectRows = await prisma.articleSlugRedirect.findMany({
-        select: { fromSlug: true, toSlug: true },
-    });
-    const redirectMap = new Map<string, string>();
-    for (const row of redirectRows) {
-        const fromSlug = normalizeSlugPart(row.fromSlug, '');
-        const toSlug = normalizeSlugPart(row.toSlug, '');
-        if (fromSlug && toSlug) {
-            redirectMap.set(fromSlug, toSlug);
-        }
-    }
-    if (currentArticleSlug && articleSlug && currentArticleSlug !== articleSlug) {
-        redirectMap.set(currentArticleSlug, articleSlug);
-    }
-    const canonicalArticleSlug = resolveRedirectedSlug(articleSlug, redirectMap);
+    const redirectMap = await loadArticleRedirectMap(currentArticleSlug);
+    const canonicalArticleSlug = articleSlug;
 
     const loopgridBlocks = await prisma.block.findMany({
         where: { type: 'loopgrid' },
@@ -522,9 +596,7 @@ export async function publishPageAndSyncArticles(pageId: string): Promise<Publis
         if (postType !== 'blog') continue;
 
         const sourceItems = Array.isArray(loopData.items) ? loopData.items : [];
-        const items = sourceItems.map((item: any) =>
-            item && typeof item === 'object' ? { ...item } : {}
-        );
+        const items = sourceItems.map((item: any) => normalizeLoopGridItem(item, redirectMap));
 
         let foundIndex = -1;
         for (let i = 0; i < items.length; i += 1) {
@@ -570,47 +642,23 @@ export async function publishPageAndSyncArticles(pageId: string): Promise<Publis
         syncedLoopgrids += 1;
     }
 
-    const pageSlugNeedsUpdate = page.slug !== nextPageSlug;
     const pageTitleNeedsUpdate = page.title !== articleMeta.title;
     const pageDescriptionNeedsUpdate = (page.description || '') !== (articleMeta.excerpt || '');
-    if (pageSlugNeedsUpdate || pageTitleNeedsUpdate || pageDescriptionNeedsUpdate) {
+    if (pageTitleNeedsUpdate || pageDescriptionNeedsUpdate) {
         transactionOps.push(prisma.page.update({
             where: { id: page.id },
             data: {
-                slug: nextPageSlug,
                 title: articleMeta.title,
                 description: articleMeta.excerpt || null,
             },
         }));
     }
 
-    if (pageSlugNeedsUpdate) {
-        transactionOps.push(
-            prisma.articleSlugRedirect.upsert({
-                where: { fromSlug: currentArticleSlug },
-                update: { toSlug: articleSlug },
-                create: {
-                    fromSlug: currentArticleSlug,
-                    toSlug: articleSlug,
-                },
-            })
-        );
-        transactionOps.push(
-            prisma.articleSlugRedirect.updateMany({
-                where: {
-                    toSlug: currentArticleSlug,
-                    NOT: { fromSlug: currentArticleSlug },
-                },
-                data: { toSlug: articleSlug },
-            })
-        );
-        // Prevent accidental self/loop redirects if slugs were reused.
-        transactionOps.push(
-            prisma.articleSlugRedirect.deleteMany({
-                where: { fromSlug: articleSlug, toSlug: currentArticleSlug },
-            })
-        );
-    }
+    transactionOps.push(
+        prisma.articleSlugRedirect.deleteMany({
+            where: { fromSlug: currentArticleSlug },
+        })
+    );
 
     if (transactionOps.length > 0) {
         await prisma.$transaction(transactionOps);

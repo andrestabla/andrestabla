@@ -6,6 +6,7 @@ import {
     buildArticlePublicPath,
     extractArticleSlugPart,
     isArticlePageSlug,
+    normalizeSlugPart,
 } from '@/lib/articlePages';
 
 export const revalidate = 0;
@@ -24,12 +25,35 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
         ? slugParam.trim()
         : 'home';
 
-    const selectedPageSlug =
+    const requestedArticleSlug = isArticlePageSlug(requestedSlug)
+        ? extractArticleSlugPart(requestedSlug)
+        : '';
+    let selectedPageSlug =
         requestedSlug === 'home'
             ? 'home'
-            : isArticlePageSlug(requestedSlug)
-                ? buildArticlePageSlug(extractArticleSlugPart(requestedSlug))
+            : requestedArticleSlug
+                ? buildArticlePageSlug(requestedArticleSlug)
                 : 'home';
+
+    if (requestedArticleSlug) {
+        let currentSlug = requestedArticleSlug;
+        const visited = new Set<string>();
+
+        while (currentSlug && !visited.has(currentSlug)) {
+            visited.add(currentSlug);
+
+            const slugRedirect = await prisma.articleSlugRedirect.findUnique({
+                where: { fromSlug: currentSlug },
+                select: { toSlug: true },
+            });
+            const redirectedSlug = normalizeSlugPart(slugRedirect?.toSlug || '', '');
+            if (!redirectedSlug || redirectedSlug === currentSlug) break;
+
+            currentSlug = redirectedSlug;
+        }
+
+        selectedPageSlug = buildArticlePageSlug(currentSlug);
+    }
 
     let page = await prisma.page.findUnique({
         where: { slug: selectedPageSlug },
@@ -38,16 +62,18 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
         }
     });
 
-    if (!page && isArticlePageSlug(selectedPageSlug)) {
-        const requestedArticleSlug = extractArticleSlugPart(selectedPageSlug);
-        const slugRedirect = await prisma.articleSlugRedirect.findUnique({
-            where: { fromSlug: requestedArticleSlug },
-            select: { toSlug: true },
+    if (!page && requestedArticleSlug && selectedPageSlug !== buildArticlePageSlug(requestedArticleSlug)) {
+        selectedPageSlug = buildArticlePageSlug(requestedArticleSlug);
+        page = await prisma.page.findUnique({
+            where: { slug: selectedPageSlug },
+            include: {
+                blocks: { orderBy: { order: 'asc' } }
+            }
         });
+    }
 
-        if (slugRedirect?.toSlug) {
-            redirect(`/admin?slug=${encodeURIComponent(buildArticlePageSlug(slugRedirect.toSlug))}`);
-        }
+    if (page && requestedSlug !== 'home' && requestedSlug !== selectedPageSlug) {
+        redirect(`/admin?slug=${encodeURIComponent(selectedPageSlug)}`);
     }
 
     if (!page) {

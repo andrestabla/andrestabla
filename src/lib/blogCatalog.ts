@@ -176,6 +176,18 @@ function extractSlugFromHref(href: string): string {
     return '';
 }
 
+function resolveRedirectedSlug(slug: string, redirectMap: Map<string, string>): string {
+    let current = normalizeSlugPart(slug, '');
+    const visited = new Set<string>();
+
+    while (current && redirectMap.has(current) && !visited.has(current)) {
+        visited.add(current);
+        current = normalizeSlugPart(redirectMap.get(current) || '', current);
+    }
+
+    return current;
+}
+
 function coerceRawLoopItem(item: unknown): RawLoopItem | null {
     if (!item || typeof item !== 'object') return null;
 
@@ -207,10 +219,24 @@ function coerceRawLoopItem(item: unknown): RawLoopItem | null {
 }
 
 export async function getPublishedBlogItems(): Promise<BlogCatalogItem[]> {
-    const loopgridBlocks = await prisma.block.findMany({
-        where: { type: 'loopgrid' },
-        select: { data: true },
-    });
+    const [loopgridBlocks, redirectRows] = await Promise.all([
+        prisma.block.findMany({
+            where: { type: 'loopgrid' },
+            select: { data: true },
+        }),
+        prisma.articleSlugRedirect.findMany({
+            select: { fromSlug: true, toSlug: true },
+        }),
+    ]);
+
+    const redirectMap = new Map<string, string>();
+    for (const row of redirectRows) {
+        const fromSlug = normalizeSlugPart(row.fromSlug, '');
+        const toSlug = normalizeSlugPart(row.toSlug, '');
+        if (fromSlug && toSlug && fromSlug !== toSlug) {
+            redirectMap.set(fromSlug, toSlug);
+        }
+    }
 
     const rawItems: RawLoopItem[] = [];
 
@@ -238,9 +264,20 @@ export async function getPublishedBlogItems(): Promise<BlogCatalogItem[]> {
 
     const uniqueByKey = new Map<string, RawLoopItem>();
     for (const item of rawItems) {
-        const key = item.articleSlug || item.href || `${item.title}::${item.date}`;
+        const canonicalSlug = item.articleSlug
+            ? resolveRedirectedSlug(item.articleSlug, redirectMap)
+            : '';
+        const key = canonicalSlug || item.href || `${item.title}::${item.date}`;
+        const nextItem = canonicalSlug
+            ? {
+                ...item,
+                articleSlug: canonicalSlug,
+                href: buildArticlePublicPath(canonicalSlug),
+            }
+            : item;
+
         if (!uniqueByKey.has(key)) {
-            uniqueByKey.set(key, item);
+            uniqueByKey.set(key, nextItem);
         }
     }
 
