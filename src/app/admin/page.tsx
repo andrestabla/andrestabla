@@ -1,10 +1,10 @@
 import { prisma } from '@/lib/prisma';
+import { redirect } from 'next/navigation';
 import BuilderWorkspace from './components/BuilderWorkspace';
 import {
     buildArticlePageSlug,
     buildArticlePublicPath,
     extractArticleSlugPart,
-    humanizeSlug,
     isArticlePageSlug,
 } from '@/lib/articlePages';
 
@@ -39,21 +39,19 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
     });
 
     if (!page && isArticlePageSlug(selectedPageSlug)) {
-        page = await prisma.page.create({
-            data: {
-                slug: selectedPageSlug,
-                title: humanizeSlug(selectedPageSlug.replace(/^article-/, '')),
-                description: '',
-                isPublished: true,
-            },
-            include: {
-                blocks: { orderBy: { order: 'asc' } }
-            }
+        const requestedArticleSlug = extractArticleSlugPart(selectedPageSlug);
+        const slugRedirect = await prisma.articleSlugRedirect.findUnique({
+            where: { fromSlug: requestedArticleSlug },
+            select: { toSlug: true },
         });
+
+        if (slugRedirect?.toSlug) {
+            redirect(`/admin?slug=${encodeURIComponent(buildArticlePageSlug(slugRedirect.toSlug))}`);
+        }
     }
 
     if (!page) {
-        return <div className="p-12 text-center text-red-500">Error: Base de datos no inicializada (Falta la página solicitada).</div>;
+        return <div className="p-12 text-center text-red-500">Error: La página solicitada no existe o fue reemplazada por otra versión.</div>;
     }
 
     let siteSettings = await prisma.siteSettings.findUnique({ where: { id: 'global' } });
