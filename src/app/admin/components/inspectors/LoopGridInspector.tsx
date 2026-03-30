@@ -88,6 +88,20 @@ const extractArticleSlugFromHref = (href?: string): string => {
     return '';
 };
 
+const dedupeLoopItems = (sourceItems: LoopItem[], postType: string) => {
+    const seen = new Set<string>();
+
+    return sourceItems.filter((item) => {
+        const key = postType === 'blog'
+            ? ((item.articleSlug || '').trim() || extractArticleSlugFromHref(item.href) || `${item.title}::${item.date}`)
+            : (`${(item.href || '').trim()}::${item.title}::${item.date}`);
+
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+    });
+};
+
 export default function LoopGridInspector({
     initialData,
     onSave,
@@ -158,23 +172,26 @@ export default function LoopGridInspector({
         );
 
     const buildSanitizedItems = (sourceItems: LoopItem[]) =>
-        sourceItems
-            .map((item, index) => {
-                const isBlog = postType === 'blog';
-                const articleSlug = isBlog ? resolveArticleSlug(item, index) : '';
-                const defaultHref = isBlog ? buildArticlePublicPath(articleSlug) : '';
+        dedupeLoopItems(
+            sourceItems
+                .map((item, index) => {
+                    const isBlog = postType === 'blog';
+                    const articleSlug = isBlog ? resolveArticleSlug(item, index) : '';
+                    const defaultHref = isBlog ? buildArticlePublicPath(articleSlug) : '';
 
-                return {
-                    title: (item.title || '').trim(),
-                    category: (item.category || '').trim() || 'General',
-                    date: (item.date || '').trim(),
-                    excerpt: (item.excerpt || '').trim(),
-                    image: (item.image || '').trim(),
-                    href: ((item.href || '').trim() || defaultHref).trim(),
-                    articleSlug,
-                };
-            })
-            .filter((item) => item.title || item.excerpt || item.image);
+                    return {
+                        title: (item.title || '').trim(),
+                        category: (item.category || '').trim() || 'General',
+                        date: (item.date || '').trim(),
+                        excerpt: (item.excerpt || '').trim(),
+                        image: (item.image || '').trim(),
+                        href: ((item.href || '').trim() || defaultHref).trim(),
+                        articleSlug,
+                    };
+                })
+                .filter((item) => item.title || item.excerpt || item.image),
+            postType
+        );
 
     const handleOpenArticleBuilder = async (index: number) => {
         const item = items[index];

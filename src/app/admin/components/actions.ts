@@ -339,6 +339,75 @@ function extractSlugFromHref(href: string): string {
     return '';
 }
 
+function getLoopItemSlug(item: any): string {
+    return normalizeSlugPart(
+        String(item?.articleSlug || '').trim() || extractSlugFromHref(item?.href || ''),
+        ''
+    );
+}
+
+function resolveRedirectedSlug(slug: string, redirectMap: Map<string, string>): string {
+    let current = normalizeSlugPart(slug, '');
+    const visited = new Set<string>();
+
+    while (current && redirectMap.has(current) && !visited.has(current)) {
+        visited.add(current);
+        current = normalizeSlugPart(redirectMap.get(current) || '', current);
+    }
+
+    return current;
+}
+
+function rankLoopItem(item: any, preferredSlug: string): number {
+    const slug = getLoopItemSlug(item);
+    let score = 0;
+
+    if (slug && slug === preferredSlug) score += 8;
+    if (String(item?.title || '').trim()) score += 4;
+    if (String(item?.excerpt || '').trim()) score += 2;
+    if (String(item?.image || '').trim()) score += 1;
+    if (String(item?.href || '').trim()) score += 1;
+
+    return score;
+}
+
+function dedupeLoopItems(items: any[], redirectMap: Map<string, string>, preferredSlug: string) {
+    const deduped: any[] = [];
+    const keyToIndex = new Map<string, number>();
+
+    for (const sourceItem of items) {
+        const item = sourceItem && typeof sourceItem === 'object'
+            ? { ...sourceItem }
+            : {};
+
+        const rawSlug = getLoopItemSlug(item);
+        const canonicalSlug = rawSlug
+            ? resolveRedirectedSlug(rawSlug, redirectMap)
+            : '';
+        const fallbackKey = `${String(item.title || '').trim().toLowerCase()}::${String(item.date || '').trim().toLowerCase()}`;
+        const dedupeKey = canonicalSlug || fallbackKey;
+
+        if (!dedupeKey) {
+            deduped.push(item);
+            continue;
+        }
+
+        const existingIndex = keyToIndex.get(dedupeKey);
+        if (existingIndex === undefined) {
+            keyToIndex.set(dedupeKey, deduped.length);
+            deduped.push(item);
+            continue;
+        }
+
+        const existingItem = deduped[existingIndex];
+        if (rankLoopItem(item, preferredSlug) > rankLoopItem(existingItem, preferredSlug)) {
+            deduped[existingIndex] = item;
+        }
+    }
+
+    return deduped;
+}
+
 function formatBlogDate(date: Date): string {
     return new Intl.DateTimeFormat('en-US', {
         month: 'short',
@@ -423,6 +492,21 @@ export async function publishPageAndSyncArticles(pageId: string): Promise<Publis
     const oldPublicPath = buildArticlePublicPath(currentArticleSlug);
     const adminPath = buildAdminEditPath(nextPageSlug);
     const defaultDate = formatBlogDate(new Date());
+    const redirectRows = await prisma.articleSlugRedirect.findMany({
+        select: { fromSlug: true, toSlug: true },
+    });
+    const redirectMap = new Map<string, string>();
+    for (const row of redirectRows) {
+        const fromSlug = normalizeSlugPart(row.fromSlug, '');
+        const toSlug = normalizeSlugPart(row.toSlug, '');
+        if (fromSlug && toSlug) {
+            redirectMap.set(fromSlug, toSlug);
+        }
+    }
+    if (currentArticleSlug && articleSlug && currentArticleSlug !== articleSlug) {
+        redirectMap.set(currentArticleSlug, articleSlug);
+    }
+    const canonicalArticleSlug = resolveRedirectedSlug(articleSlug, redirectMap);
 
     const loopgridBlocks = await prisma.block.findMany({
         where: { type: 'loopgrid' },
@@ -445,10 +529,8 @@ export async function publishPageAndSyncArticles(pageId: string): Promise<Publis
         let foundIndex = -1;
         for (let i = 0; i < items.length; i += 1) {
             const item = items[i];
-            const itemSlug = normalizeSlugPart(
-                String(item.articleSlug || '').trim() || extractSlugFromHref(item.href || '')
-            );
-            if (itemSlug === currentArticleSlug || itemSlug === articleSlug) {
+            const itemSlug = resolveRedirectedSlug(getLoopItemSlug(item), redirectMap);
+            if (itemSlug && itemSlug === canonicalArticleSlug) {
                 foundIndex = i;
                 break;
             }
@@ -478,7 +560,7 @@ export async function publishPageAndSyncArticles(pageId: string): Promise<Publis
             });
         }
 
-        loopData.items = items;
+        loopData.items = dedupeLoopItems(items, redirectMap, articleSlug);
         transactionOps.push(
             prisma.block.update({
                 where: { id: loopgrid.id },
