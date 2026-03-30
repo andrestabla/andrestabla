@@ -1,11 +1,11 @@
 import { prisma } from '@/lib/prisma';
 import BuilderWorkspace from './components/BuilderWorkspace';
 import {
+    buildArticlePageSlug,
     buildArticlePublicPath,
     extractArticleSlugPart,
     humanizeSlug,
     isArticlePageSlug,
-    normalizeSlugPart,
 } from '@/lib/articlePages';
 
 export const revalidate = 0;
@@ -21,14 +21,14 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
         : resolvedSearchParams?.slug;
 
     const requestedSlug = typeof slugParam === 'string' && slugParam.trim()
-        ? normalizeSlugPart(slugParam.trim(), 'home')
+        ? slugParam.trim()
         : 'home';
 
     const selectedPageSlug =
         requestedSlug === 'home'
             ? 'home'
             : isArticlePageSlug(requestedSlug)
-                ? requestedSlug
+                ? buildArticlePageSlug(extractArticleSlugPart(requestedSlug))
                 : 'home';
 
     let page = await prisma.page.findUnique({
