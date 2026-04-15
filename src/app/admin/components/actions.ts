@@ -2,6 +2,7 @@
 
 import { prisma } from '@/lib/prisma';
 import { revalidatePath } from 'next/cache';
+import { DEFAULT_ASSISTANT_BASE_PROMPT, MAX_ASSISTANT_DOCUMENT_CHARS, MAX_ASSISTANT_PROMPT_CHARS } from '@/lib/assistantConfig';
 import {
     extractArticleSlugPart,
     buildAdminEditPath,
@@ -151,6 +152,45 @@ export async function updateGlobalSettings(newStyles: string) {
 
     revalidatePath('/');
     revalidatePath('/admin');
+}
+
+export async function updateAssistantSettings(basePrompt: string, contextDocument: string) {
+    let existingStyles: Record<string, unknown> = {};
+    const settings = await prisma.siteSettings.findUnique({ where: { id: 'global' } });
+
+    if (typeof settings?.globalStyles === 'string' && settings.globalStyles.trim()) {
+        try {
+            const parsed = JSON.parse(settings.globalStyles);
+            if (parsed && typeof parsed === 'object') {
+                existingStyles = parsed as Record<string, unknown>;
+            }
+        } catch {
+            existingStyles = {};
+        }
+    }
+
+    const nextStyles = {
+        ...existingStyles,
+        assistantBasePrompt:
+            String(basePrompt || '').trim().slice(0, MAX_ASSISTANT_PROMPT_CHARS) || DEFAULT_ASSISTANT_BASE_PROMPT,
+        assistantContextDocument:
+            String(contextDocument || '').trim().slice(0, MAX_ASSISTANT_DOCUMENT_CHARS),
+    };
+
+    await prisma.siteSettings.upsert({
+        where: { id: 'global' },
+        update: { globalStyles: JSON.stringify(nextStyles) },
+        create: {
+            id: 'global',
+            title: 'Mi Sitio',
+            description: '',
+            globalStyles: JSON.stringify(nextStyles),
+        },
+    });
+
+    revalidatePath('/');
+    revalidatePath('/admin');
+    revalidatePath('/admin/assistant');
 }
 
 type EnsureArticlePageInput = {

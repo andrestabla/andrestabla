@@ -1,12 +1,6 @@
 import { useState } from 'react';
 import { updateGlobalSettings } from './actions';
 import { Palette, Baseline, Image as ImageIcon, Loader2, Navigation, Plus, Trash2 } from 'lucide-react';
-import {
-    DEFAULT_ASSISTANT_BASE_PROMPT,
-    MAX_ASSISTANT_DOCUMENT_CHARS,
-    MAX_ASSISTANT_PROMPT_CHARS,
-    parseAssistantConfig,
-} from '@/lib/assistantConfig';
 
 // Small inline color swatch + hex input
 function ColorField({ label, value, onChange, hint }: { label: string; value: string; onChange: (v: string) => void; hint?: string }) {
@@ -76,8 +70,6 @@ export default function GlobalSettingsForm({
         } catch (_error) { }
     }
 
-    const assistantConfig = parseAssistantConfig(settings?.globalStyles);
-
     const [primaryColor, setPrimaryColor] = useState(parsedStyles.primaryColor);
     const [secondaryColor, setSecondaryColor] = useState(parsedStyles.secondaryColor);
     const [accentColor, setAccentColor] = useState(parsedStyles.accentColor);
@@ -96,8 +88,6 @@ export default function GlobalSettingsForm({
     const [footerTextColorValue, setFooterTextColorValue] = useState(parsedStyles.footerTextColor);
     const [footerAccentColor, setFooterAccentColor] = useState(parsedStyles.footerAccentColor);
     const [navLinks, setNavLinks] = useState<{ label: string; href: string }[]>(parsedStyles.navLinks);
-    const [assistantBasePrompt, setAssistantBasePrompt] = useState(assistantConfig.assistantBasePrompt);
-    const [assistantContextDocument, setAssistantContextDocument] = useState(assistantConfig.assistantContextDocument);
     const anchorHrefSet = new Set(anchorOptions.map((item) => item.href));
 
     const applyRuntimeFavicon = (rawHref: string) => {
@@ -126,8 +116,6 @@ export default function GlobalSettingsForm({
             fontFamily, logoUrl, faviconUrl, loaderEnabled,
             footerStyle, footerText, footerBg, footerBorder, footerTextColor: footerTextColorValue, footerAccentColor,
             navLinks,
-            assistantBasePrompt: assistantBasePrompt.trim() || DEFAULT_ASSISTANT_BASE_PROMPT,
-            assistantContextDocument: assistantContextDocument.trim(),
         });
         await updateGlobalSettings(payload);
         applyRuntimeFavicon(faviconUrl);
@@ -304,54 +292,6 @@ export default function GlobalSettingsForm({
                         style={{ backgroundColor: footerBg, borderColor: footerBorder, color: footerTextColorValue }}
                     >
                         Vista previa: {footerStyle} <span style={{ color: footerAccentColor }}>•</span> {footerText || 'Texto secundario'}
-                    </div>
-                </div>
-            </div>
-
-            {/* ── ASISTENTE IA ─────────────────────────────────────── */}
-            <div className="bg-slate-50 p-4 rounded-xl border border-slate-200">
-                <div className="mb-3">
-                    <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500 block">
-                        Asistente IA
-                    </label>
-                    <p className="text-[10px] text-slate-400 mt-1">
-                        Configura el prompt operativo y pega el documento base que el chatbot usará como contexto adicional.
-                    </p>
-                </div>
-
-                <div className="space-y-4">
-                    <div>
-                        <div className="flex items-center justify-between mb-1">
-                            <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Prompt Base</p>
-                            <span className="text-[9px] text-slate-400">{assistantBasePrompt.length}/{MAX_ASSISTANT_PROMPT_CHARS}</span>
-                        </div>
-                        <textarea
-                            value={assistantBasePrompt}
-                            onChange={e => setAssistantBasePrompt(e.target.value.slice(0, MAX_ASSISTANT_PROMPT_CHARS))}
-                            rows={7}
-                            className="w-full text-xs p-3 border border-slate-200 rounded-lg focus:ring-1 focus:ring-indigo-500 resize-y min-h-[140px]"
-                            placeholder="Describe cómo debe responder el asistente, tono, objetivo y criterios de respuesta."
-                        />
-                        <p className="text-[9px] text-slate-400 mt-1">
-                            Las reglas críticas de idioma, contacto y no invención siguen activas para proteger el flujo del sitio.
-                        </p>
-                    </div>
-
-                    <div>
-                        <div className="flex items-center justify-between mb-1">
-                            <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Documento de Contexto</p>
-                            <span className="text-[9px] text-slate-400">{assistantContextDocument.length}/{MAX_ASSISTANT_DOCUMENT_CHARS}</span>
-                        </div>
-                        <textarea
-                            value={assistantContextDocument}
-                            onChange={e => setAssistantContextDocument(e.target.value.slice(0, MAX_ASSISTANT_DOCUMENT_CHARS))}
-                            rows={14}
-                            className="w-full text-xs p-3 border border-slate-200 rounded-lg focus:ring-1 focus:ring-indigo-500 resize-y min-h-[240px] font-mono"
-                            placeholder="Pega aquí el documento de contexto: propuestas de valor, FAQs, servicios, objeciones, casos, políticas o información comercial."
-                        />
-                        <p className="text-[9px] text-slate-400 mt-1">
-                            Este documento se combina con la hoja de vida base y con un resumen automático del contenido publicado en el sitio.
-                        </p>
                     </div>
                 </div>
             </div>

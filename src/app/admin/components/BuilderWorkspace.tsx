@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { updateBlockData, deleteBlock, addBlock, reorderBlocks, publishPageAndSyncArticles, toggleBlockVisibility } from './actions';
 import {
     Trash2, Plus, Layers, Box, Settings2,
-    Save, X, ChevronLeft, PanelLeft, Eye, EyeOff, ChevronUp, ChevronDown, Maximize2, Minimize2, BarChart3
+    Save, X, ChevronLeft, PanelLeft, Eye, EyeOff, ChevronUp, ChevronDown, Maximize2, Minimize2, BarChart3, Bot
 } from 'lucide-react';
 import GlobalSettingsForm from './GlobalSettingsForm';
 import ClientInlineBlockRenderer from './ClientInlineBlockRenderer';
@@ -404,6 +404,15 @@ export default function BuilderWorkspace({
                                 title="Abrir módulo de analítica"
                             >
                                 <BarChart3 size={13} /> Analítica
+                            </a>
+                            <a
+                                href="/admin/assistant"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-[10px] uppercase tracking-widest font-bold text-indigo-200 hover:text-white flex items-center gap-1.5"
+                                title="Abrir módulo del asistente IA"
+                            >
+                                <Bot size={13} /> Asistente IA
                             </a>
                             <button
                                 onClick={() => setSidebarExpanded(prev => !prev)}
