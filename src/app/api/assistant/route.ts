@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { recordAnalyticsEvent } from '@/lib/analytics';
+import { parseAssistantConfig } from '@/lib/assistantConfig';
 import { prisma } from '@/lib/prisma';
 import {
     ANDRES_ASSISTANT_KNOWLEDGE,
@@ -16,7 +17,6 @@ const OPENAI_MODEL = 'gpt-4.1-nano';
 const MAX_CONTEXT_CHARS = 5000;
 const MAX_MESSAGE_CHARS = 1200;
 const MAX_HISTORY_MESSAGES = 8;
-const CONTEXT_CACHE_TTL_MS = 5 * 60 * 1000;
 const ANDRES_BIRTHDATE = { year: 1988, month: 5, day: 30 } as const;
 
 type ChatMessage = {
@@ -29,14 +29,13 @@ type ChatAction = {
     url: string;
 };
 
-type SiteContextCache = {
+type SiteContext = {
     siteTitle: string;
     siteDescription: string;
     blocksSummary: string;
-    cachedAt: number;
+    assistantBasePrompt: string;
+    assistantContextDocument: string;
 };
-
-let siteContextCache: SiteContextCache | null = null;
 
 const API_ERRORS: Record<Locale, Record<'missingApiKey' | 'noMessages' | 'openaiError' | 'noAssistantResponse' | 'internal', string>> = {
     es: {
@@ -240,46 +239,26 @@ function summarizeBlocks(blocks: any[]): string {
 }
 
 async function getSiteContext() {
-    const now = Date.now();
-    if (siteContextCache && now - siteContextCache.cachedAt < CONTEXT_CACHE_TTL_MS) {
-        return {
-            siteTitle: siteContextCache.siteTitle,
-            siteDescription: siteContextCache.siteDescription,
-            blocksSummary: siteContextCache.blocksSummary,
-        };
-    }
+    const [siteSettings, homePage] = await Promise.all([
+        prisma.siteSettings.findUnique({ where: { id: 'global' } }),
+        prisma.page.findUnique({
+            where: { slug: 'home' },
+            include: { blocks: { orderBy: { order: 'asc' } } },
+        }),
+    ]);
 
-    try {
-        const [siteSettings, homePage] = await Promise.all([
-            prisma.siteSettings.findUnique({ where: { id: 'global' } }),
-            prisma.page.findUnique({
-                where: { slug: 'home' },
-                include: { blocks: { orderBy: { order: 'asc' } } },
-            }),
-        ]);
+    const blocksSummary = homePage?.blocks ? summarizeBlocks(homePage.blocks) : '';
+    const siteTitle = siteSettings?.title || 'Andrés Tabla Rico';
+    const siteDescription = siteSettings?.description || '';
+    const { assistantBasePrompt, assistantContextDocument } = parseAssistantConfig(siteSettings?.globalStyles);
 
-        const blocksSummary = homePage?.blocks ? summarizeBlocks(homePage.blocks) : '';
-        const siteTitle = siteSettings?.title || 'Andrés Tabla Rico';
-        const siteDescription = siteSettings?.description || '';
-
-        siteContextCache = {
-            siteTitle,
-            siteDescription,
-            blocksSummary,
-            cachedAt: now,
-        };
-
-        return { siteTitle, siteDescription, blocksSummary };
-    } catch (error) {
-        if (siteContextCache) {
-            return {
-                siteTitle: siteContextCache.siteTitle,
-                siteDescription: siteContextCache.siteDescription,
-                blocksSummary: siteContextCache.blocksSummary,
-            };
-        }
-        throw error;
-    }
+    return {
+        siteTitle,
+        siteDescription,
+        blocksSummary,
+        assistantBasePrompt,
+        assistantContextDocument,
+    } satisfies SiteContext;
 }
 
 function extractResponseText(payload: any): string {
@@ -376,14 +355,20 @@ export async function POST(req: Request) {
                 });
             }
         }
-        const { siteTitle, siteDescription, blocksSummary } = await getSiteContext();
+        const {
+            siteTitle,
+            siteDescription,
+            blocksSummary,
+            assistantBasePrompt,
+            assistantContextDocument,
+        } = await getSiteContext();
         const andresAge = getAndresCurrentAge();
 
         const systemPrompt = [
-            'Eres el asistente oficial del portafolio de Andrés Tabla Rico.',
+            'Prompt base configurado en Admin:',
+            assistantBasePrompt,
+            '',
             getLanguageInstruction(locale),
-            'Mantén tono profesional, claro y útil.',
-            'Tu objetivo es ayudar a visitantes a conocer su perfil, experiencia, formación, cursos y servicios.',
             'Usa únicamente la información de contexto entregada; no inventes datos.',
             'Si te preguntan algo no disponible en el contexto, dilo explícitamente y sugiere contactar a Andrés con las 3 opciones oficiales de contacto.',
             'Si preguntan la edad de Andrés, responde solo con su edad actual en años. Nunca reveles su fecha de nacimiento.',
@@ -398,6 +383,9 @@ export async function POST(req: Request) {
             'Contexto base de conocimiento (hoja de vida y trayectoria):',
             ANDRES_ASSISTANT_KNOWLEDGE,
             '',
+            assistantContextDocument ? 'Documento de contexto administrado en Admin:' : '',
+            assistantContextDocument || '',
+            assistantContextDocument ? '' : '',
             `Contexto del sitio: ${siteTitle}.`,
             siteDescription ? `Descripción: ${siteDescription}` : '',
             blocksSummary ? `Contenido detectado en la web:\n${blocksSummary}` : '',
