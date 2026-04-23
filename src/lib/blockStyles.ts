@@ -72,7 +72,7 @@ export function buildFullBleedBackgroundStyle({
     if (bgImage) {
         styleObject.backgroundImage = `url('${escapeForCssUrl(bgImage)}')`;
         styleObject.backgroundSize = 'cover';
-        styleObject.backgroundPosition = 'center';
+        styleObject.backgroundPosition = 'var(--block-bg-position, center)';
         styleObject.backgroundRepeat = 'no-repeat';
     }
 
@@ -114,6 +114,8 @@ export function buildBlockInlineStyles(parsedStyles: RawBlockStyles): Record<str
     if (fontFamily) styleObject.fontFamily = fontFamily;
 
     const variableMap: Array<[string, string]> = [
+        ['backgroundPosition', '--block-bg-position'],
+        ['backgroundPositionMobile', '--block-bg-position-mobile'],
         ['linkButtonBg', '--block-link-btn-bg'],
         ['linkButtonText', '--block-link-btn-text'],
         ['linkButtonBorder', '--block-link-btn-border'],

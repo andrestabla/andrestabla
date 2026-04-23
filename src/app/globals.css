@@ -245,6 +245,14 @@
   background-position: center;
 }
 
+.block-has-background-media .block-bg-fullbleed {
+  background-position: var(--block-bg-position, center);
+}
+
+.block-has-background-media .block-bg-video-file {
+  object-position: var(--block-bg-position, center);
+}
+
 .block-bg-fullbleed {
   left: calc(50% - 50vw);
   width: 100vw;
@@ -267,6 +275,10 @@
     background-position: center center !important;
   }
 
+  .block-has-background-media .block-bg-fullbleed {
+    background-position: var(--block-bg-position-mobile, var(--block-bg-position, center)) !important;
+  }
+
   .block-has-background-media .block-bg-video {
     inset: 0 !important;
   }
@@ -277,6 +289,7 @@
     min-width: 100% !important;
     min-height: 100% !important;
     object-fit: cover !important;
+    object-position: var(--block-bg-position-mobile, var(--block-bg-position, center)) !important;
   }
 
   .block-has-background-media .block-bg-video-iframe {

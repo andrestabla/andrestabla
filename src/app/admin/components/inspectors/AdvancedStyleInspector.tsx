@@ -108,6 +108,8 @@ function getHydratedStyleState(sourceBlock: any) {
         bgImage: parsedStyles.backgroundImage || '',
         bgVideo: parsedStyles.backgroundVideo || '',
         bgMediaType: backgroundMediaType,
+        bgPosition: parsedStyles.backgroundPosition || '',
+        bgPositionMobile: parsedStyles.backgroundPositionMobile || '',
         overlayColor: parsedStyles.backgroundOverlayColor || '#000000',
         overlayOpacity: String(parsedStyles.backgroundOverlayOpacity ?? '0'),
         linkButtonBg: parsedStyles.linkButtonBg || '',
@@ -142,6 +144,8 @@ export default function AdvancedStyleInspector({ block, onSaved }: { block: any,
     const [bgImage, setBgImage] = useState(initialState.bgImage);
     const [bgVideo, setBgVideo] = useState(initialState.bgVideo);
     const [bgMediaType, setBgMediaType] = useState(initialState.bgMediaType);
+    const [bgPosition, setBgPosition] = useState(initialState.bgPosition);
+    const [bgPositionMobile, setBgPositionMobile] = useState(initialState.bgPositionMobile);
     const [overlayColor, setOverlayColor] = useState(initialState.overlayColor);
     const [overlayOpacity, setOverlayOpacity] = useState(initialState.overlayOpacity);
     const [linkButtonBg, setLinkButtonBg] = useState(initialState.linkButtonBg);
@@ -175,6 +179,8 @@ export default function AdvancedStyleInspector({ block, onSaved }: { block: any,
         setBgImage(nextState.bgImage);
         setBgVideo(nextState.bgVideo);
         setBgMediaType(nextState.bgMediaType);
+        setBgPosition(nextState.bgPosition);
+        setBgPositionMobile(nextState.bgPositionMobile);
         setOverlayColor(nextState.overlayColor);
         setOverlayOpacity(nextState.overlayOpacity);
         setLinkButtonBg(nextState.linkButtonBg);
@@ -207,6 +213,8 @@ export default function AdvancedStyleInspector({ block, onSaved }: { block: any,
             backgroundMediaType: bgMediaType,
             backgroundImage: bgImage,
             backgroundVideo: bgVideo,
+            backgroundPosition: bgPosition,
+            backgroundPositionMobile: bgPositionMobile,
             backgroundOverlayColor: overlayColor,
             backgroundOverlayOpacity: String(safeOverlayOpacity),
             linkButtonBg,
@@ -284,6 +292,28 @@ export default function AdvancedStyleInspector({ block, onSaved }: { block: any,
                         disabled={bgMediaType !== 'video'}
                         className="w-full text-xs p-3 border border-slate-200 rounded-lg focus:ring-1 focus:ring-indigo-500 disabled:bg-slate-100 disabled:text-slate-400"
                     />
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                        <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1 block">Enfoque Desktop</label>
+                        <input
+                            type="text"
+                            placeholder="center o 72% center"
+                            value={bgPosition}
+                            onChange={e => setBgPosition(e.target.value)}
+                            className="w-full text-xs p-3 border border-slate-200 rounded-lg focus:ring-1 focus:ring-indigo-500"
+                        />
+                    </div>
+                    <div>
+                        <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1 block">Enfoque Mobile</label>
+                        <input
+                            type="text"
+                            placeholder="82% center"
+                            value={bgPositionMobile}
+                            onChange={e => setBgPositionMobile(e.target.value)}
+                            className="w-full text-xs p-3 border border-slate-200 rounded-lg focus:ring-1 focus:ring-indigo-500"
+                        />
+                    </div>
                 </div>
                 <ColorQuickField
                     label="Color de Capa"
