@@ -254,14 +254,16 @@
 }
 
 .block-bg-fullbleed {
-  left: calc(50% - 50vw);
+  left: 50%;
+  right: auto;
   width: 100vw;
   min-width: 100vw;
+  max-width: none;
+  transform: translateX(-50%);
 }
 
 @supports (width: 100dvw) {
   .block-bg-fullbleed {
-    left: calc(50% - 50dvw);
     width: 100dvw;
     min-width: 100dvw;
   }
