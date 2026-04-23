@@ -277,6 +277,14 @@
     background-position: center center !important;
   }
 
+  .block-bg-fullbleed {
+    left: 0 !important;
+    right: 0 !important;
+    width: 100% !important;
+    min-width: 100% !important;
+    transform: none !important;
+  }
+
   .block-has-background-media .block-bg-fullbleed {
     background-position: var(--block-bg-position-mobile, var(--block-bg-position, center)) !important;
   }
