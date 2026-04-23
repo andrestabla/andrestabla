@@ -92,13 +92,15 @@ function BlockNode({ block, allBlocks, isEditor }: { block: any, allBlocks: any[
     }
 
     const { imageUrl, videoUrl } = resolveBackgroundMediaUrls(parsedStyles);
+    const overlay = resolveBackgroundOverlay(parsedStyles);
+    const bakeOverlayIntoImage = Boolean(imageUrl && overlay.opacity > 0);
     const styleString: any = buildBlockInlineStyles(parsedStyles);
     const baseBackgroundStyle = buildFullBleedBackgroundStyle({
         color: parsedStyles.backgroundColor,
         imageUrl,
+        overlay: bakeOverlayIntoImage ? overlay : undefined,
     });
     const hasBaseBackground = Boolean(baseBackgroundStyle.backgroundColor || baseBackgroundStyle.backgroundImage);
-    const overlay = resolveBackgroundOverlay(parsedStyles);
     const hasCustomBackground = Boolean(
         hasBaseBackground ||
         videoUrl ||
@@ -137,7 +139,7 @@ function BlockNode({ block, allBlocks, isEditor }: { block: any, allBlocks: any[
                 />
             )}
             <BlockBackgroundVideo url={videoUrl} fullBleed />
-            {overlay.opacity > 0 && (
+            {overlay.opacity > 0 && !bakeOverlayIntoImage && (
                 <div
                     className="block-bg-fullbleed absolute inset-0 z-0 pointer-events-none"
                     style={{ backgroundColor: overlay.color, opacity: overlay.opacity }}

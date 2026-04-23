@@ -89,14 +89,16 @@ function BlockNode({ block, allBlocks, selectedBlockId, onSelect }: BlockNodePro
     let parsedStyles: any = {};
     try { if (block.styles) parsedStyles = JSON.parse(block.styles); } catch { /* noop */ }
 
+    const overlay = resolveBackgroundOverlay(parsedStyles);
     const { imageUrl, videoUrl } = resolveBackgroundMediaUrls(parsedStyles);
+    const bakeOverlayIntoImage = Boolean(imageUrl && overlay.opacity > 0);
     const styleObj = buildBlockInlineStyles(parsedStyles) as React.CSSProperties;
     const baseBackgroundStyle = buildFullBleedBackgroundStyle({
         color: parsedStyles.backgroundColor,
         imageUrl,
+        overlay: bakeOverlayIntoImage ? overlay : undefined,
     }) as React.CSSProperties;
     const hasBaseBackground = Boolean((baseBackgroundStyle as any).backgroundColor || (baseBackgroundStyle as any).backgroundImage);
-    const overlay = resolveBackgroundOverlay(parsedStyles);
     const hasCustomBackground = Boolean(
         hasBaseBackground ||
         videoUrl ||
@@ -142,7 +144,7 @@ function BlockNode({ block, allBlocks, selectedBlockId, onSelect }: BlockNodePro
                 />
             )}
             <BlockBackgroundVideo url={videoUrl} fullBleed />
-            {overlay.opacity > 0 && (
+            {overlay.opacity > 0 && !bakeOverlayIntoImage && (
                 <div
                     className="block-bg-fullbleed absolute inset-0 z-0 pointer-events-none"
                     style={{ backgroundColor: overlay.color, opacity: overlay.opacity }}

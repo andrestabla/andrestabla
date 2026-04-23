@@ -56,12 +56,43 @@ export function resolveBackgroundOverlay(parsedStyles: RawBlockStyles): { color:
     return { color, opacity };
 }
 
+function toOverlayColor(color: string, opacity: number): string {
+    const normalized = normalizeCssValue(color);
+    const alpha = clamp(opacity, 0, 1);
+    if (!normalized || alpha <= 0) return '';
+
+    const hex = normalized.replace('#', '').trim();
+    if (/^[0-9a-fA-F]{3}$/.test(hex)) {
+        const [r, g, b] = hex.split('').map((char) => parseInt(char + char, 16));
+        return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+    }
+
+    if (/^[0-9a-fA-F]{6}$/.test(hex)) {
+        const r = parseInt(hex.slice(0, 2), 16);
+        const g = parseInt(hex.slice(2, 4), 16);
+        const b = parseInt(hex.slice(4, 6), 16);
+        return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+    }
+
+    if (/^[0-9a-fA-F]{8}$/.test(hex)) {
+        const r = parseInt(hex.slice(0, 2), 16);
+        const g = parseInt(hex.slice(2, 4), 16);
+        const b = parseInt(hex.slice(4, 6), 16);
+        const baseAlpha = parseInt(hex.slice(6, 8), 16) / 255;
+        return `rgba(${r}, ${g}, ${b}, ${Number((baseAlpha * alpha).toFixed(4))})`;
+    }
+
+    return `color-mix(in srgb, ${normalized} ${Math.round(alpha * 100)}%, transparent)`;
+}
+
 export function buildFullBleedBackgroundStyle({
     color,
     imageUrl,
+    overlay,
 }: {
     color?: unknown;
     imageUrl?: unknown;
+    overlay?: { color: string; opacity: number };
 }): Record<string, string> {
     const styleObject: Record<string, string> = {};
     const bgColor = normalizeCssValue(color);
@@ -70,7 +101,10 @@ export function buildFullBleedBackgroundStyle({
     if (bgColor) styleObject.backgroundColor = bgColor;
 
     if (bgImage) {
-        styleObject.backgroundImage = `url('${escapeForCssUrl(bgImage)}')`;
+        const overlayColor = overlay ? toOverlayColor(overlay.color, overlay.opacity) : '';
+        styleObject.backgroundImage = overlayColor
+            ? `linear-gradient(${overlayColor}, ${overlayColor}), url('${escapeForCssUrl(bgImage)}')`
+            : `url('${escapeForCssUrl(bgImage)}')`;
         styleObject.backgroundSize = 'cover';
         styleObject.backgroundPosition = 'var(--block-bg-position, center)';
         styleObject.backgroundRepeat = 'no-repeat';
